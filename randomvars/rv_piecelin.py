@@ -8,16 +8,13 @@ class rv_piecelin(rv_continuous):
     """ Random variable with piecewise-linear density
     """
 
-    def __init__(self, density, *args, **kwargs):
-        if len(density) != 2:
-            raise ValueError("Expected length 2 for parameter `den`")
-        if len(density[0]) != len(density[1]):
-            raise ValueError(
-                "Number of elements of `x` and `y` components do not match"
-            )
+    def __init__(self, x, y, *args, **kwargs):
+        if len(x) != len(y):
+            raise ValueError("Number of elements of `x` and `y` do not match")
 
-        self._x = np.asarray(density[0])
-        self._y = np.asarray(density[1]) / trapez_integral(density[0], density[1])
+        self._x = np.asarray(x)
+        self._y = np.asarray(y)
+        self._y = self._y / trapez_integral(self._x, self._y)
         self._cumprob = trapez_integral_cum(self._x, self._y)
 
         # Set support
@@ -25,6 +22,11 @@ class rv_piecelin(rv_continuous):
         kwargs["b"] = self.b = self._x[-1]
 
         super(rv_piecelin, self).__init__(*args, **kwargs)
+
+    def get_grid(self):
+        """Get grid (tuple with `x` and `y`) defining piecewise-linear density
+        """
+        return (self._x, self._y)
 
     def _pdf(self, x, *args):
         """ Implementation of probability density function
