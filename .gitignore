@@ -10,3 +10,8 @@
 # VS Code settings
 .vscode/*
 *.code-workspace
+
+# pytest cache #
+################
+.cache/*
+.pytest_cache/*
