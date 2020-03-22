@@ -63,8 +63,13 @@ class rv_piecelin(rv_continuous):
 
         return x, y
 
-    def get_grid(self):
-        """Get grid (tuple with `x` and `y`) defining piecewise-linear density
+    def pdf_grid(self):
+        """Get density grid
+
+        Returns
+        -------
+        grid : tuple with 2 numeric arrays of same length.
+            Two components are `x` and `y` arrays defining piecewise-linear density.
         """
         return (self._x, self._y)
 

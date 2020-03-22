@@ -9,8 +9,8 @@ from randomvars.rv_piecelin import rv_piecelin
 
 
 def assert_equal_grid(rv1, rv2, *args, **kwargs):
-    grid1 = rv1.get_grid()
-    grid2 = rv2.get_grid()
+    grid1 = rv1.pdf_grid()
+    grid2 = rv2.pdf_grid()
     assert_array_equal(grid1[0], grid2[0], *args, **kwargs)
     assert_array_equal(grid1[1], grid2[1], *args, **kwargs)
 
@@ -70,3 +70,13 @@ class TestRVPiecelin:
         # Check if `x` and `y` are rearranged if not sorted
         rv_3 = rv_piecelin(x=x_ref[[1, 0, 2]], y=10 * y_ref[[1, 0, 2]])
         assert_equal_grid(rv_3, rv_ref)
+
+    def test_pdf_grid(self):
+        x = np.arange(11)
+        y = np.repeat(0.1, 11)
+        rv = rv_piecelin(x, y)
+        out = rv.pdf_grid()
+
+        assert len(out) == 2
+        assert_array_equal(out[0], x)
+        assert_array_equal(out[1], y)
