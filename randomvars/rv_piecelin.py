@@ -14,8 +14,8 @@ class rv_piecelin(rv_continuous):
 
         self._x = np.asarray(x)
         self._y = np.asarray(y)
-        self._y = self._y / trapez_integral(self._x, self._y)
-        self._cumprob = trapez_integral_cum(self._x, self._y)
+        self._y = self._y / _trapez_integral(self._x, self._y)
+        self._cumprob = _trapez_integral_cum(self._x, self._y)
 
         # Set support
         kwargs["a"] = self.a = self._x[0]
@@ -79,18 +79,27 @@ class rv_piecelin(rv_continuous):
         return self._coeffs_by_ind(ind)
 
 
-def trapez_integral(x, y):
+def _trapez_integral(x, y):
     """ Compute integral with trapezoidal formula.
+
+    >>> _trapez_integral(np.array([0, 1]), np.array([1, 1]))
+    1.0
+    >>> _trapez_integral(np.array([-1, 0, 1]), np.array([0, 10, 5]))
+    12.5
     """
     return np.sum(0.5 * np.diff(x) * (y[:-1] + y[1:]))
 
 
-def trapez_integral_cum(x, y):
+def _trapez_integral_cum(x, y):
     """ Compute cumulative integral with trapezoidal formula.
 
     Element of output represents cumulative probability **before** its left "x"
     edge.
-    """
 
+    >>> _trapez_integral_cum(np.array([0, 1]), np.array([1, 1]))
+    array([0., 1.])
+    >>> _trapez_integral_cum(np.array([-1, 0, 1]), np.array([0, 10, 5]))
+    array([ 0. ,  5. , 12.5])
+    """
     res = np.cumsum(0.5 * np.diff(x) * (y[:-1] + y[1:]))
-    return np.concatenate([[0], res[:-1]])
+    return np.concatenate([[0], res])
