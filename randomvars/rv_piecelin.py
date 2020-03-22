@@ -1,5 +1,7 @@
 """ Code for random variable with piecewise-linear density
 """
+import warnings
+
 import numpy as np
 from scipy.stats.distributions import rv_continuous
 
@@ -9,12 +11,10 @@ class rv_piecelin(rv_continuous):
     """
 
     def __init__(self, x, y, *args, **kwargs):
-        if len(x) != len(y):
-            raise ValueError("Number of elements of `x` and `y` do not match")
+        x, y = self._impute_xy(x, y)
 
-        self._x = np.asarray(x)
-        self._y = np.asarray(y)
-        self._y = self._y / _trapez_integral(self._x, self._y)
+        self._x = x
+        self._y = y
         self._cumprob = _trapez_integral_cum(self._x, self._y)
 
         # Set support
@@ -22,6 +22,46 @@ class rv_piecelin(rv_continuous):
         kwargs["b"] = self.b = self._x[-1]
 
         super(rv_piecelin, self).__init__(*args, **kwargs)
+
+    @staticmethod
+    def _impute_xy(x, y):
+        try:
+            x = np.asarray_chkfinite(x, dtype=np.float64)
+        except:
+            raise ValueError(
+                "`x` is not convertable to numeric numpy array with finite values."
+            )
+        if len(x.shape) > 1:
+            raise ValueError("`x` is not a 1d array.")
+
+        try:
+            y = np.asarray_chkfinite(y, dtype=np.float64)
+        except:
+            raise ValueError(
+                "`y` is not convertable to numeric numpy array with finite values."
+            )
+        if len(y.shape) > 1:
+            raise ValueError("`y` is not a 1d array.")
+
+        if len(x) != len(y):
+            raise ValueError("Lengths of `x` and `y` do not match.")
+
+        if not np.all(np.diff(x) > 0):
+            warnings.warn(
+                "`x` is not sorted. `x` and `y` are rearranged so as `x` is sorted."
+            )
+            x_argsort = np.argsort(x)
+            x = x[x_argsort]
+            y = y[x_argsort]
+
+        if np.any(y < 0):
+            raise ValueError("`y` has negative values.")
+        if not np.any(y > 0):
+            raise ValueError("`y` has no positive values.")
+
+        y = y / _trapez_integral(x, y)
+
+        return x, y
 
     def get_grid(self):
         """Get grid (tuple with `x` and `y`) defining piecewise-linear density
