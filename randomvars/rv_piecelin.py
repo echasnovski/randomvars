@@ -103,3 +103,9 @@ def _trapez_integral_cum(x, y):
     """
     res = np.cumsum(0.5 * np.diff(x) * (y[:-1] + y[1:]))
     return np.concatenate([[0], res])
+
+
+if __name__ == "__main__":
+    import doctest
+
+    doctest.testmod()
