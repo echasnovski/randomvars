@@ -8,11 +8,14 @@ import pytest
 from randomvars.rv_piecelin import rv_piecelin
 
 
-def assert_equal_grid(rv1, rv2, *args, **kwargs):
-    grid1 = rv1.pdf_grid()
-    grid2 = rv2.pdf_grid()
-    assert_array_equal(grid1[0], grid2[0], *args, **kwargs)
-    assert_array_equal(grid1[1], grid2[1], *args, **kwargs)
+def assert_equal_seq(first, second, *args, **kwargs):
+    assert len(first) == len(second)
+    for el1, el2 in zip(first, second):
+        assert_array_equal(el1, el2, *args, **kwargs)
+
+
+def assert_equal_rv_pieceilin(rv_p_1, rv_p_2):
+    assert_equal_seq(rv_p_1.pdf_grid(), rv_p_2.pdf_grid())
 
 
 class TestRVPiecelin:
@@ -46,7 +49,7 @@ class TestRVPiecelin:
         with pytest.warns(UserWarning, match="`x`.*not sorted"):
             rv = rv_piecelin([1, 0], [0, 2])
             rv_ref = rv_piecelin([0, 1], [2, 0])
-            assert_equal_grid(rv, rv_ref)
+            assert_equal_rv_pieceilin(rv, rv_ref)
 
         with pytest.raises(ValueError, match="`y`.*negative"):
             rv_piecelin([0, 1], [1, -1])
@@ -61,22 +64,39 @@ class TestRVPiecelin:
 
         # Simple case with non-numpy input
         rv_1 = rv_piecelin(x=x_ref.tolist(), y=y_ref.tolist())
-        assert_equal_grid(rv_1, rv_ref)
+        assert_equal_rv_pieceilin(rv_1, rv_ref)
 
         # Check if `y` is normalized
         rv_2 = rv_piecelin(x=x_ref, y=10 * y_ref)
-        assert_equal_grid(rv_2, rv_ref)
+        assert_equal_rv_pieceilin(rv_2, rv_ref)
 
         # Check if `x` and `y` are rearranged if not sorted
         rv_3 = rv_piecelin(x=x_ref[[1, 0, 2]], y=10 * y_ref[[1, 0, 2]])
-        assert_equal_grid(rv_3, rv_ref)
+        assert_equal_rv_pieceilin(rv_3, rv_ref)
 
     def test_pdf_grid(self):
         x = np.arange(11)
         y = np.repeat(0.1, 11)
         rv = rv_piecelin(x, y)
-        out = rv.pdf_grid()
 
-        assert len(out) == 2
-        assert_array_equal(out[0], x)
-        assert_array_equal(out[1], y)
+        assert_equal_seq(rv.pdf_grid(), (x, y))
+
+    def test_pdf_coeffs(self):
+        rv = rv_piecelin([0, 1, 2], [0, 1, 0])
+        x = np.array([-1, 0, 0.5, 1, 1.5, 2, 2.5])
+
+        with pytest.raises(ValueError, match="one of"):
+            rv.pdf_coeffs(x, side="a")
+
+        assert_equal_seq(
+            rv.pdf_coeffs(x),
+            (np.array([0, 0, 0, 2, 2, 2, 0]), np.array([0, 1, 1, -1, -1, -1, 0])),
+        )
+        assert_equal_seq(
+            rv.pdf_coeffs(x, side="left"),
+            (np.array([0, 0, 0, 0, 2, 2, 0]), np.array([0, 1, 1, 1, -1, -1, 0])),
+        )
+        assert_equal_seq(
+            rv.pdf_coeffs(np.array([-np.inf, np.nan, np.inf])),
+            (np.array([0, np.nan, 0]), np.array([0, np.nan, 0])),
+        )
