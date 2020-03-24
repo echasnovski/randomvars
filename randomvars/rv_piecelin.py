@@ -52,7 +52,7 @@ class rv_piecelin(rv_continuous):
 
         self._x = x
         self._y = y
-        self._cumprob = _trapez_integral_cum(self._x, self._y)
+        self._p = _trapez_integral_cum(self._x, self._y)
 
         # Set support
         kwargs["a"] = self.a = self._x[0]
@@ -122,8 +122,9 @@ class rv_piecelin(rv_continuous):
 
         Parameters
         ----------
-        ind : numpy integer.
-            Describes index of interval, coefficients of which should be returned.
+        ind : numpy integer array.
+            Describes index of interval, coefficients of which should be
+            returned.
 
         Returns
         -------
@@ -157,6 +158,56 @@ class rv_piecelin(rv_continuous):
             )
 
         return (inter, slope)
+
+    def _grid_by_ind(self, ind=None):
+        """Get grid values of interval
+
+        If `ind` is `None` (default), it is equivalent to
+        `np.arange(len(self._x))`, i.e. all present grid is returned. Indexes
+        outside of `(0, len(self._x)]` will produce `np.nan` in output.
+
+        Parameters
+        ----------
+        ind : numpy integer array, optional
+            Describes index of interval, *left* grid elements of which should
+            be returned.
+
+        Returns
+        -------
+        grid: tuple with 3 numpy arrays
+            Elements represent `x`, `y`, and `p` *left* values of intervals.
+
+        Examples
+        --------
+        >>> rv = rv_piecelin([0, 1, 2], [0, 1, 0])
+        >>> x, y, p = rv._grid_by_ind(np.array([-1, 0, 1, 2, 3, 4]))
+        >>> x
+        array([nan, nan,  0.,  1.,  2., nan])
+        >>> x, y, p = rv._grid_by_ind()
+        >>> p
+        array([0. , 0.5, 1. ])
+        """
+        if ind is None:
+            return (self._x, self._y, self._p)
+
+        x = np.empty_like(ind, dtype=np.float64)
+        y = np.empty_like(ind, dtype=np.float64)
+        p = np.empty_like(ind, dtype=np.float64)
+
+        # There is no grid elements to the left of interval 0, so outputs are
+        # `np.nan` for it
+        out_is_nan = (ind <= 0) | (ind > len(self._x))
+        x[out_is_nan] = np.nan
+        y[out_is_nan] = np.nan
+        p[out_is_nan] = np.nan
+
+        out_isnt_nan = ~out_is_nan
+        ind_in = ind[out_isnt_nan] - 1
+        x[out_isnt_nan] = self._x[ind_in]
+        y[out_isnt_nan] = self._y[ind_in]
+        p[out_isnt_nan] = self._p[ind_in]
+
+        return (x, y, p)
 
     def pdf_coeffs(self, x, side="right"):
         """Compute density linear coefficients based on `x`.
