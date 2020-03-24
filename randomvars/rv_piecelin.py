@@ -269,6 +269,24 @@ class rv_piecelin(rv_continuous):
         """
         return np.interp(x, self._x, self._y)
 
+    def _cdf(self, x, *args):
+        """Implementation of cumulative distribution function
+
+        Notes
+        -----
+        Dealing with `x` values outside of support is supposed to be done in
+        `rv_continuous`.
+        """
+        x = np.asarray(x, dtype=np.float64)
+        x_ind = _searchsorted_wrap(self._x, x, side="right", edge_inside=True)
+
+        gr_x, _, gr_p = self._grid_by_ind(x_ind)
+        inter, slope = self._coeffs_by_ind(x_ind)
+
+        # Using `(a+b)*(a-b)` instead of `(a*a-b*b)` for better accuracy in
+        # case density x-grid has really close elements
+        return gr_p + inter * (x - gr_x) + 0.5 * slope * (x + gr_x) * (x - gr_x)
+
 
 def _trapez_integral(x, y):
     """ Compute integral with trapezoidal formula.

@@ -119,3 +119,23 @@ class TestRVPiecelin:
         # Bad input
         x = np.array([-np.inf, np.nan, np.inf])
         assert_array_equal(rv.pdf(x), np.array([0, np.nan, 0]))
+
+    def test_cdf(self):
+        """Tests for `.cdf()` method, which logic is implemented in `._cdf()`
+        """
+        rv_1 = rv_piecelin([0, 1, 2], [0, 1, 0])
+
+        # Regular checks
+        x = np.array([-1, 0, 0.5, 1, 1.5, 2, 3])
+        assert_array_equal(rv_1.cdf(x), np.array([0, 0, 0.125, 0.5, 0.875, 1, 1]))
+
+        # Bad input
+        x = np.array([-np.inf, np.nan, np.inf])
+        assert_array_equal(rv_1.cdf(x), np.array([0, np.nan, 1]))
+
+        # Dirac-like random variable
+        rv_dirac = rv_piecelin([10 - 1e-8, 10, 10 + 1e-8], [0, 1, 0])
+        x = np.array([10 - 1e-8, 10 - 0.5e-8, 10, 10 + 0.5e-8, 10 + 1e-8])
+        assert_array_almost_equal(
+            rv_dirac.cdf(x), np.array([0, 0.125, 0.5, 0.875, 1]), decimal=7
+        )
