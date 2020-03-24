@@ -265,9 +265,9 @@ class rv_piecelin(rv_continuous):
         return self._coeffs_by_ind(ind)
 
     def _pdf(self, x, *args):
-        """ Implementation of probability density function
+        """Implementation of probability density function
         """
-        return np.interp(x, self._x, self._y)
+        return np.interp(x, self._x, self._y, left=0, right=0)
 
     def _cdf(self, x, *args):
         """Implementation of cumulative distribution function

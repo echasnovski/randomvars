@@ -102,7 +102,7 @@ class TestRVPiecelin:
         )
 
     def test_pdf(self):
-        """Tests for `.pdf()` method, which is implemented in `._pdf()` method
+        """Tests for `.pdf()` method, which logic is implemented in `._pdf()`
         """
         rv = rv_piecelin([0, 1, 3], [0.5, 0.5, 0])
 
@@ -119,6 +119,14 @@ class TestRVPiecelin:
         # Bad input
         x = np.array([-np.inf, np.nan, np.inf])
         assert_array_equal(rv.pdf(x), np.array([0, np.nan, 0]))
+
+        # Dirac-like random variable
+        rv_dirac = rv_piecelin([10 - 1e-8, 10, 10 + 1e-8], [0, 1, 0])
+        x = np.array([10 - 1e-8, 10 - 0.5e-8, 10, 10 + 0.5e-8, 10 + 1e-8])
+        ## Accuracy is of order of 10 due to extreme magnitudes of values
+        assert_array_almost_equal(
+            rv_dirac.pdf(x), np.array([0, 0.5e8, 1e8, 0.5e8, 0]), decimal=-1
+        )
 
     def test_cdf(self):
         """Tests for `.cdf()` method, which logic is implemented in `._cdf()`
