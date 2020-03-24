@@ -110,8 +110,10 @@ class rv_piecelin(rv_continuous):
         """
         return (self._x, self._y)
 
-    def _coeffs_by_ind(self, ind):
+    def _coeffs_by_ind(self, ind=None):
         """Compute density linear coefficients based on index of interval.
+
+        If `ind` is `None`, then coefficients for all intervals are returned.
 
         Index `i` corresponds to coefficients from interval with endpoints
         `self._x[i-1]` and `self._x[i]`. Which intervals `self._x` values
@@ -122,7 +124,7 @@ class rv_piecelin(rv_continuous):
 
         Parameters
         ----------
-        ind : numpy integer array.
+        ind : numpy integer array, optional
             Describes index of interval, coefficients of which should be
             returned.
 
@@ -134,12 +136,17 @@ class rv_piecelin(rv_continuous):
 
         Examples
         --------
-        >>> rv_p = rv_piecelin([0, 1, 2], [0, 1, 0])
-        >>> rv_p._coeffs_by_ind(np.array([0, 1, 2, 3]))
+        >>> rv = rv_piecelin([0, 1, 2], [0, 1, 0])
+        >>> rv._coeffs_by_ind()
+        (array([0., 2.]), array([ 1., -1.]))
+        >>> rv._coeffs_by_ind(np.array([0, 1, 2, 3]))
         (array([0., 0., 2., 0.]), array([ 0.,  1., -1.,  0.]))
-        >>> rv_p._coeffs_by_ind(np.array([-1, 100]))
+        >>> rv._coeffs_by_ind(np.array([-1, 100]))
         (array([nan, nan]), array([nan, nan]))
         """
+        if ind is None:
+            ind = np.arange(start=1, stop=len(self._x))
+
         inter = np.zeros_like(ind, dtype=np.float64)
         slope = np.zeros_like(ind, dtype=np.float64)
 
