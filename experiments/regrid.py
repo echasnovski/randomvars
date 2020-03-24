@@ -11,6 +11,83 @@ def trapez_integral(x, y):
     return np.sum(0.5 * np.diff(x) * (y[:-1] + y[1:]))
 
 
+def cons_cos(x, y):
+    """Compute cosine of consecutive vectors
+
+    Xy-grid, created with `x` and `y`, defines a sequence of vectors:
+    `(x[i]-x[i-1]; y[i]-y[i-1])`. This function computes cosine of angles
+    between consecutive pairs between them.  It is assumed that `x` is sorted
+    increasingly, but no checks is done.
+
+    Inputs `x` and `y` should be the same length with at least 3 elements.
+
+    Parameters
+    ----------
+    x : numpy numeric array
+        It is assumed that it is sorted increasingly.
+    y : numpy numeric array
+
+    Returns
+    -------
+    cos : numpy numeric array with length `len(x)-2`
+        Cosine of right-aligned vectors, defined by xy-grid
+
+    Examples
+    --------
+    >>> cons_cos(np.arange(6), np.array([0, 1, 1, 0, 1, 2]))
+    array([0.70710678, 0.70710678, 0.        , 1.        ])
+    """
+
+    def dot_prod(vec_1, vec_2):
+        return vec_1[0] * vec_2[0] + vec_1[1] * vec_2[1]
+
+    vec_x = np.diff(x)
+    vec_y = np.diff(y)
+
+    vec_left = (vec_x[:-1], vec_y[:-1])
+    vec_right = (vec_x[1:], vec_y[1:])
+
+    res = dot_prod(vec_left, vec_right) / np.sqrt(
+        dot_prod(vec_left, vec_left) * dot_prod(vec_right, vec_right)
+    )
+
+    return res
+
+
+def sharpness(x, y):
+    """Compute sharpness of piecewise-linear vertices
+
+    Here "sharpness" is a number between 0 and 1, where 0 represents that point
+    lies on a straight line and 1 - that it is an edge of extreme peak.
+
+    It is assumed that `x` and `y` have the same length. First and last elements
+    by default have sharpness of 0.
+
+    Parameters
+    ----------
+    x : numpy numeric array
+        It is assumed that it is sorted increasingly.
+    y : numpy numeric array
+
+    Returns
+    -------
+    sharpness: numpy array of the same length as `x` and `y`.
+
+    Examples
+    --------
+    >>> sharpness(np.arange(6), np.array([0, 1, 1, 0, 1, 2]))
+    array([0.        , 0.14644661, 0.14644661, 0.5       , 0.        ,
+           0.        ])
+    """
+    # Cosine between consecutive vectors has value `1` if vectors are colinear
+    # (i.e. if their shared point lies on a straight line) and `-1` if they
+    # aligned but have opposite directions (i.e. shared point is an extreme
+    # peak)
+    vec_cos = cons_cos(x, y)
+
+    return np.concatenate([[0], 0.5 * (1 - vec_cos), [0]])
+
+
 def is_local_extremum(y):
     y = np.asarray(y)
 
