@@ -25,7 +25,9 @@ def _searchsorted_wrap(a, v, side="left", edge_inside=True):
     >>> _searchsorted_wrap([0, 1], [0, 1], side="right", edge_inside=False)
     array([1, 2])
     """
-    res = np.searchsorted(a, v, side=side)
+    # Here call to `np.asarray()` is needed to ensure that output is not a scalar
+    # (which can happen in certain cases)
+    res = np.asarray(np.searchsorted(a, v, side=side))
     a = np.asarray(a)
     v = np.asarray(v)
 
@@ -286,6 +288,66 @@ class rv_piecelin(rv_continuous):
         # Using `(a+b)*(a-b)` instead of `(a*a-b*b)` for better accuracy in
         # case density x-grid has really close elements
         return gr_p + inter * (x - gr_x) + 0.5 * slope * (x + gr_x) * (x - gr_x)
+
+    def _ppf(self, q, *args):
+        """Implementation of Percent point function
+
+        Notes
+        -----
+        Dealing with `q` values outside of `[0; 1]` is supposed to be done in
+        `rv_continuous`.
+        """
+        q_ind = _searchsorted_wrap(self._p, q, side="right", edge_inside=True)
+        grid_q = self._grid_by_ind(q_ind)
+        coeffs_q = self._coeffs_by_ind(q_ind)
+
+        return self._find_quant(q, grid_q, coeffs_q)
+
+    def _find_quant(self, q, grid, coeffs):
+        """Compute quantiles with data from linearity intervals
+
+        Based on precomputed data of linearity intervals, compute actual quantiles.
+        Here `grid` and `coeffs` are `(x, y, p)` and `(inter, slope)` values of
+        intervals inside which `q` quantile is located.
+
+        Parameters
+        ----------
+        q : numpy numeric array
+        grid : tuple with 3 numpy numeric arrays with lengths same to `len(q)`
+        coeffs : tuple with 3 numpy numeric arrays with lengths same to `len(q)`
+
+        Returns
+        -------
+        quant : numpy numeric array with the same length as q
+        """
+        res = np.empty_like(q, dtype=np.float64)
+        x, _, p = grid
+        inter, slope = coeffs
+
+        is_quad = ~np.isclose(slope, 0)
+        is_lin = ~(is_quad | np.isclose(inter, 0))
+        is_const = ~(is_quad | is_lin)
+
+        # Case of quadratic CDF curve (density is a line not aligned to x axis)
+        # The "true" quadratic curves are transformed in terms of `t = x - x_l`
+        # for numerical accuracy
+        # Equations have form a*t^2 + t*x + c = 0
+        a = 0.5 * slope[is_quad]
+        b = 2 * a * x[is_quad] + inter[is_quad]
+        c = p[is_quad] - q[is_quad]
+        # Theoretically, `discr` should always be >= 0. However, due to
+        # numerical inaccuracies of magnitude ~10^(-15), here call to
+        # `np.clip()` is needed.
+        discr = np.clip(b * b - 4 * a * c, 0, None)
+        res[is_quad] = (-b + np.sqrt(discr)) / (2 * a) + x[is_quad]
+
+        # Case of linear CDF curve (density is non-zero constant)
+        res[is_lin] = x[is_lin] + (q[is_lin] - p[is_lin]) / inter[is_lin]
+
+        # Case of plateau in CDF (density equals zero)
+        res[is_const] = x[is_const]
+
+        return res
 
 
 def _trapez_integral(x, y):

@@ -147,3 +147,28 @@ class TestRVPiecelin:
         assert_array_almost_equal(
             rv_dirac.cdf(x), np.array([0, 0.125, 0.5, 0.875, 1]), decimal=7
         )
+
+    def test_ppf(self):
+        """Tests for `.ppf()` method, which logic is implemented in `._cdf()`
+        """
+        # `ppf()` method should be inverse to `cdf()` for every sensible input
+        rv_1 = rv_piecelin([0, 1, 2], [0, 1, 0])
+
+        # Regular checks
+        q = np.array([0, 0.125, 0.5, 0.875, 1])
+        assert_array_equal(rv_1.ppf(q), np.array([0, 0.5, 1, 1.5, 2]))
+
+        # Bad input
+        q = np.array([-np.inf, -1e-8, np.nan, 1 + 1e-8, np.inf])
+        assert_array_equal(
+            rv_1.ppf(q), np.array([np.nan, np.nan, np.nan, np.nan, np.nan])
+        )
+
+        # Dirac-like random variable
+        rv_dirac = rv_piecelin([10 - 1e-8, 10, 10 + 1e-8], [0, 1, 0])
+        q = np.array([0, 0.125, 0.5, 0.875, 1])
+        assert_array_almost_equal(
+            rv_dirac.ppf(q),
+            np.array([10 - 1e-8, 10 - 0.5e-8, 10, 10 + 0.5e-8, 10 + 1e-8]),
+            decimal=9,
+        )
