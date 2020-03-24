@@ -2,7 +2,7 @@
 """Tests for 'rv_piecelin.py' file
 """
 import numpy as np
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_equal, assert_array_almost_equal
 import pytest
 
 from randomvars.rv_piecelin import rv_piecelin
@@ -19,7 +19,7 @@ def assert_equal_rv_pieceilin(rv_p_1, rv_p_2):
 
 
 class TestRVPiecelin:
-    """Tests for `rv_piecelin` class
+    """Regression tests for `rv_piecelin` class
     """
 
     def test_init_errors(self):
@@ -100,3 +100,22 @@ class TestRVPiecelin:
             rv.pdf_coeffs(np.array([-np.inf, np.nan, np.inf])),
             (np.array([0, np.nan, 0]), np.array([0, np.nan, 0])),
         )
+
+    def test_pdf(self):
+        """Tests for `.pdf()` method, which is implemented in `._pdf()` method
+        """
+        rv = rv_piecelin([0, 1, 3], [0.5, 0.5, 0])
+
+        # Regular checks
+        x = np.array([-1, 0, 0.5, 1, 2, 3, 4])
+        assert_array_equal(rv.pdf(x), np.array([0, 0.5, 0.5, 0.5, 0.25, 0, 0]))
+
+        # Input around edges
+        x = np.array([0 - 1e-10, 0 + 1e-10, 3 - 1e-10, 3 + 1e-10])
+        assert_array_almost_equal(
+            rv.pdf(x), np.array([0, 0.5, 0.25e-10, 0]), decimal=12
+        )
+
+        # Bad input
+        x = np.array([-np.inf, np.nan, np.inf])
+        assert_array_equal(rv.pdf(x), np.array([0, np.nan, 0]))
