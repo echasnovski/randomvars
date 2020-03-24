@@ -6,6 +6,43 @@ import numpy as np
 from scipy.stats.distributions import rv_continuous
 
 
+def _searchsorted_wrap(a, v, side="left", edge_inside=True):
+    """Wrapper for `np.searchsorted()` which respects `np.nan`
+
+    Output index for every `np.nan` value in `v` is `-1`.
+
+    Parameters
+    ----------
+    edge.inside: Boolean, optional
+        Should the most extreme edge (left for `side="left"`, right for
+        `side="right"`) be treated as inside its adjacent interior interval?
+        Default is `True`.
+
+    Examples
+    --------
+    >>> _searchsorted_wrap([0, 1], [-np.inf, -1, 0, 0.5, 1, 2, np.inf, np.nan])
+    array([ 0,  0,  1,  1,  1,  2,  2, -1])
+    >>> _searchsorted_wrap([0, 1], [0, 1], side="right", edge_inside=False)
+    array([1, 2])
+    """
+    res = np.searchsorted(a, v, side=side)
+    a = np.asarray(a)
+    v = np.asarray(v)
+
+    if edge_inside:
+        if side == "right":
+            # For right-most edge return coefficients from last interval
+            res[v == a[-1]] = len(a) - 1
+        elif side == "left":
+            # For left-most edge return coefficients from first interval
+            res[v == a[0]] = 1
+
+    # Return `-1` index if element of `v` is `np.nan`
+    res[np.isnan(v)] = -1
+
+    return res
+
+
 class rv_piecelin(rv_continuous):
     """ Random variable with piecewise-linear density
     """
@@ -165,17 +202,7 @@ class rv_piecelin(rv_continuous):
         if side not in ["left", "right"]:
             raise ValueError('`side` should be one of "right" or "left"')
 
-        ind = np.searchsorted(self._x, x, side=side)
-
-        if side == "right":
-            # For right-most edge return coefficients from last interval
-            ind[x == self._x[-1]] = len(self._x) - 1
-        else:
-            # For left-most edge return coefficients from first interval
-            ind[x == self._x[0]] = 1
-
-        # Retrun `np.nan` coefficients if element of `x` is `np.nan`
-        ind[np.isnan(x)] = -1
+        ind = _searchsorted_wrap(self._x, x, side=side, edge_inside=True)
 
         return self._coeffs_by_ind(ind)
 
