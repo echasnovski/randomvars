@@ -87,13 +87,25 @@ def tolerance_slope_window(base_x, base_y, point_x, point_y, tol):
     return slope_min, slope_max
 
 
-def intersect_inervals(inter1_min, inter1_max, inter2_min, inter2_max):
+def intersect_intervals(inter1_min, inter1_max, inter2_min, inter2_max):
     """Compute intersection of intervals
 
     Computes intersections of intervals `(inter1_min, inter1_max)` and
-    `(inter2_min, inter2_max)`.
+    `(inter2_min, inter2_max)`. Basically, the output is `(max(inter1_min,
+    inter2_min), min(inter1_max, inter2_max))` but optimized for better
+    execution speed.
     """
-    return max(inter1_min, inter2_min), min(inter1_max, inter2_max)
+    if inter1_min <= inter2_min:
+        res_min = inter2_min
+    else:
+        res_min = inter1_min
+
+    if inter1_max <= inter2_max:
+        res_max = inter1_max
+    else:
+        res_max = inter2_max
+
+    return res_min, res_max
 
 
 def regrid_maxtol(x, y, tol=1e-3):
@@ -152,7 +164,7 @@ def regrid_maxtol(x, y, tol=1e-3):
             seg_end_slope_min, seg_end_slope_max = tolerance_slope_window(
                 base_x, base_y, seg_end_x, seg_end_y, tol
             )
-            slope_min, slope_max = intersect_inervals(
+            slope_min, slope_max = intersect_intervals(
                 slope_min, slope_max, seg_end_slope_min, seg_end_slope_max
             )
         else:
@@ -165,8 +177,10 @@ def regrid_maxtol(x, y, tol=1e-3):
 
             # Update slope window
             ## If new point is exactly at the end of the current segment,
-            ## move one segment further and use its end to compute slope window
-            if base_x == seg_end_x:
+            ## (detected with `>=` instead of `==` to account for possible
+            ## numerical representation error) move one segment further and
+            ## use its end to compute slope window
+            if base_x >= seg_end_x:
                 cur_i += 1
                 if cur_i >= len(x):
                     break
