@@ -260,6 +260,28 @@ def dist_grid(grid_base, grid_new, method=None):
         raise ValueError
 
 
+def dist_grid_cdf(grid_base, grid_new, method=None):
+    base_rv = rv_piecelin(*grid_base)
+    new_rv = rv_piecelin(*grid_new)
+
+    return dist_grid(
+        (grid_base[0], base_rv.cdf(grid_base[0])),
+        (grid_new[0], new_rv.cdf(grid_new[0])),
+        method=method
+    )
+
+
+def dist_grid_fun(fun, grid, method=None, n_inner_points=10):
+    x, y = grid
+    test_arr = [
+        np.linspace(x[i], x[i+1], n_inner_points+2) for i in np.arange(len(x)-1)
+    ]
+    x_test = np.unique(np.concatenate(test_arr))
+    y_test = fun(x_test)
+
+    return dist_grid((x_test, y_test), grid, method)
+
+
 def regrid_optimize(x, y, n_grid, maxiter=np.inf, fit_method=None):
     if len(x) == 2:
         return x
@@ -284,51 +306,68 @@ def regrid_optimize(x, y, n_grid, maxiter=np.inf, fit_method=None):
 
 #%% Experiments
 # Base grid
-# ## Base grid from distribution
-# # dist = norm
-# # dist = beta(10, 20)
-# # dist = cauchy
+## Base grid from distribution
+dist = norm
+# dist = beta(10, 20)
+# dist = cauchy
 # dist = chi2(2)
-#
-# n_grid = 10001
-# supp = dist.ppf([1e-6, 1 - 1e-6])
-# x = np.linspace(supp[0], supp[1], n_grid)
-# y = dist.pdf(x)
-
-## Base grid from manual data
-x_base = np.array([0, 2, 4, 5, 6, 7])
-y_base = np.array([0, 1, 0, 0, 1, 0])
-y_base = y_base / trapez_integral(x_base, y_base)
+# dist = chi2(1)
 
 n_grid = 10001
-supp = x_base[[0, -1]]
+supp = dist.ppf([1e-6, 1 - 1e-6])
 x = np.linspace(supp[0], supp[1], n_grid)
-y = np.interp(x, x_base, y_base)
+# y = dist.pdf(x)
+y = np.gradient(dist.cdf(x), x)
+
+# ## Base grid from manual data
+# x_base = np.array([0, 2, 4, 5, 6, 7])
+# y_base = np.array([0, 1, 0, 0, 1, 0])
+# y_base = y_base / trapez_integral(x_base, y_base)
+
+# n_grid = 10001
+# supp = x_base[[0, -1]]
+# x = np.linspace(supp[0], supp[1], n_grid)
+# y = np.interp(x, x_base, y_base)
 
 # Regridding
-x_maxtol, y_maxtol = regrid_maxtol(x, y, tol=1e-3)
+integr_tol = 1e-3
+tol = integr_tol / (x[-1] - x[0])
+print(f"tol={tol}")
+x_maxtol, y_maxtol = regrid_maxtol(x, y, tol=tol)
 n_grid_new = len(x_maxtol)
-print(n_grid_new)
+print(f"n_grid_new={n_grid_new}")
 x_equi, y_equi = regrid_equidist(x, y, n_grid_new)
 x_curv, y_curv = regrid_curvature(x, y, n_grid_new)
 x_optim, y_optim = regrid_optimize(x, y, n_grid_new)
 
-dist_grid((x, y), (x_maxtol, y_maxtol), method="maxabs")
-dist_grid((x, y), (x_equi, y_equi), method="maxabs")
-dist_grid((x, y), (x_curv, y_curv), method="maxabs")
-dist_grid((x, y), (x_optim, y_optim), method="maxabs")
+regriddings = {
+    "maxtol": (x_maxtol, y_maxtol),
+    "equi": (x_equi, y_equi),
+    "curv": (x_curv, y_curv),
+    "optim": (x_optim, y_optim),
+}
 
-dist_grid((x, y), (x_maxtol, y_maxtol), method="meanabs")
-dist_grid((x, y), (x_equi, y_equi), method="meanabs")
-dist_grid((x, y), (x_curv, y_curv), method="meanabs")
-dist_grid((x, y), (x_optim, y_optim), method="meanabs")
+for meth, grid in regriddings.items():
+    grid_dist = dist_grid((x, y), grid, method="maxabs")
+    print(f"'maxabs' distance for '{meth}' method: {grid_dist}")
 
-trapez_integral(x_maxtol, y_maxtol)
-trapez_integral(x_equi, y_equi)
-trapez_integral(x_curv, y_curv)
-trapez_integral(x_optim, y_optim)
+for meth, grid in regriddings.items():
+    grid_dist = dist_grid((x, y), grid, method="meanabs")
+    print(f"'meanabs' distance for '{meth}' method: {grid_dist}")
 
-%timeit regrid_maxtol(x, y, tol=1e-3)
+for meth, grid in regriddings.items():
+    grid_dist = dist_grid_cdf((x, y), grid, method="maxabs")
+    print(f"'maxabs cdf' distance for '{meth}' method: {grid_dist}")
+
+for meth, grid in regriddings.items():
+    grid_dist = dist_grid_fun(dist.pdf, grid, method="maxabs")
+    print(f"'maxabs fun' distance for '{meth}' method: {grid_dist}")
+
+for meth, grid in regriddings.items():
+    integral_extra = trapez_integral(*grid) - 1
+    print(f"Trapez. integral extra for '{meth}' method: {integral_extra}")
+
+%timeit regrid_maxtol(x, y, tol=tol)
 %timeit regrid_equidist(x, y, n_grid_new)
 %timeit regrid_curvature(x, y, n_grid_new)
 %timeit regrid_optimize(x, y, n_grid_new)
