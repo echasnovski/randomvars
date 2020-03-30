@@ -7,6 +7,8 @@ import sys
 sys.path.insert(0, "../randomvars")
 from rv_piecelin import rv_piecelin
 
+from regrid_maxtol import regrid_maxtol
+
 
 #%% Functions
 # All functions related to `regrid_maxtol()` are written without using tuples
@@ -87,7 +89,7 @@ def intersect_intervals(inter1_min, inter1_max, inter2_min, inter2_max):
     return res_min, res_max
 
 
-def regrid_maxtol(x, y, tol=1e-3):
+def regrid_maxtol_python(x, y, tol=1e-3):
     """Regrid with maximum tolerance
 
     Regrid input xy-grid so that maximum difference between points on output
@@ -312,11 +314,15 @@ integr_tol = 1e-3
 tol = integr_tol / (x[-1] - x[0])
 print(f"tol={tol}")
 x_maxtol, y_maxtol = regrid_maxtol(x, y, tol=tol)
+x_maxtol_python, y_maxtol_python = regrid_maxtol_python(x, y, tol=tol)
 n_grid_new = len(x_maxtol)
 print(f"n_grid_new={n_grid_new}")
 x_equi, y_equi = regrid_equidist(x, y, n_grid_new)
 x_curv, y_curv = regrid_curvature(x, y, n_grid_new)
 x_optim, y_optim = regrid_optimize(x, y, n_grid_new)
+
+np.allclose(x_maxtol, x_maxtol_python)
+np.allclose(y_maxtol, y_maxtol_python)
 
 regriddings = {
     "maxtol": (x_maxtol, y_maxtol),
@@ -354,6 +360,7 @@ for meth, grid in regriddings.items():
 
 # Execution timings
 %timeit regrid_maxtol(x, y, tol=tol)
+%timeit regrid_maxtol_python(x, y, tol=tol)
 %timeit regrid_equidist(x, y, n_grid_new)
 %timeit regrid_curvature(x, y, n_grid_new)
 %timeit regrid_optimize(x, y, n_grid_new)
