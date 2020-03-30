@@ -9,32 +9,21 @@ from rv_piecelin import rv_piecelin
 
 
 #%% Functions
-# All functions related to `regrid_maxtol()` are written using tuples for
-# function arguments as much as possible to increase execution speed.
+# All functions related to `regrid_maxtol()` are written without using tuples
+# for function arguments as much as possible to increase execution speed.
 # This showed significant increase for most tupical cases (~10%).
-def coneedges_segment_intersection(
+def is_segment_inside_cone(
     base_x, base_y, slope_min, slope_max, seg1_x, seg1_y, seg2_x, seg2_y
 ):
-    """Compute intersection of segment and 2d cone edges
+    """Compute if segment lies inside 2d closed cone
 
-    Two-dimensional cone is defined as all rays from point `(base_x, base_y)`
-    and  with slopes inside `[slope_min, slope_max]` range (rays are directed
-    to the right of origin). Segment connects point `(seg1_x, seg1_y)` and
-    `(seg2_x, seg2_y)`.
+    Two-dimensional closed cone is defined as all rays from point `(base_x,
+    base_y)` and  with slopes inside `[slope_min, slope_max]` range (rays are
+    directed to the right of origin). Segment connects point `(seg1_x, seg1_y)`
+    and `(seg2_x, seg2_y)`.
 
-    This function computes if there is an intersection between segment and
-    some edge of the cone. In other words, it computes possible intersection
-    points between segment and two lines: `slope_min*(x-base_x)+base_y` and
-    `slope_max*(x-base_x)+base_y`.
-
-    **Note** that for correctness of algorithm, it is assumed that `(seg1_x,
-    seg1_y)` is strictly inside the cone (not on edge). In other words, slope
-    of line through `(base_x, base_y)` and `(seg1_x, seg1_y)` lies strictly
-    inside `(slope_min, slope_max)` interval.  This enables using simplified
-    algorithm for computing if there is an intersection (which terminates early
-    if there is no intersection, which in turn increases execution speed) and
-    its coordinates. For example, it implies that there can be only one
-    intersection between segment and cone edges.
+    This function computes if whole segment lies inside cone (even if it
+    touches some edge).
 
     Parameters
     ----------
@@ -46,32 +35,22 @@ def coneedges_segment_intersection(
 
     Returns
     -------
-    point : Tuple with two elements (if there is intersection) or `None`
-    (otherwise).
+    is_inside : Boolean value indicating if whole segment lies inside cone.
     """
     seg_slope_1 = (seg1_y - base_y) / (seg1_x - base_x)
     seg_slope_2 = (seg2_y - base_y) / (seg2_x - base_x)
 
-    # This part uses assumption that `seg_slope_1` lies inside `(slope_min,
-    # slope_max)`. It enables easy checking if cone edge intersects segment by
-    # comparing edge's slope with segment's slopes.
-    if (seg_slope_1 <= slope_min) or (seg_slope_2 <= slope_min):
-        a1 = slope_min
-    elif (seg_slope_1 >= slope_max) or (seg_slope_2 >= slope_max):
-        a1 = slope_max
+    # Segment lies inside cone if its both ends' slopes (computed with respect to
+    # cone's base point) lie inside `[slope_min, slope_max]`
+    if (
+        (seg_slope_1 >= slope_min)
+        and (seg_slope_1 <= slope_max)
+        and (seg_slope_2 >= slope_min)
+        and (seg_slope_2 <= slope_max)
+    ):
+        return True
     else:
-        return None
-
-    # This part executes only if there is an intersection between some cone
-    # edge (with base slope `a1`) and segment. Thus there is no need to check
-    # if intersection of lines lie inside segment.
-    b1 = base_y - a1 * base_x
-    a2 = (seg2_y - seg1_y) / (seg2_x - seg1_x)
-    b2 = seg1_y - a2 * seg1_x
-
-    x_res = (b2 - b1) / (a1 - a2)
-    y_res = a2 * x_res + b2
-    return x_res, y_res
+        return False
 
 
 def tolerance_slope_window(base_x, base_y, point_x, point_y, tol):
@@ -111,9 +90,10 @@ def intersect_intervals(inter1_min, inter1_max, inter2_min, inter2_max):
 def regrid_maxtol(x, y, tol=1e-3):
     """Regrid with maximum tolerance
 
-    Regrid input xy-greed so that maximum difference between points on output
-    piecewise-linear function and input xy-greed is not more than `tol`
-    (currently it is always equal to `tol`).
+    Regrid input xy-grid so that maximum difference between points on output
+    piecewise-linear function and input xy-grid is not more than `tol`. Output
+    xy-grid is a subset of input xy-grid. **Note** that first and last point is
+    always inside output xy-grid.
 
     Parameters
     ----------
@@ -125,10 +105,12 @@ def regrid_maxtol(x, y, tol=1e-3):
     Returns
     -------
     xy_grid : Tuple with two numpy numeric arrays with same lengths
+        Subset of input xy-grid which differs from it by no more than `tol`.
     """
-    if len(x) <= 2:
+    if (len(x) <= 2) or (tol == 0):
         return x, y
 
+    # First point is always inside output grid
     x_res = [x[0]]
     y_res = [y[0]]
 
@@ -142,20 +124,22 @@ def regrid_maxtol(x, y, tol=1e-3):
         seg_end_x = x[cur_i]
         seg_end_y = y[cur_i]
 
-        # Compute candidate result point by looking if any edge of current base
-        # cone intersect current segment
-        xy_cand = coneedges_segment_intersection(
-            base_x = base_x,
-            base_y = base_y,
-            slope_min = slope_min,
-            slope_max = slope_max,
-            seg1_x = x[cur_i - 1],
-            seg1_y = y[cur_i - 1],
-            seg2_x = seg_end_x,
-            seg2_y = seg_end_y,
+        # Compute if segment lies inside current base cone. If it does, then it
+        # can be skipped. It it goes out of the current base cone, it means
+        # that skipping will introduce error strictly more than `tol`, so
+        # adding current segment start to output xy-grid is necessary.
+        segment_is_inside = is_segment_inside_cone(
+            base_x=base_x,
+            base_y=base_y,
+            slope_min=slope_min,
+            slope_max=slope_max,
+            seg1_x=x[cur_i - 1],
+            seg1_y=y[cur_i - 1],
+            seg2_x=seg_end_x,
+            seg2_y=seg_end_y,
         )
 
-        if xy_cand is None:
+        if segment_is_inside:
             # Update slope window by using intersection of current slope window
             # and slope window of segment end. Intersection is used because in
             # order to maintain maximum error within tolerance rays should pass
@@ -168,43 +152,27 @@ def regrid_maxtol(x, y, tol=1e-3):
                 slope_min, slope_max, seg_end_slope_min, seg_end_slope_max
             )
         else:
-            # Write new point
-            x_res.append(xy_cand[0])
-            y_res.append(xy_cand[1])
+            # Write segment start as new point in output
+            seg_start_x = x[cur_i - 1]
+            seg_start_y = y[cur_i - 1]
+            x_res.append(seg_start_x)
+            y_res.append(seg_start_y)
 
-            # Update base point
-            base_x, base_y = xy_cand
+            # Update base point to be current segment start
+            base_x, base_y = seg_start_x, seg_start_y
 
-            # Update slope window
-            ## If new point is exactly at the end of the current segment,
-            ## (detected with `>=` instead of `==` to account for possible
-            ## numerical representation error) move one segment further and
-            ## use its end to compute slope window
-            if base_x >= seg_end_x:
-                cur_i += 1
-                if cur_i >= len(x):
-                    break
-
-            # End of the "current" segment (either this iteration's current
-            # segment or next segment in case `xy_base` is moved to current
-            # segment end) now defines slope window
+            # Update slope window to be slope window of current segment end
             slope_min, slope_max = tolerance_slope_window(
-                base_x, base_y, x[cur_i], y[cur_i], tol
+                base_x, base_y, seg_end_x, seg_end_y, tol
             )
 
         cur_i += 1
 
-    # If the last point wasn't added (as is most of the times), add it
-    if x_res[-1] != x[-1]:
-        x_res.append(x[-1])
-        y_res.append(y[-1])
+    # Last point is always inside output grid
+    x_res.append(x[-1])
+    y_res.append(y[-1])
 
-    if len(x_res) == len(x):
-        # If output has the same number of points as input, return input (as it
-        # is always a better choice)
-        return x, y
-    else:
-        return np.array(x_res), np.array(y_res)
+    return np.array(x_res), np.array(y_res)
 
 
 def trapez_integral(x, y):
@@ -244,10 +212,21 @@ def regrid_equidist(x, y, n_grid):
 
 
 def dist_grid(grid_base, grid_new, method=None):
-    if method is None:
-        method = "meanabs"
-
     diff = np.interp(grid_base[0], grid_new[0], grid_new[1]) - grid_base[1]
+    return diff_summary(diff)
+
+
+def dist_grid_cdf(grid_base, grid_new, method=None):
+    base_rv = rv_piecelin(*grid_base)
+    new_rv = rv_piecelin(*grid_new)
+
+    diff = new_rv.cdf(grid_base[0]) - base_rv.cdf(grid_base[0])
+    return diff_summary(diff)
+
+
+def diff_summary(diff, method=None):
+    if method is None:
+        method = "maxabs"
 
     if method == "maxabs":
         return np.max(np.abs(diff))
@@ -259,27 +238,26 @@ def dist_grid(grid_base, grid_new, method=None):
     else:
         raise ValueError
 
-
-def dist_grid_cdf(grid_base, grid_new, method=None):
-    base_rv = rv_piecelin(*grid_base)
-    new_rv = rv_piecelin(*grid_new)
-
-    return dist_grid(
-        (grid_base[0], base_rv.cdf(grid_base[0])),
-        (grid_new[0], new_rv.cdf(grid_new[0])),
-        method=method
-    )
-
-
-def dist_grid_fun(fun, grid, method=None, n_inner_points=10):
-    x, y = grid
+def augment_x_grid(x, n_inner_points=10):
     test_arr = [
-        np.linspace(x[i], x[i+1], n_inner_points+2) for i in np.arange(len(x)-1)
+        np.linspace(x[i], x[i + 1], n_inner_points + 2) for i in np.arange(len(x) - 1)
     ]
-    x_test = np.unique(np.concatenate(test_arr))
-    y_test = fun(x_test)
+    return np.unique(np.concatenate(test_arr))
+
+def dist_pdf_fun(pdf, grid, method=None, n_inner_points=10):
+    x_test = augment_x_grid(grid[0])
+    y_test = pdf(x_test)
 
     return dist_grid((x_test, y_test), grid, method)
+
+
+def dist_cdf_fun(cdf, grid, method=None, n_inner_points=10):
+    x_test = augment_x_grid(grid[0])
+    rv_grid = rv_piecelin(*grid)
+
+    diff = cdf(x_test) - rv_grid.cdf(x_test)
+
+    return diff_summary(diff, method)
 
 
 def regrid_optimize(x, y, n_grid, maxiter=np.inf, fit_method=None):
@@ -307,11 +285,11 @@ def regrid_optimize(x, y, n_grid, maxiter=np.inf, fit_method=None):
 #%% Experiments
 # Base grid
 ## Base grid from distribution
-dist = norm
+# dist = norm
 # dist = beta(10, 20)
 # dist = cauchy
 # dist = chi2(2)
-# dist = chi2(1)
+dist = chi2(1)
 
 n_grid = 10001
 supp = dist.ppf([1e-6, 1 - 1e-6])
@@ -347,6 +325,7 @@ regriddings = {
     "optim": (x_optim, y_optim),
 }
 
+# Grid metrics
 for meth, grid in regriddings.items():
     grid_dist = dist_grid((x, y), grid, method="maxabs")
     print(f"'maxabs' distance for '{meth}' method: {grid_dist}")
@@ -359,14 +338,21 @@ for meth, grid in regriddings.items():
     grid_dist = dist_grid_cdf((x, y), grid, method="maxabs")
     print(f"'maxabs cdf' distance for '{meth}' method: {grid_dist}")
 
+# Distribution functions' metrics
 for meth, grid in regriddings.items():
-    grid_dist = dist_grid_fun(dist.pdf, grid, method="maxabs")
-    print(f"'maxabs fun' distance for '{meth}' method: {grid_dist}")
+    grid_dist = dist_pdf_fun(dist.pdf, grid, method="maxabs")
+    print(f"'maxabs pdf_fun' distance for '{meth}' method: {grid_dist}")
 
+for meth, grid in regriddings.items():
+    grid_dist = dist_cdf_fun(dist.cdf, grid, method="maxabs")
+    print(f"'maxabs cdf_fun' distance for '{meth}' method: {grid_dist}")
+
+# Integral metric
 for meth, grid in regriddings.items():
     integral_extra = trapez_integral(*grid) - 1
     print(f"Trapez. integral extra for '{meth}' method: {integral_extra}")
 
+# Execution timings
 %timeit regrid_maxtol(x, y, tol=tol)
 %timeit regrid_equidist(x, y, n_grid_new)
 %timeit regrid_curvature(x, y, n_grid_new)
