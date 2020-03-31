@@ -372,3 +372,9 @@ ax.plot(x_equi, y_equi, color="red", marker="o")
 ax.plot(x_curv, y_curv, color="green", marker="o")
 ax.plot(x_optim, y_optim, color="blue", marker="o")
 ax.plot(x_maxtol, y_maxtol, color="magenta", marker="o")
+
+# Check if `regrid_maxtol(x, y, tol=0)` removes points on lines
+x = np.arange(10)
+y = np.array([0, 1, 2, 3, 2, 1, 2, 1, 0, -10])
+
+regrid_maxtol(x, y, tol=0)

@@ -104,13 +104,19 @@ def regrid_maxtol(x, y, tol=0.001):
     x : Numpy numeric array.
     y : Numpy numeric array.
     tol : Single number, optional
-        Tolerance, by default 1e-3
+        Tolerance, by default 1e-3. If zero, points that lie between colinear
+        segments will be removed without precision loss of piecewise-linear
+        function.
 
     Returns
     -------
     xy_grid : Tuple with two numpy numeric arrays with same lengths
         Subset of input xy-grid which differs from it by no more than `tol`.
     """
+    x = x.astype(np.double)
+    y = y.astype(np.double)
+    tol = float(tol)
+
     # Using `np.asarray()` here to turn memoryview into an array
     output_inds = np.asarray(regrid_maxtol_isin(x, y, tol)).nonzero()[0]
     return x[output_inds], y[output_inds]
@@ -119,7 +125,7 @@ def regrid_maxtol(x, y, tol=0.001):
 cdef uint8_t[:] regrid_maxtol_isin(
     double[:] x, double[:] y, double tol=0.001
 ):
-    if (len(x) <= 2) or (tol == 0):
+    if len(x) <= 2:
         return np.ones(x.shape[0], dtype=np.uint8)
     
     cdef int n_x = x.shape[0]
