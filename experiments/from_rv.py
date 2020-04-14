@@ -11,6 +11,7 @@ from rv_piecelin import rv_piecelin
 from regrid_maxtol import regrid_maxtol
 
 
+#%% Functions
 def plot_pdf(self):
     fig, ax = plt.subplots()
     ax.plot(*self.pdf_grid())
@@ -21,14 +22,90 @@ def plot_pdf(self):
 setattr(rv_piecelin, "plot", plot_pdf)
 
 
-def from_rv(rv, supp=None, n_grid=10001, integr_tol=1e-4, *args, **kwargs):
+def max_finite(x):
+    return np.max(x[np.isfinite(x)])
+
+
+def min_finite(x):
+    return np.min(x[np.isfinite(x)])
+
+
+def science_notation(x):
+    return f"{x:.2E}"
+
+
+def from_rv(rv, supp=None, n_grid=1001, integr_tol=1e-4, *args, **kwargs):
     left, right = get_rv_supp(rv, supp, *args, **kwargs)
     x = np.linspace(left, right, n_grid)
-    y = np.clip(np.gradient(rv.cdf(x), x), 0, np.inf)
+    # Using `edge_order=2` in `np.gradient()` improves approximation on edges
+    # Using `np.clip()` to avoid possible negative values of `1e-16` order of magnitude
+    y = np.clip(np.gradient(rv.cdf(x), x, edge_order=2), 0, np.inf)
 
     x, y = regrid_maxtol(x, y, integr_tol / (right - left))
 
     return rv_piecelin(x, y)
+
+
+def from_rv_comb(rv, n_quan=9, n_equi=99, integr_tol=1e-4, *args, **kwargs):
+    left_prob, right_prob = get_rv_supp_probs(rv, *args, **kwargs)
+    # Using `np.unique()` to account for possible jumps in CDF, like with
+    # discrete `rv`
+    probs = np.unique(np.linspace(left_prob, right_prob, n_quan + 2))
+
+    x = augment_grid(rv.ppf(probs), n_equi)
+
+    # Using `np.clip()` to avoid possible negative values of `1e-16` order of magnitude
+    y = np.clip(np.gradient(rv.cdf(x), x, edge_order=2), 0, np.inf)
+
+    x, y = regrid_maxtol(x, y, integr_tol / (x[-1] - x[0]))
+
+    return rv_piecelin(x, y)
+
+
+def from_rv_double(rv, supp=None, n_grid=1001, integr_tol=1e-4, *args, **kwargs):
+    x_left, x_right = get_rv_supp(rv, supp, *args, **kwargs)
+    x_equi = np.linspace(x_left, x_right, n_grid)
+
+    prob_left, prob_right = rv.cdf([x_left, x_right])
+    prob_equi = np.linspace(prob_left, prob_right, n_grid)
+    x_quan = rv.ppf(prob_equi)
+
+    x = combine_x(x_equi, x_quan)
+    y = np.clip(np.gradient(rv.cdf(x), x, edge_order=2), 0, np.inf)
+
+    x, y = regrid_maxtol(x, y, integr_tol / (x[-1] - x[0]))
+
+    return rv_piecelin(x, y)
+
+
+def combine_x(x1, x2, min_diff=1e-13):
+    x = np.concatenate([x1, x2])
+    x = np.sort(x)
+    x_is_good = np.concatenate([[True], np.diff(x) > min_diff])
+    return x[x_is_good]
+
+
+def get_rv_supp_probs(rv, tail_prob=1e-6):
+    if np.isfinite(rv.ppf(0)):
+        left = 0
+    else:
+        left = tail_prob
+
+    if np.isfinite(rv.ppf(1)):
+        right = 1
+    else:
+        right = 1 - tail_prob
+
+    return left, right
+
+
+def augment_grid(x, n_inner_points):
+    test_arr = [
+        np.linspace(x[i], x[i + 1], n_inner_points + 1, endpoint=False)
+        for i in np.arange(len(x) - 1)
+    ]
+    test_arr.append([x[-1]])
+    return np.concatenate(test_arr)
 
 
 def get_rv_supp(rv, supp, tail_prob=1e-6, *args, **kwargs):
@@ -119,50 +196,88 @@ class RVDiff:
     @staticmethod
     def _augment_grid(x, n_inner_points=10):
         test_arr = [
-            np.linspace(x[i], x[i + 1], n_inner_points + 2)
+            np.linspace(x[i], x[i + 1], n_inner_points + 1, endpoint=False)
             for i in np.arange(len(x) - 1)
         ]
-        return np.unique(np.concatenate(test_arr))
+        test_arr.append([x[-1]])
+        return np.concatenate(test_arr)
 
     @staticmethod
     def _vec_summary(diff):
-        diff_noninf = diff[~np.isinf(diff)]
+        diff_finite = diff[~np.isinf(diff)]
         quans = np.quantile(diff, [0.25, 0.5, 0.75])
 
         return {
             "min": np.min(diff),
-            "min_noninf": np.min(diff_noninf),
+            "min_finite": np.min(diff_finite),
             "Q0.25": quans[0],
             "median": quans[1],
             "mean": np.mean(diff),
             "Q0.75": quans[2],
-            "max_noninf": np.max(diff_noninf),
+            "max_finite": np.max(diff_finite),
             "max": np.max(diff),
         }
 
 
-rv = distrs.norm()
+def compute_max_abserrors(rv_base, rv_test):
+    rv_diff = RVDiff(rv_base, rv_test)
+
+    pdf_diff = rv_diff.pdf_diff()[1]
+    density_res = max_finite(pdf_diff)
+
+    cdf_diff = rv_diff.cdf_diff()[1]
+    cdf_res = max_finite(cdf_diff)
+
+    return {
+        "Grid Size": rv_diff.rv_test.pdf_grid()[0].size,
+        "Density": science_notation(density_res),
+        "CDF": science_notation(cdf_res),
+    }
+
+
+#%% Experiments
 args = tuple()
 kwargs = dict()
 
-# from_rv(rv, tail_prob=0.1).plot()
-# from_rv(rv, supp=[-2, None]).plot()
-# from_rv(rv, supp=[-2, None]).pdf_grid()
 
-rv_diff = RVDiff(rv, from_rv(rv))
-rv_diff.diff_summary()
+distr_dict = {
+    "Normal": distrs.norm(),
+    "Normal2": distrs.norm(loc=100, scale=0.1),
+    "Beta": distrs.beta(a=10, b=10),
+    "Beta_inf": distrs.beta(a=0.5, b=0.7),
+    "Chi2": distrs.chi2(df=30),
+    "Chi2_inf": distrs.chi2(df=1),
+    "Student": distrs.t(df=30),
+    "Cauchy": distrs.cauchy(),
+    "Pareto": distrs.pareto(b=1),
+}
 
-# rv = distrs.norm()
-# rv = distrs.beta(a=10, b=10)
-# rv = distrs.chi2(df=2)
-rv = distrs.poisson(mu=10)
-rv_diff = RVDiff(rv, from_rv(rv, n_grid=100001, integr_tol=1e-5))
-rv_diff.plot_diff()
-rv_diff.rv_test.pdf_grid()[0].size
-rv_diff.diff_summary()
+{
+    key: compute_max_abserrors(rv, from_rv(rv, n_grid=2001))
+    for key, rv in distr_dict.items()
+}
+
+{
+    key: compute_max_abserrors(rv, from_rv_double(rv, n_grid=1001))
+    for key, rv in distr_dict.items()
+}
 
 # Test for approximating discrete distributions
 rv = distrs.poisson(mu=10)
+# rv_test = from_rv_double(rv)
 rv_test = from_rv(rv)
 rv_test.plot()
-## It does approximates pretty good!
+
+x_test = np.arange(20)
+x_test_cdf = np.concatenate([[-np.inf], 0.5 * (x_test[:-1] + x_test[1:]), [np.inf]])
+print(rv.pmf(x_test) - np.diff(rv_test.cdf(x_test_cdf)))
+## CONCLUSION: only equidistant grid approximates discrete RV, doubly
+## equidistant - not yet
+
+# Time measurements
+rv = distrs.norm()
+%timeit from_rv(rv)
+%timeit from_rv(rv, n_grid=2001)
+%timeit from_rv_double(rv)
+%timeit from_rv(rv, integr_tol=1e-3)
+%timeit from_rv_double(rv, integr_tol=1e-3)
