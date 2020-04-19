@@ -240,11 +240,13 @@ def diff_summary(diff, method=None):
     else:
         raise ValueError
 
+
 def augment_x_grid(x, n_inner_points=10):
     test_arr = [
         np.linspace(x[i], x[i + 1], n_inner_points + 2) for i in np.arange(len(x) - 1)
     ]
     return np.unique(np.concatenate(test_arr))
+
 
 def dist_pdf_fun(pdf, grid, method=None, n_inner_points=10):
     x_test = augment_x_grid(grid[0])
