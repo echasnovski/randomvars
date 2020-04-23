@@ -1,4 +1,4 @@
-#cython: language_level=3, boundscheck=False, wraparound=False
+#cython: language_level=3, boundscheck=False
 import numpy as np
 cimport numpy as np
 from libc.stdint cimport uint8_t
@@ -91,7 +91,7 @@ cdef (double, double) intersect_intervals(
     return (res_min, res_max)
 
 
-def regrid_maxtol(x, y, tol=0.001):
+def regrid_maxtol(x, y, tol, double_pass=True):
     """Regrid with maximum tolerance
 
     Regrid input xy-grid so that maximum difference between points on output
@@ -99,14 +99,21 @@ def regrid_maxtol(x, y, tol=0.001):
     xy-grid is a subset of input xy-grid. **Note** that first and last point is
     always inside output xy-grid.
 
+    There are two variations of regriddings: single and double (default) pass.
+    Single pass is performed by iteratively (from left to right) determining if
+    grid element should be in output. Output of double pass is a union of
+    single passes from left to right and from right to left.
+
     Parameters
     ----------
     x : Numpy numeric array.
     y : Numpy numeric array.
-    tol : Single number, optional
-        Tolerance, by default 1e-3. If zero, points that lie between colinear
-        segments will be removed without precision loss of piecewise-linear
-        function.
+    tol : Single number
+        Tolerance. If zero, points that lie between colinear segments will be
+        removed without precision loss of piecewise-linear function.
+    double_pass : Single boolean value, optional.
+        Whether to do a double pass (default `True`): one from left to right
+        and one from right to left. Output grid is a union of single passes.
 
     Returns
     -------
@@ -118,7 +125,17 @@ def regrid_maxtol(x, y, tol=0.001):
     tol = float(tol)
 
     # Using `np.asarray()` here to turn memoryview into an array
-    output_inds = np.asarray(regrid_maxtol_isin(x, y, tol)).nonzero()[0]
+    res_isin = np.asarray(regrid_maxtol_isin(x, y, tol))
+
+    if double_pass:
+        rev_x = x[-1] - x[::-1]
+        rev_y = y[::-1]
+        second_pass = np.asarray(regrid_maxtol_isin(rev_x, rev_y, tol))[::-1]
+        # Output should be a union of passes, i.e. point should be present in
+        # output if it equals to 1 in at least one of first or second passes
+        res_isin = np.maximum(res_isin, second_pass)
+
+    output_inds = res_isin.nonzero()[0]
     return x[output_inds], y[output_inds]
 
 
@@ -127,7 +144,7 @@ cdef uint8_t[:] regrid_maxtol_isin(
 ):
     if len(x) <= 2:
         return np.ones(x.shape[0], dtype=np.uint8)
-    
+
     cdef int n_x = x.shape[0]
     res_boolint = np.zeros(n_x, dtype=np.uint8)
     cdef uint8_t[:] res_boolint_view = res_boolint

@@ -19,7 +19,26 @@ def plot_pdf(self):
     plt.show()
 
 
+def mean_piecelin(self):
+    x_lag = self._x[:-1]
+    x_lead = self._x[1:]
+    y_lag = self._y[:-1]
+    y_lead = self._y[1:]
+    # x_lag = x[:-1]
+    # x_lead = x[1:]
+    # y_lag = y[:-1]
+    # y_lead = y[1:]
+    y_sum = y_lag + y_lead
+    x_mass = (x_lag * (y_lag + y_sum) + x_lead * (y_lead + y_sum)) / (3 * y_sum)
+
+    prob = np.diff(self._p)
+    # prob = np.diff(_trapez_integral_cum(x, y))
+
+    return np.nansum(x_mass * prob)
+
+
 setattr(rv_piecelin, "plot", plot_pdf)
+setattr(rv_piecelin, "mean", mean_piecelin)
 
 
 def max_finite(x):
@@ -62,7 +81,9 @@ def from_rv_comb(rv, n_quan=9, n_equi=99, integr_tol=1e-4, *args, **kwargs):
     return rv_piecelin(x, y)
 
 
-def from_rv_double(rv, supp=None, n_grid=1001, integr_tol=1e-4, *args, **kwargs):
+def from_rv_double(
+    rv, supp=None, n_grid=1001, integr_tol=1e-4, double_pass=True, *args, **kwargs
+):
     x_left, x_right = get_rv_supp(rv, supp, *args, **kwargs)
     x_equi = np.linspace(x_left, x_right, n_grid)
 
@@ -73,7 +94,7 @@ def from_rv_double(rv, supp=None, n_grid=1001, integr_tol=1e-4, *args, **kwargs)
     x = combine_x(x_equi, x_quan)
     y = np.clip(np.gradient(rv.cdf(x), x, edge_order=2), 0, np.inf)
 
-    x, y = regrid_maxtol(x, y, integr_tol / (x[-1] - x[0]))
+    x, y = regrid_maxtol(x, y, integr_tol / (x[-1] - x[0]), double_pass=double_pass)
 
     return rv_piecelin(x, y)
 
@@ -281,3 +302,32 @@ rv = distrs.norm()
 %timeit from_rv_double(rv)
 %timeit from_rv(rv, integr_tol=1e-3)
 %timeit from_rv_double(rv, integr_tol=1e-3)
+
+
+#%% Effect of double pass in `regrid_maxtol()`
+distrs_piecelin = {
+    key: (from_rv_double(rv, double_pass=False), from_rv_double(rv, double_pass=True))
+    for key, rv in distr_dict.items()
+}
+
+# Comparisons
+for rv_name, (single, double) in distrs_piecelin.items():
+    print(rv_name)
+    print("  Grid size")
+    print(
+        f"    Single pass: {single.pdf_grid()[0].size}, double pass: {double.pdf_grid()[0].size}"
+    )
+    print("  Mean")
+    print(f"    Single pass: {single.mean()}, double pass: {double.mean()}")
+
+{key: rv.mean() for key, rv in distrs_piecelin.items()}
+
+
+# Timings
+n_points = 10000
+np.random.RandomState(101)
+x = np.unique(np.round(np.sort(np.random.randn(n_points)), decimals=6))
+y = np.random.randn(len(x))
+
+%timeit regrid_maxtol(x, y, tol=1e-1, double_pass=False)
+%timeit regrid_maxtol(x, y, tol=1e-1, double_pass=True)
