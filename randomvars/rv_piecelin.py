@@ -5,6 +5,8 @@ import warnings
 import numpy as np
 from scipy.stats.distributions import rv_continuous
 
+from randomvars.regrid_maxtol import regrid_maxtol
+
 
 def _searchsorted_wrap(a, v, side="left", edge_inside=True):
     """Wrapper for `np.searchsorted()` which respects `np.nan`
