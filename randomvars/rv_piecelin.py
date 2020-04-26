@@ -102,15 +102,20 @@ class rv_piecelin(rv_continuous):
 
         return x, y
 
-    def pdf_grid(self):
-        """Get density grid
+    @property
+    def x(self):
+        """Return `x` component of piecewise-linear density"""
+        return self._x
 
-        Returns
-        -------
-        grid : tuple with 2 numeric arrays of same length.
-            Two components are `x` and `y` arrays defining piecewise-linear density.
-        """
-        return (self._x, self._y)
+    @property
+    def y(self):
+        """Return `y` component of piecewise-linear density"""
+        return self._y
+
+    @property
+    def p(self):
+        """Return cumulative probability grid of piecewise-linear density"""
+        return self._p
 
     def _coeffs_by_ind(self, ind=None):
         """Compute density linear coefficients based on index of interval.

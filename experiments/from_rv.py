@@ -14,7 +14,7 @@ from regrid_maxtol import regrid_maxtol
 #%% Functions
 def plot_pdf(self):
     fig, ax = plt.subplots()
-    ax.plot(*self.pdf_grid())
+    ax.plot(self.x, self.y)
 
     plt.show()
 
@@ -155,7 +155,7 @@ class RVDiff:
         self.rv_base = rv_base
         self.rv_test = rv_test
 
-        x, y = rv_test.pdf_grid()
+        x, y = rv_test.x, rv_test.y
         self.x_test = self._augment_grid(x, n_inner_points)
         self.p_test = self._augment_grid(rv_test.cdf(x), n_inner_points)
 
@@ -250,7 +250,7 @@ def compute_max_abserrors(rv_base, rv_test):
     cdf_res = max_finite(cdf_diff)
 
     return {
-        "Grid Size": rv_diff.rv_test.pdf_grid()[0].size,
+        "Grid Size": rv_diff.rv_test.x.size,
         "Density": science_notation(density_res),
         "CDF": science_notation(cdf_res),
     }
@@ -315,7 +315,7 @@ for rv_name, (single, double) in distrs_piecelin.items():
     print(rv_name)
     print("  Grid size")
     print(
-        f"    Single pass: {single.pdf_grid()[0].size}, double pass: {double.pdf_grid()[0].size}"
+        f"    Single pass: {single.x.size}, double pass: {double.x.size}"
     )
     print("  Mean")
     print(f"    Single pass: {single.mean()}, double pass: {double.mean()}")

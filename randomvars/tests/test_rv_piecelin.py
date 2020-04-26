@@ -15,7 +15,9 @@ def assert_equal_seq(first, second, *args, **kwargs):
 
 
 def assert_equal_rv_pieceilin(rv_p_1, rv_p_2):
-    assert_equal_seq(rv_p_1.pdf_grid(), rv_p_2.pdf_grid())
+    grid_1 = rv_p_1.x, rv_p_1.y, rv_p_1.p
+    grid_2 = rv_p_2.x, rv_p_2.y, rv_p_2.p
+    assert_equal_seq(grid_1, grid_2)
 
 
 class TestRVPiecelin:
@@ -74,12 +76,15 @@ class TestRVPiecelin:
         rv_3 = rv_piecelin(x=x_ref[[1, 0, 2]], y=10 * y_ref[[1, 0, 2]])
         assert_equal_rv_pieceilin(rv_3, rv_ref)
 
-    def test_pdf_grid(self):
+    def test_xyp(self):
+        """Tests for `x`, `y`, and `p` properties"""
         x = np.arange(11)
         y = np.repeat(0.1, 11)
         rv = rv_piecelin(x, y)
 
-        assert_equal_seq(rv.pdf_grid(), (x, y))
+        assert_array_equal(rv.x, x)
+        assert_array_equal(rv.y, y)
+        assert_array_almost_equal(rv.p, np.arange(11) / 10, decimal=15)
 
     def test_pdf_coeffs(self):
         rv = rv_piecelin([0, 1, 2], [0, 1, 0])
