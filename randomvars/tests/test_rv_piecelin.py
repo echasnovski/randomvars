@@ -3,6 +3,7 @@
 """
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
+import scipy.stats.distributions as distrs
 import pytest
 
 from randomvars.rv_piecelin import rv_piecelin
@@ -18,6 +19,12 @@ def assert_equal_rv_pieceilin(rv_p_1, rv_p_2):
     grid_1 = rv_p_1.x, rv_p_1.y, rv_p_1.p
     grid_2 = rv_p_2.x, rv_p_2.y, rv_p_2.p
     assert_equal_seq(grid_1, grid_2)
+
+
+def assert_almost_equal_rv_piecelin(rv_p_1, rv_p_2, decimal=10):
+    assert_array_almost_equal(rv_p_1.x, rv_p_2.x, decimal=decimal)
+    assert_array_almost_equal(rv_p_1.y, rv_p_2.y, decimal=decimal)
+    assert_array_almost_equal(rv_p_1.p, rv_p_2.p, decimal=decimal)
 
 
 class TestRVPiecelin:
@@ -105,6 +112,48 @@ class TestRVPiecelin:
             rv.pdf_coeffs(np.array([-np.inf, np.nan, np.inf])),
             (np.array([0, np.nan, 0]), np.array([0, np.nan, 0])),
         )
+
+    def test_from_rv(self):
+        uniform = distrs.uniform
+        norm = distrs.norm
+
+        # Basic usage
+        rv_unif = rv_piecelin.from_rv(uniform)
+        rv_unif_test = rv_piecelin(x=[0, 1], y=[1, 1])
+        assert_almost_equal_rv_piecelin(rv_unif, rv_unif_test, decimal=12)
+
+        # Forced support edges
+        rv_right = rv_piecelin.from_rv(uniform, supp=(0.5, None))
+        rv_right_test = rv_piecelin([0.5, 1], [2, 2])
+        assert_almost_equal_rv_piecelin(rv_right, rv_right_test, decimal=12)
+
+        rv_left = rv_piecelin.from_rv(uniform, supp=(None, 0.5))
+        rv_left_test = rv_piecelin([0, 0.5], [2, 2])
+        assert_almost_equal_rv_piecelin(rv_left, rv_left_test, decimal=12)
+
+        rv_mid = rv_piecelin.from_rv(uniform, supp=(0.25, 0.75))
+        rv_mid_test = rv_piecelin([0.25, 0.75], [2, 2])
+        assert_almost_equal_rv_piecelin(rv_mid, rv_mid_test, decimal=12)
+
+        # Finite support detection
+        rv_norm = rv_piecelin.from_rv(norm, tail_prob=1e-6)
+        assert_array_almost_equal(rv_norm.support(), norm.ppf([1e-6, 1 - 1e-6]))
+
+        rv_norm_right = rv_piecelin.from_rv(norm, supp=(-1, None), tail_prob=1e-6)
+        assert_array_almost_equal(rv_norm_right.support(), [-1, norm.ppf(1 - 1e-6)])
+
+        rv_norm_left = rv_piecelin.from_rv(norm, supp=(None, 1), tail_prob=1e-6)
+        assert_array_almost_equal(rv_norm_left.support(), [norm.ppf(1e-6), 1])
+
+        # Usage of `n_grid` argument
+        rv_norm_small = rv_piecelin.from_rv(norm, n_grid=11)
+        assert len(rv_norm_small.x) <= 20
+
+        # Usage of `integr_tol` argument
+        rv_norm_1 = rv_piecelin.from_rv(norm, integr_tol=1e-4)
+        rv_norm_2 = rv_piecelin.from_rv(norm, integr_tol=1e-1)
+        ## Increasing tolerance should lead to decrease of density grid
+        assert len(rv_norm_1.x) > len(rv_norm_2.x)
 
     def test_pdf(self):
         """Tests for `.pdf()` method, which logic is implemented in `._pdf()`

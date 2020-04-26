@@ -273,6 +273,41 @@ class rv_piecelin(rv_continuous):
 
         return self._coeffs_by_ind(ind)
 
+    @classmethod
+    def from_rv(cls, rv, supp=None, tail_prob=1e-6, n_grid=1001, integr_tol=1e-4):
+        """Create piecewise-linear RV from general RV"""
+        # Detect effective support of `rv`
+        x_left, x_right = _detect_finite_supp(rv, supp, tail_prob)
+
+        # Construct equidistant grid
+        x_equi = np.linspace(x_left, x_right, n_grid)
+
+        # Construct quantile grid
+        prob_left, prob_right = rv.cdf([x_left, x_right])
+        prob_equi = np.linspace(prob_left, prob_right, n_grid)
+        x_quan = rv.ppf(prob_equi)
+
+        # Combine equidistant and quantile grids into one sorted array
+        x = np.union1d(x_equi, x_quan)
+        ## Ensure that minimum different between consecutive elements isn't
+        ## very small, otherwise this will make `np.gradient()` perform poorly
+        x_is_good = np.concatenate([[True], np.ediff1d(x) > 1e-13])
+        x = x[x_is_good]
+
+        # Compute `y` as derivative of CDF. Not using `pdf` directly to account
+        # for infinite density values.
+        # Using `edge_order=2` gives better accuracy when edge has infinite
+        # density
+        y = np.gradient(rv.cdf(x), x, edge_order=2)
+        ## Account for possible negative values of order 1e-17
+        y = np.clip(y, 0, None)
+
+        # Reduce grid size allowing such maximum difference so that
+        # piecewise-linear integrals differ by not more than `integr_tol`
+        x, y = regrid_maxtol(x, y, integr_tol / (x[-1] - x[0]))
+
+        return cls(x, y)
+
     def _pdf(self, x, *args):
         """Implementation of probability density function
         """
