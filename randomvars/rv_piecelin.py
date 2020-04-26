@@ -383,6 +383,50 @@ def _trapez_integral_cum(x, y):
     return np.concatenate([[0], res])
 
 
+def _detect_finite_supp(rv, supp=None, tail_prob=1e-6):
+    """Detect finite support of random variable
+
+    Finite support edge is detected via testing actual edge to be finite:
+    - If finite, it is returned.
+    - If infinite, output is a value with outer tail having probability
+      `tail_prob`.
+
+    Parameters
+    ----------
+    rv : Random variable from 'scipy' module.
+    supp : Tuple with two elements or `None`, optional
+        Forced support edges. Elements should be either finite numbers
+        (returned untouched) or `None` (finite support edge is detected).
+        Single `None` is equivalent to `(None, None)`, i.e. finding both edges
+        of finite support.
+    tail_prob : Tail probability, optional
+        Probability value of tail that might be cutoff in order to get finite
+        support.
+
+    Returns
+    -------
+    supp : Tuple with 2 values for left and right edges of finite support.
+    """
+    if supp is None:
+        supp = (None, None)
+
+    if supp[0] is None:
+        left = rv.ppf(0)
+        if np.isneginf(left):
+            left = rv.ppf(tail_prob)
+    else:
+        left = supp[0]
+
+    if supp[1] is None:
+        right = rv.ppf(1)
+        if np.isposinf(right):
+            right = rv.ppf(1 - tail_prob)
+    else:
+        right = supp[1]
+
+    return left, right
+
+
 if __name__ == "__main__":
     import doctest
 
