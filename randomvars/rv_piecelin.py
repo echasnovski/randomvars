@@ -460,9 +460,3 @@ def _detect_finite_supp(rv, supp=None, tail_prob=1e-6):
         right = supp[1]
 
     return left, right
-
-
-if __name__ == "__main__":
-    import doctest
-
-    doctest.testmod()

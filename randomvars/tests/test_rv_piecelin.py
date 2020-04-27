@@ -15,7 +15,7 @@ def assert_equal_seq(first, second, *args, **kwargs):
         assert_array_equal(el1, el2, *args, **kwargs)
 
 
-def assert_equal_rv_pieceilin(rv_p_1, rv_p_2):
+def assert_equal_rv_piecelin(rv_p_1, rv_p_2):
     grid_1 = rv_p_1.x, rv_p_1.y, rv_p_1.p
     grid_2 = rv_p_2.x, rv_p_2.y, rv_p_2.p
     assert_equal_seq(grid_1, grid_2)
@@ -58,7 +58,7 @@ class TestRVPiecelin:
         with pytest.warns(UserWarning, match="`x`.*not sorted"):
             rv = rv_piecelin([1, 0], [0, 2])
             rv_ref = rv_piecelin([0, 1], [2, 0])
-            assert_equal_rv_pieceilin(rv, rv_ref)
+            assert_equal_rv_piecelin(rv, rv_ref)
 
         with pytest.raises(ValueError, match="`y`.*negative"):
             rv_piecelin([0, 1], [1, -1])
@@ -73,15 +73,15 @@ class TestRVPiecelin:
 
         # Simple case with non-numpy input
         rv_1 = rv_piecelin(x=x_ref.tolist(), y=y_ref.tolist())
-        assert_equal_rv_pieceilin(rv_1, rv_ref)
+        assert_equal_rv_piecelin(rv_1, rv_ref)
 
         # Check if `y` is normalized
         rv_2 = rv_piecelin(x=x_ref, y=10 * y_ref)
-        assert_equal_rv_pieceilin(rv_2, rv_ref)
+        assert_equal_rv_piecelin(rv_2, rv_ref)
 
         # Check if `x` and `y` are rearranged if not sorted
         rv_3 = rv_piecelin(x=x_ref[[1, 0, 2]], y=10 * y_ref[[1, 0, 2]])
-        assert_equal_rv_pieceilin(rv_3, rv_ref)
+        assert_equal_rv_piecelin(rv_3, rv_ref)
 
     def test_xyp(self):
         """Tests for `x`, `y`, and `p` properties"""

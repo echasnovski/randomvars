@@ -4,6 +4,8 @@ from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 import sys
 
+# This uses "development" version of `rv_pieceline`. instead of "installed in
+# current virtual environment" version.
 sys.path.insert(0, "../randomvars")
 from rv_piecelin import rv_piecelin
 

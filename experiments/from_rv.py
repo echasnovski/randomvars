@@ -5,6 +5,8 @@ import numpy as np
 import scipy.stats.distributions as distrs
 import matplotlib.pyplot as plt
 
+# This uses "development" version of `rv_pieceline`. instead of "installed in
+# current virtual environment" version.
 sys.path.insert(0, os.path.abspath("../randomvars"))
 from rv_piecelin import rv_piecelin
 
@@ -53,7 +55,7 @@ def science_notation(x):
     return f"{x:.2E}"
 
 
-def from_rv(rv, supp=None, n_grid=1001, integr_tol=1e-4, *args, **kwargs):
+def from_rv_equi(rv, supp=None, n_grid=1001, integr_tol=1e-4, *args, **kwargs):
     left, right = get_rv_supp(rv, supp, *args, **kwargs)
     x = np.linspace(left, right, n_grid)
     # Using `edge_order=2` in `np.gradient()` improves approximation on edges
@@ -61,22 +63,6 @@ def from_rv(rv, supp=None, n_grid=1001, integr_tol=1e-4, *args, **kwargs):
     y = np.clip(np.gradient(rv.cdf(x), x, edge_order=2), 0, np.inf)
 
     x, y = regrid_maxtol(x, y, integr_tol / (right - left))
-
-    return rv_piecelin(x, y)
-
-
-def from_rv_comb(rv, n_quan=9, n_equi=99, integr_tol=1e-4, *args, **kwargs):
-    left_prob, right_prob = get_rv_supp_probs(rv, *args, **kwargs)
-    # Using `np.unique()` to account for possible jumps in CDF, like with
-    # discrete `rv`
-    probs = np.unique(np.linspace(left_prob, right_prob, n_quan + 2))
-
-    x = augment_grid(rv.ppf(probs), n_equi)
-
-    # Using `np.clip()` to avoid possible negative values of `1e-16` order of magnitude
-    y = np.clip(np.gradient(rv.cdf(x), x, edge_order=2), 0, np.inf)
-
-    x, y = regrid_maxtol(x, y, integr_tol / (x[-1] - x[0]))
 
     return rv_piecelin(x, y)
 
@@ -274,7 +260,7 @@ distr_dict = {
 }
 
 {
-    key: compute_max_abserrors(rv, from_rv(rv, n_grid=2001))
+    key: compute_max_abserrors(rv, from_rv_equi(rv, n_grid=2001))
     for key, rv in distr_dict.items()
 }
 
@@ -286,7 +272,7 @@ distr_dict = {
 # Test for approximating discrete distributions
 rv = distrs.poisson(mu=10)
 # rv_test = from_rv_double(rv)
-rv_test = from_rv(rv)
+rv_test = from_rv_equi(rv)
 rv_test.plot()
 
 x_test = np.arange(20)
@@ -297,10 +283,10 @@ print(rv.pmf(x_test) - np.diff(rv_test.cdf(x_test_cdf)))
 
 # Time measurements
 rv = distrs.norm()
-%timeit from_rv(rv)
-%timeit from_rv(rv, n_grid=2001)
+%timeit from_rv_equi(rv)
+%timeit from_rv_equi(rv, n_grid=2001)
 %timeit from_rv_double(rv)
-%timeit from_rv(rv, integr_tol=1e-3)
+%timeit from_rv_equi(rv, integr_tol=1e-3)
 %timeit from_rv_double(rv, integr_tol=1e-3)
 
 
