@@ -9,13 +9,13 @@ import sys
 sys.path.insert(0, "../randomvars")
 from rv_piecelin import rv_piecelin
 
-from regrid_maxtol import regrid_maxtol
+from downgrid_maxtol import downgrid_maxtol
 
 
 #%% Functions
-# All functions related to `regrid_maxtol()` are written without using tuples
-# for function arguments as much as possible to increase execution speed.
-# This showed significant increase for most tupical cases (~10%).
+# All functions related to `downgrid_maxtol()` are written without using tuples
+# for function arguments as much as possible to increase execution speed. This
+# showed significant increase for most tupical cases (~10%).
 def is_segment_inside_cone(
     base_x, base_y, slope_min, slope_max, seg1_x, seg1_y, seg2_x, seg2_y
 ):
@@ -91,10 +91,10 @@ def intersect_intervals(inter1_min, inter1_max, inter2_min, inter2_max):
     return res_min, res_max
 
 
-def regrid_maxtol_python(x, y, tol=1e-3):
-    """Regrid with maximum tolerance
+def downgrid_maxtol_python(x, y, tol=1e-3):
+    """Downgrid with maximum tolerance
 
-    Regrid input xy-grid so that maximum difference between points on output
+    Downgrid input xy-grid so that maximum difference between points on output
     piecewise-linear function and input xy-grid is not more than `tol`. Output
     xy-grid is a subset of input xy-grid. **Note** that first and last point is
     always inside output xy-grid.
@@ -201,7 +201,7 @@ def regress_to_mean(x, y, alpha=0.5):
     return (1 - alpha) * y + alpha * integral_mean
 
 
-def regrid_curvature(x, y, n_grid, alpha=0.5):
+def downgrid_curvature(x, y, n_grid, alpha=0.5):
     curv = abs_curvature(x, y)
     curv_regr = regress_to_mean(x, curv, alpha)
     x_new = piecelin_quantiles(x, curv_regr, np.linspace(0, 1, n_grid))
@@ -209,7 +209,7 @@ def regrid_curvature(x, y, n_grid, alpha=0.5):
     return x_new, y_new
 
 
-def regrid_equidist(x, y, n_grid):
+def downgrid_equidist(x, y, n_grid):
     x_new = np.linspace(x[0], x[-1], n_grid)
     y_new = np.interp(x_new, x, y)
     return x_new, y_new
@@ -266,7 +266,7 @@ def dist_cdf_fun(cdf, grid, method=None, n_inner_points=10):
     return diff_summary(diff, method)
 
 
-def regrid_optimize(x, y, n_grid, maxiter=np.inf, fit_method=None):
+def downgrid_optimize(x, y, n_grid, maxiter=np.inf, fit_method=None):
     if len(x) == 2:
         return x
 
@@ -313,22 +313,22 @@ y = np.gradient(dist.cdf(x), x)
 # x = np.linspace(supp[0], supp[1], n_grid)
 # y = np.interp(x, x_base, y_base)
 
-# Regridding
+# Downgridding
 integr_tol = 1e-3
 tol = integr_tol / (x[-1] - x[0])
 print(f"tol={tol}")
-x_maxtol, y_maxtol = regrid_maxtol(x, y, tol=tol)
-x_maxtol_python, y_maxtol_python = regrid_maxtol_python(x, y, tol=tol)
+x_maxtol, y_maxtol = downgrid_maxtol(x, y, tol=tol)
+x_maxtol_python, y_maxtol_python = downgrid_maxtol_python(x, y, tol=tol)
 n_grid_new = len(x_maxtol)
 print(f"n_grid_new={n_grid_new}")
-x_equi, y_equi = regrid_equidist(x, y, n_grid_new)
-x_curv, y_curv = regrid_curvature(x, y, n_grid_new)
-x_optim, y_optim = regrid_optimize(x, y, n_grid_new)
+x_equi, y_equi = downgrid_equidist(x, y, n_grid_new)
+x_curv, y_curv = downgrid_curvature(x, y, n_grid_new)
+x_optim, y_optim = downgrid_optimize(x, y, n_grid_new)
 
 np.allclose(x_maxtol, x_maxtol_python)
 np.allclose(y_maxtol, y_maxtol_python)
 
-regriddings = {
+downgriddings = {
     "maxtol": (x_maxtol, y_maxtol),
     "equi": (x_equi, y_equi),
     "curv": (x_curv, y_curv),
@@ -336,40 +336,40 @@ regriddings = {
 }
 
 # Grid metrics
-for meth, grid in regriddings.items():
+for meth, grid in downgriddings.items():
     grid_dist = dist_grid((x, y), grid, method="maxabs")
     print(f"'maxabs' distance for '{meth}' method: {grid_dist}")
 
-for meth, grid in regriddings.items():
+for meth, grid in downgriddings.items():
     grid_dist = dist_grid((x, y), grid, method="meanabs")
     print(f"'meanabs' distance for '{meth}' method: {grid_dist}")
 
-for meth, grid in regriddings.items():
+for meth, grid in downgriddings.items():
     grid_dist = dist_grid_cdf((x, y), grid, method="maxabs")
     print(f"'maxabs cdf' distance for '{meth}' method: {grid_dist}")
 
 # Distribution functions' metrics
-for meth, grid in regriddings.items():
+for meth, grid in downgriddings.items():
     grid_dist = dist_pdf_fun(dist.pdf, grid, method="maxabs")
     print(f"'maxabs pdf_fun' distance for '{meth}' method: {grid_dist}")
 
-for meth, grid in regriddings.items():
+for meth, grid in downgriddings.items():
     grid_dist = dist_cdf_fun(dist.cdf, grid, method="maxabs")
     print(f"'maxabs cdf_fun' distance for '{meth}' method: {grid_dist}")
 
 # Integral metric
-for meth, grid in regriddings.items():
+for meth, grid in downgriddings.items():
     integral_extra = trapez_integral(*grid) - 1
     print(f"Trapez. integral extra for '{meth}' method: {integral_extra}")
 
 # Execution timings
-%timeit regrid_maxtol(x, y, tol=tol)
-%timeit regrid_maxtol_python(x, y, tol=tol)
-%timeit regrid_equidist(x, y, n_grid_new)
-%timeit regrid_curvature(x, y, n_grid_new)
-%timeit regrid_optimize(x, y, n_grid_new)
+%timeit downgrid_maxtol(x, y, tol=tol)
+%timeit downgrid_maxtol_python(x, y, tol=tol)
+%timeit downgrid_equidist(x, y, n_grid_new)
+%timeit downgrid_curvature(x, y, n_grid_new)
+%timeit downgrid_optimize(x, y, n_grid_new)
 
-# Plot regridding outputs
+# Plot downgridding outputs
 fig, ax = plt.subplots()
 ax.plot(x, y)
 ax.plot(x_equi, y_equi, color="red", marker="o")
@@ -377,8 +377,8 @@ ax.plot(x_curv, y_curv, color="green", marker="o")
 ax.plot(x_optim, y_optim, color="blue", marker="o")
 ax.plot(x_maxtol, y_maxtol, color="magenta", marker="o")
 
-# Check if `regrid_maxtol(x, y, tol=0)` removes points on lines
+# Check if `downgrid_maxtol(x, y, tol=0)` removes points on lines
 x = np.arange(10)
 y = np.array([0, 1, 2, 3, 2, 1, 2, 1, 0, -10])
 
-regrid_maxtol(x, y, tol=0)
+downgrid_maxtol(x, y, tol=0)

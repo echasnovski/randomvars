@@ -5,7 +5,7 @@ import warnings
 import numpy as np
 from scipy.stats.distributions import rv_continuous
 
-from randomvars.regrid_maxtol import regrid_maxtol
+from randomvars.downgrid_maxtol import downgrid_maxtol
 
 
 def _searchsorted_wrap(a, v, side="left", edge_inside=True):
@@ -304,7 +304,7 @@ class rv_piecelin(rv_continuous):
 
         # Reduce grid size allowing such maximum difference so that
         # piecewise-linear integrals differ by not more than `integr_tol`
-        x, y = regrid_maxtol(x, y, integr_tol / (x[-1] - x[0]))
+        x, y = downgrid_maxtol(x, y, integr_tol / (x[-1] - x[0]))
 
         return cls(x, y)
 

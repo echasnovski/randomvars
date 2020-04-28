@@ -15,6 +15,6 @@ setup(
     author_email="evgeni.chasnovski@gmail.com",
     license="MIT",
     packages=["randomvars"],
-    ext_modules=cythonize("randomvars/regrid_maxtol.pyx"),
+    ext_modules=cythonize("randomvars/downgrid_maxtol.pyx"),
     include_dirs=[numpy.get_include()],
 )

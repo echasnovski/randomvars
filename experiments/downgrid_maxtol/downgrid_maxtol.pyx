@@ -91,18 +91,18 @@ cdef (double, double) intersect_intervals(
     return (res_min, res_max)
 
 
-def regrid_maxtol(x, y, tol, double_pass=True):
-    """Regrid with maximum tolerance
+def downgrid_maxtol(x, y, tol, double_pass=True):
+    """Downgrid with maximum tolerance
 
-    Regrid input xy-grid so that maximum difference between points on output
+    Downgrid input xy-grid so that maximum difference between points on output
     piecewise-linear function and input xy-grid is not more than `tol`. Output
     xy-grid is a subset of input xy-grid. **Note** that first and last point is
     always inside output xy-grid.
 
-    There are two variations of regriddings: single and double (default) pass.
-    Single pass is performed by iteratively (from left to right) determining if
-    grid element should be in output. Output of double pass is a union of
-    single passes from left to right and from right to left.
+    There are two variations of downgriddings: single and double (default)
+    pass. Single pass is performed by iteratively (from left to right)
+    determining if grid element should be in output. Output of double pass is a
+    union of single passes from left to right and from right to left.
 
     Parameters
     ----------
@@ -125,12 +125,12 @@ def regrid_maxtol(x, y, tol, double_pass=True):
     tol = float(tol)
 
     # Using `np.asarray()` here to turn memoryview into an array
-    res_isin = np.asarray(regrid_maxtol_isin(x, y, tol))
+    res_isin = np.asarray(downgrid_maxtol_isin(x, y, tol))
 
     if double_pass:
         rev_x = x[-1] - x[::-1]
         rev_y = y[::-1]
-        second_pass = np.asarray(regrid_maxtol_isin(rev_x, rev_y, tol))[::-1]
+        second_pass = np.asarray(downgrid_maxtol_isin(rev_x, rev_y, tol))[::-1]
         # Output should be a union of passes, i.e. point should be present in
         # output if it equals to 1 in at least one of first or second passes
         res_isin = np.maximum(res_isin, second_pass)
@@ -139,7 +139,7 @@ def regrid_maxtol(x, y, tol, double_pass=True):
     return x[output_inds], y[output_inds]
 
 
-cdef uint8_t[:] regrid_maxtol_isin(
+cdef uint8_t[:] downgrid_maxtol_isin(
     double[:] x, double[:] y, double tol=0.001
 ):
     if len(x) <= 2:

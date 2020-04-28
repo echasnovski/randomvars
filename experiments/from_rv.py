@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 sys.path.insert(0, os.path.abspath("../randomvars"))
 from rv_piecelin import rv_piecelin
 
-from regrid_maxtol import regrid_maxtol
+from downgrid_maxtol import downgrid_maxtol
 
 
 #%% Functions
@@ -62,7 +62,7 @@ def from_rv_equi(rv, supp=None, n_grid=1001, integr_tol=1e-4, *args, **kwargs):
     # Using `np.clip()` to avoid possible negative values of `1e-16` order of magnitude
     y = np.clip(np.gradient(rv.cdf(x), x, edge_order=2), 0, np.inf)
 
-    x, y = regrid_maxtol(x, y, integr_tol / (right - left))
+    x, y = downgrid_maxtol(x, y, integr_tol / (right - left))
 
     return rv_piecelin(x, y)
 
@@ -80,7 +80,7 @@ def from_rv_double(
     x = combine_x(x_equi, x_quan)
     y = np.clip(np.gradient(rv.cdf(x), x, edge_order=2), 0, np.inf)
 
-    x, y = regrid_maxtol(x, y, integr_tol / (x[-1] - x[0]), double_pass=double_pass)
+    x, y = downgrid_maxtol(x, y, integr_tol / (x[-1] - x[0]), double_pass=double_pass)
 
     return rv_piecelin(x, y)
 
@@ -290,7 +290,7 @@ rv = distrs.norm()
 %timeit from_rv_double(rv, integr_tol=1e-3)
 
 
-#%% Effect of double pass in `regrid_maxtol()`
+#%% Effect of double pass in `downgrid_maxtol()`
 distrs_piecelin = {
     key: (from_rv_double(rv, double_pass=False), from_rv_double(rv, double_pass=True))
     for key, rv in distr_dict.items()
@@ -315,5 +315,5 @@ np.random.RandomState(101)
 x = np.unique(np.round(np.sort(np.random.randn(n_points)), decimals=6))
 y = np.random.randn(len(x))
 
-%timeit regrid_maxtol(x, y, tol=1e-1, double_pass=False)
-%timeit regrid_maxtol(x, y, tol=1e-1, double_pass=True)
+%timeit downgrid_maxtol(x, y, tol=1e-1, double_pass=False)
+%timeit downgrid_maxtol(x, y, tol=1e-1, double_pass=True)
