@@ -9,6 +9,41 @@ import pytest
 from randomvars.rv_piecelin import rv_piecelin
 
 
+DISTRIBUTIONS_COMMON = {
+    "beta": distrs.beta(a=10, b=20),
+    "chi_sq": distrs.chi2(df=10),
+    "expon": distrs.expon(),
+    "f": distrs.f(dfn=20, dfd=20),
+    "gamma": distrs.gamma(a=10),
+    "lognorm": distrs.lognorm(s=0.5),
+    "norm": distrs.norm(),
+    "norm2": distrs.norm(loc=10),
+    "norm3": distrs.norm(scale=0.1),
+    "norm4": distrs.norm(scale=10),
+    "norm5": distrs.norm(loc=10, scale=0.1),
+    "t": distrs.t(df=10),
+    "uniform": distrs.uniform(),
+    "uniform2": distrs.uniform(loc=10, scale=0.1),
+    "weibull_max": distrs.weibull_max(c=2),
+    "weibull_min": distrs.weibull_min(c=2),
+}
+
+DISTRIBUTIONS_INF_DENSITY = {
+    "beta_both": distrs.beta(a=0.4, b=0.6),
+    "beta_left": distrs.beta(a=0.5, b=2),
+    "beta_right": distrs.beta(a=2, b=0.5),
+    "chi_sq": distrs.chi2(df=1),
+    "weibull_max": distrs.weibull_max(c=0.5),
+    "weibull_min": distrs.weibull_min(c=0.5),
+}
+
+DISTRIBUTIONS_HEAVY_TAILS = {
+    "cauchy": distrs.cauchy(),
+    "lognorm": distrs.lognorm(s=1),
+    "t": distrs.t(df=2),
+}
+
+
 def assert_equal_seq(first, second, *args, **kwargs):
     assert len(first) == len(second)
     for el1, el2 in zip(first, second):
@@ -226,3 +261,43 @@ class TestRVPiecelin:
             np.array([10 - 1e-8, 10 - 0.5e-8, 10, 10 + 0.5e-8, 10 + 1e-8]),
             decimal=9,
         )
+
+
+class TestFromRVAccuracy:
+    """Accuracy of `rv_piecelin.from_rv()`"""
+
+    # Output of `from_rv()` should have CDF that differs from original CDF by
+    # no more than `thres`
+    @pytest.mark.slow
+    @pytest.mark.parametrize(
+        "distr_dict,thres",
+        [
+            (DISTRIBUTIONS_COMMON, 1e-4),
+            (DISTRIBUTIONS_INF_DENSITY, 1e-2),
+            (DISTRIBUTIONS_HEAVY_TAILS, 1e-2),
+        ],
+    )
+    def test_cdf_maxerror(self, distr_dict, thres):
+        maxerrors = {
+            name: TestFromRVAccuracy.from_rv_cdf_maxerror(distr)
+            for name, distr in distr_dict.items()
+        }
+        test_passed = {name: err <= thres for name, err in maxerrors.items()}
+
+        assert all(test_passed.values())
+
+    @staticmethod
+    def from_rv_cdf_maxerror(rv_base, n_inner_points=10, **kwargs):
+        rv_test = rv_piecelin.from_rv(rv_base, **kwargs)
+        x_grid = TestFromRVAccuracy.augment_grid(rv_test.x, n_inner_points)
+        err = rv_base.cdf(x_grid) - rv_test.cdf(x_grid)
+        return np.max(np.abs(err))
+
+    @staticmethod
+    def augment_grid(x, n_inner_points):
+        test_arr = [
+            np.linspace(x[i], x[i + 1], n_inner_points + 1, endpoint=False)
+            for i in np.arange(len(x) - 1)
+        ]
+        test_arr.append([x[-1]])
+        return np.concatenate(test_arr)
