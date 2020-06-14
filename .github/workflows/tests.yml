@@ -25,9 +25,7 @@ jobs:
 
       - name: Install poetry
         shell: bash
-        run: |
-          python get-poetry.py -y
-          echo "::set-env name=PATH::$HOME/.poetry/bin:$PATH"
+        run: pip install poetry==1.0.5
       
       - name: Configure poetry
         shell: bash
