@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "randomvars"
+version = "0.0.0.9000"
+description = "Working with Random Variables"
+authors = ["Evgeni Chasnovski <evgeni.chasnovski@gmail.com>"]
+license = "MIT"
+readme = 'README.md'
+repository = "http://github.com/echasnovski/randomvars"
+keywords = ['randomvars', 'random', 'distributions']
+build = "build.py"
+
+[tool.poetry.dependencies]
+python = "^3.6"
+numpy = "^1.16.0"
+scipy = "^1.3.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.4.3"
+cython = "^0.29.20"
+
+[build-system]
+requires = [
+    "poetry >= 1.0",
+    "numpy >= 1.16.0",
+    "cython >= 0.28"
+]
+build-backend = "poetry.masonry.api"
