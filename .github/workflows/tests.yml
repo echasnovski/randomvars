@@ -51,6 +51,7 @@ jobs:
         shell: bash
         run: poetry run pytest -q randomvars/tests
       
-      - name: Execute doctests
+      - name: Execute doctests on Ubuntu
         shell: bash
+        if: runner.os == 'Ubuntu'
         run: poetry run pytest -q --doctest-modules randomvars
