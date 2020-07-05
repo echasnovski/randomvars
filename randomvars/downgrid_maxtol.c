@@ -1224,7 +1224,7 @@ struct __pyx_ctuple_double__and_double;
 typedef struct __pyx_ctuple_double__and_double __pyx_ctuple_double__and_double;
 struct __pyx_opt_args_10randomvars_15downgrid_maxtol_downgrid_maxtol_isin;
 
-/* "randomvars/downgrid_maxtol.pyx":54
+/* "randomvars/downgrid_maxtol.pyx":58
  * 
  * 
  * cdef (double, double) tolerance_slope_window(             # <<<<<<<<<<<<<<
@@ -1236,7 +1236,7 @@ struct __pyx_ctuple_double__and_double {
   double f1;
 };
 
-/* "randomvars/downgrid_maxtol.pyx":142
+/* "randomvars/downgrid_maxtol.pyx":146
  * 
  * 
  * cdef uint8_t[:] downgrid_maxtol_isin(             # <<<<<<<<<<<<<<
@@ -2586,8 +2586,8 @@ static int __pyx_f_10randomvars_15downgrid_maxtol_is_segment_inside_cone(double 
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("is_segment_inside_cone", 0);
 
-  /* "randomvars/downgrid_maxtol.pyx":38
- *     is_inside : Boolean value indicating if whole segment lies inside cone.
+  /* "randomvars/downgrid_maxtol.pyx":42
+ *         Boolean value indicating if whole segment lies inside cone.
  *     """
  *     cdef double seg_slope_1 = (seg1_y - base_y) / (seg1_x - base_x)             # <<<<<<<<<<<<<<
  *     cdef double seg_slope_2 = (seg2_y - base_y) / (seg2_x - base_x)
@@ -2597,11 +2597,11 @@ static int __pyx_f_10randomvars_15downgrid_maxtol_is_segment_inside_cone(double 
   __pyx_t_2 = (__pyx_v_seg1_x - __pyx_v_base_x);
   if (unlikely(__pyx_t_2 == 0)) {
     PyErr_SetString(PyExc_ZeroDivisionError, "float division");
-    __PYX_ERR(0, 38, __pyx_L1_error)
+    __PYX_ERR(0, 42, __pyx_L1_error)
   }
   __pyx_v_seg_slope_1 = (__pyx_t_1 / __pyx_t_2);
 
-  /* "randomvars/downgrid_maxtol.pyx":39
+  /* "randomvars/downgrid_maxtol.pyx":43
  *     """
  *     cdef double seg_slope_1 = (seg1_y - base_y) / (seg1_x - base_x)
  *     cdef double seg_slope_2 = (seg2_y - base_y) / (seg2_x - base_x)             # <<<<<<<<<<<<<<
@@ -2612,11 +2612,11 @@ static int __pyx_f_10randomvars_15downgrid_maxtol_is_segment_inside_cone(double 
   __pyx_t_1 = (__pyx_v_seg2_x - __pyx_v_base_x);
   if (unlikely(__pyx_t_1 == 0)) {
     PyErr_SetString(PyExc_ZeroDivisionError, "float division");
-    __PYX_ERR(0, 39, __pyx_L1_error)
+    __PYX_ERR(0, 43, __pyx_L1_error)
   }
   __pyx_v_seg_slope_2 = (__pyx_t_2 / __pyx_t_1);
 
-  /* "randomvars/downgrid_maxtol.pyx":44
+  /* "randomvars/downgrid_maxtol.pyx":48
  *     # cone's base point) lie inside `[slope_min, slope_max]`
  *     if (
  *         (seg_slope_1 >= slope_min)             # <<<<<<<<<<<<<<
@@ -2630,7 +2630,7 @@ static int __pyx_f_10randomvars_15downgrid_maxtol_is_segment_inside_cone(double 
     goto __pyx_L4_bool_binop_done;
   }
 
-  /* "randomvars/downgrid_maxtol.pyx":45
+  /* "randomvars/downgrid_maxtol.pyx":49
  *     if (
  *         (seg_slope_1 >= slope_min)
  *         and (seg_slope_1 <= slope_max)             # <<<<<<<<<<<<<<
@@ -2644,7 +2644,7 @@ static int __pyx_f_10randomvars_15downgrid_maxtol_is_segment_inside_cone(double 
     goto __pyx_L4_bool_binop_done;
   }
 
-  /* "randomvars/downgrid_maxtol.pyx":46
+  /* "randomvars/downgrid_maxtol.pyx":50
  *         (seg_slope_1 >= slope_min)
  *         and (seg_slope_1 <= slope_max)
  *         and (seg_slope_2 >= slope_min)             # <<<<<<<<<<<<<<
@@ -2658,7 +2658,7 @@ static int __pyx_f_10randomvars_15downgrid_maxtol_is_segment_inside_cone(double 
     goto __pyx_L4_bool_binop_done;
   }
 
-  /* "randomvars/downgrid_maxtol.pyx":47
+  /* "randomvars/downgrid_maxtol.pyx":51
  *         and (seg_slope_1 <= slope_max)
  *         and (seg_slope_2 >= slope_min)
  *         and (seg_slope_2 <= slope_max)             # <<<<<<<<<<<<<<
@@ -2669,7 +2669,7 @@ static int __pyx_f_10randomvars_15downgrid_maxtol_is_segment_inside_cone(double 
   __pyx_t_3 = __pyx_t_4;
   __pyx_L4_bool_binop_done:;
 
-  /* "randomvars/downgrid_maxtol.pyx":43
+  /* "randomvars/downgrid_maxtol.pyx":47
  *     # Segment lies inside cone if its both ends' slopes (computed with respect to
  *     # cone's base point) lie inside `[slope_min, slope_max]`
  *     if (             # <<<<<<<<<<<<<<
@@ -2678,7 +2678,7 @@ static int __pyx_f_10randomvars_15downgrid_maxtol_is_segment_inside_cone(double 
  */
   if (__pyx_t_3) {
 
-    /* "randomvars/downgrid_maxtol.pyx":49
+    /* "randomvars/downgrid_maxtol.pyx":53
  *         and (seg_slope_2 <= slope_max)
  *     ):
  *         return True             # <<<<<<<<<<<<<<
@@ -2688,7 +2688,7 @@ static int __pyx_f_10randomvars_15downgrid_maxtol_is_segment_inside_cone(double 
     __pyx_r = 1;
     goto __pyx_L0;
 
-    /* "randomvars/downgrid_maxtol.pyx":43
+    /* "randomvars/downgrid_maxtol.pyx":47
  *     # Segment lies inside cone if its both ends' slopes (computed with respect to
  *     # cone's base point) lie inside `[slope_min, slope_max]`
  *     if (             # <<<<<<<<<<<<<<
@@ -2697,7 +2697,7 @@ static int __pyx_f_10randomvars_15downgrid_maxtol_is_segment_inside_cone(double 
  */
   }
 
-  /* "randomvars/downgrid_maxtol.pyx":51
+  /* "randomvars/downgrid_maxtol.pyx":55
  *         return True
  *     else:
  *         return False             # <<<<<<<<<<<<<<
@@ -2726,7 +2726,7 @@ static int __pyx_f_10randomvars_15downgrid_maxtol_is_segment_inside_cone(double 
   return __pyx_r;
 }
 
-/* "randomvars/downgrid_maxtol.pyx":54
+/* "randomvars/downgrid_maxtol.pyx":58
  * 
  * 
  * cdef (double, double) tolerance_slope_window(             # <<<<<<<<<<<<<<
@@ -2747,7 +2747,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10randomvars_15downgrid_maxtol_to
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("tolerance_slope_window", 0);
 
-  /* "randomvars/downgrid_maxtol.pyx":63
+  /* "randomvars/downgrid_maxtol.pyx":67
  *     point_y+tol)`.
  *     """
  *     cdef double slope_min = (point_y - base_y - tol) / (point_x - base_x)             # <<<<<<<<<<<<<<
@@ -2758,11 +2758,11 @@ static __pyx_ctuple_double__and_double __pyx_f_10randomvars_15downgrid_maxtol_to
   __pyx_t_2 = (__pyx_v_point_x - __pyx_v_base_x);
   if (unlikely(__pyx_t_2 == 0)) {
     PyErr_SetString(PyExc_ZeroDivisionError, "float division");
-    __PYX_ERR(0, 63, __pyx_L1_error)
+    __PYX_ERR(0, 67, __pyx_L1_error)
   }
   __pyx_v_slope_min = (__pyx_t_1 / __pyx_t_2);
 
-  /* "randomvars/downgrid_maxtol.pyx":64
+  /* "randomvars/downgrid_maxtol.pyx":68
  *     """
  *     cdef double slope_min = (point_y - base_y - tol) / (point_x - base_x)
  *     cdef double slope_max = (point_y - base_y + tol) / (point_x - base_x)             # <<<<<<<<<<<<<<
@@ -2773,11 +2773,11 @@ static __pyx_ctuple_double__and_double __pyx_f_10randomvars_15downgrid_maxtol_to
   __pyx_t_1 = (__pyx_v_point_x - __pyx_v_base_x);
   if (unlikely(__pyx_t_1 == 0)) {
     PyErr_SetString(PyExc_ZeroDivisionError, "float division");
-    __PYX_ERR(0, 64, __pyx_L1_error)
+    __PYX_ERR(0, 68, __pyx_L1_error)
   }
   __pyx_v_slope_max = (__pyx_t_2 / __pyx_t_1);
 
-  /* "randomvars/downgrid_maxtol.pyx":66
+  /* "randomvars/downgrid_maxtol.pyx":70
  *     cdef double slope_max = (point_y - base_y + tol) / (point_x - base_x)
  * 
  *     return (slope_min, slope_max)             # <<<<<<<<<<<<<<
@@ -2789,7 +2789,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10randomvars_15downgrid_maxtol_to
   __pyx_r = __pyx_t_3;
   goto __pyx_L0;
 
-  /* "randomvars/downgrid_maxtol.pyx":54
+  /* "randomvars/downgrid_maxtol.pyx":58
  * 
  * 
  * cdef (double, double) tolerance_slope_window(             # <<<<<<<<<<<<<<
@@ -2806,7 +2806,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10randomvars_15downgrid_maxtol_to
   return __pyx_r;
 }
 
-/* "randomvars/downgrid_maxtol.pyx":69
+/* "randomvars/downgrid_maxtol.pyx":73
  * 
  * 
  * cdef (double, double) intersect_intervals(             # <<<<<<<<<<<<<<
@@ -2823,7 +2823,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10randomvars_15downgrid_maxtol_in
   __pyx_ctuple_double__and_double __pyx_t_2;
   __Pyx_RefNannySetupContext("intersect_intervals", 0);
 
-  /* "randomvars/downgrid_maxtol.pyx":81
+  /* "randomvars/downgrid_maxtol.pyx":85
  *     cdef double res_min, res_max
  * 
  *     if inter1_min <= inter2_min:             # <<<<<<<<<<<<<<
@@ -2833,7 +2833,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10randomvars_15downgrid_maxtol_in
   __pyx_t_1 = ((__pyx_v_inter1_min <= __pyx_v_inter2_min) != 0);
   if (__pyx_t_1) {
 
-    /* "randomvars/downgrid_maxtol.pyx":82
+    /* "randomvars/downgrid_maxtol.pyx":86
  * 
  *     if inter1_min <= inter2_min:
  *         res_min = inter2_min             # <<<<<<<<<<<<<<
@@ -2842,7 +2842,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10randomvars_15downgrid_maxtol_in
  */
     __pyx_v_res_min = __pyx_v_inter2_min;
 
-    /* "randomvars/downgrid_maxtol.pyx":81
+    /* "randomvars/downgrid_maxtol.pyx":85
  *     cdef double res_min, res_max
  * 
  *     if inter1_min <= inter2_min:             # <<<<<<<<<<<<<<
@@ -2852,7 +2852,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10randomvars_15downgrid_maxtol_in
     goto __pyx_L3;
   }
 
-  /* "randomvars/downgrid_maxtol.pyx":84
+  /* "randomvars/downgrid_maxtol.pyx":88
  *         res_min = inter2_min
  *     else:
  *         res_min = inter1_min             # <<<<<<<<<<<<<<
@@ -2864,7 +2864,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10randomvars_15downgrid_maxtol_in
   }
   __pyx_L3:;
 
-  /* "randomvars/downgrid_maxtol.pyx":86
+  /* "randomvars/downgrid_maxtol.pyx":90
  *         res_min = inter1_min
  * 
  *     if inter1_max <= inter2_max:             # <<<<<<<<<<<<<<
@@ -2874,7 +2874,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10randomvars_15downgrid_maxtol_in
   __pyx_t_1 = ((__pyx_v_inter1_max <= __pyx_v_inter2_max) != 0);
   if (__pyx_t_1) {
 
-    /* "randomvars/downgrid_maxtol.pyx":87
+    /* "randomvars/downgrid_maxtol.pyx":91
  * 
  *     if inter1_max <= inter2_max:
  *         res_max = inter1_max             # <<<<<<<<<<<<<<
@@ -2883,7 +2883,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10randomvars_15downgrid_maxtol_in
  */
     __pyx_v_res_max = __pyx_v_inter1_max;
 
-    /* "randomvars/downgrid_maxtol.pyx":86
+    /* "randomvars/downgrid_maxtol.pyx":90
  *         res_min = inter1_min
  * 
  *     if inter1_max <= inter2_max:             # <<<<<<<<<<<<<<
@@ -2893,7 +2893,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10randomvars_15downgrid_maxtol_in
     goto __pyx_L4;
   }
 
-  /* "randomvars/downgrid_maxtol.pyx":89
+  /* "randomvars/downgrid_maxtol.pyx":93
  *         res_max = inter1_max
  *     else:
  *         res_max = inter2_max             # <<<<<<<<<<<<<<
@@ -2905,7 +2905,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10randomvars_15downgrid_maxtol_in
   }
   __pyx_L4:;
 
-  /* "randomvars/downgrid_maxtol.pyx":91
+  /* "randomvars/downgrid_maxtol.pyx":95
  *         res_max = inter2_max
  * 
  *     return (res_min, res_max)             # <<<<<<<<<<<<<<
@@ -2917,7 +2917,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10randomvars_15downgrid_maxtol_in
   __pyx_r = __pyx_t_2;
   goto __pyx_L0;
 
-  /* "randomvars/downgrid_maxtol.pyx":69
+  /* "randomvars/downgrid_maxtol.pyx":73
  * 
  * 
  * cdef (double, double) intersect_intervals(             # <<<<<<<<<<<<<<
@@ -2931,7 +2931,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10randomvars_15downgrid_maxtol_in
   return __pyx_r;
 }
 
-/* "randomvars/downgrid_maxtol.pyx":94
+/* "randomvars/downgrid_maxtol.pyx":98
  * 
  * 
  * def downgrid_maxtol(x, y, tol, double_pass=True):             # <<<<<<<<<<<<<<
@@ -2941,7 +2941,7 @@ static __pyx_ctuple_double__and_double __pyx_f_10randomvars_15downgrid_maxtol_in
 
 /* Python wrapper */
 static PyObject *__pyx_pw_10randomvars_15downgrid_maxtol_1downgrid_maxtol(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_10randomvars_15downgrid_maxtol_downgrid_maxtol[] = "Downgrid with maximum tolerance\n\n    Downgrid input xy-grid so that maximum difference between points on output\n    piecewise-linear function and input xy-grid is not more than `tol`. Output\n    xy-grid is a subset of input xy-grid. **Note** that first and last point is\n    always inside output xy-grid.\n\n    There are two variations of downgriddings: single and double (default)\n    pass. Single pass is performed by iteratively (from left to right)\n    determining if grid element should be in output. Output of double pass is a\n    union of single passes from left to right and from right to left.\n\n    Parameters\n    ----------\n    x : Numpy numeric array.\n    y : Numpy numeric array.\n    tol : Single number\n        Tolerance. If zero, points that lie between colinear segments will be\n        removed without precision loss of piecewise-linear function.\n    double_pass : Single boolean value, optional.\n        Whether to do a double pass (default `True`): one from left to right\n        and one from right to left. Output grid is a union of single passes.\n\n    Returns\n    -------\n    xy_grid : Tuple with two numpy numeric arrays with same lengths\n        Subset of input xy-grid which differs from it by no more than `tol`.\n    ";
+static char __pyx_doc_10randomvars_15downgrid_maxtol_downgrid_maxtol[] = "Downgrid with maximum tolerance\n\n    Downgrid input xy-grid so that maximum difference between points on output\n    piecewise-linear function and input xy-grid is not more than `tol`. Output\n    xy-grid is a subset of input xy-grid. **Note** that first and last point is\n    always inside output xy-grid.\n\n    There are two variations of downgriddings: single and double (default)\n    pass. Single pass is performed by iteratively (from left to right)\n    determining if grid element should be in output. Output of double pass is a\n    union of single passes from left to right and from right to left.\n\n    Parameters\n    ----------\n    x : numpy array\n    y : numpy array\n    tol : scalar\n        Tolerance. If zero, points that lie between colinear segments will be\n        removed without precision loss of piecewise-linear function.\n    double_pass : boolean scalar, optional\n        Whether to do a double pass (default `True`): one from left to right\n        and one from right to left. Output grid is a union of single passes.\n\n    Returns\n    -------\n    xy_grid : Tuple with two numpy arrays with same lengths\n        Subset of input xy-grid which differs from it by no more than `tol`.\n    ";
 static PyMethodDef __pyx_mdef_10randomvars_15downgrid_maxtol_1downgrid_maxtol = {"downgrid_maxtol", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_10randomvars_15downgrid_maxtol_1downgrid_maxtol, METH_VARARGS|METH_KEYWORDS, __pyx_doc_10randomvars_15downgrid_maxtol_downgrid_maxtol};
 static PyObject *__pyx_pw_10randomvars_15downgrid_maxtol_1downgrid_maxtol(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_x = 0;
@@ -2982,13 +2982,13 @@ static PyObject *__pyx_pw_10randomvars_15downgrid_maxtol_1downgrid_maxtol(PyObje
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_y)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("downgrid_maxtol", 0, 3, 4, 1); __PYX_ERR(0, 94, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("downgrid_maxtol", 0, 3, 4, 1); __PYX_ERR(0, 98, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_tol)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("downgrid_maxtol", 0, 3, 4, 2); __PYX_ERR(0, 94, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("downgrid_maxtol", 0, 3, 4, 2); __PYX_ERR(0, 98, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
@@ -2998,7 +2998,7 @@ static PyObject *__pyx_pw_10randomvars_15downgrid_maxtol_1downgrid_maxtol(PyObje
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "downgrid_maxtol") < 0)) __PYX_ERR(0, 94, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "downgrid_maxtol") < 0)) __PYX_ERR(0, 98, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -3018,7 +3018,7 @@ static PyObject *__pyx_pw_10randomvars_15downgrid_maxtol_1downgrid_maxtol(PyObje
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("downgrid_maxtol", 0, 3, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 94, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("downgrid_maxtol", 0, 3, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 98, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("randomvars.downgrid_maxtol.downgrid_maxtol", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -3058,18 +3058,18 @@ static PyObject *__pyx_pf_10randomvars_15downgrid_maxtol_downgrid_maxtol(CYTHON_
   __Pyx_INCREF(__pyx_v_y);
   __Pyx_INCREF(__pyx_v_tol);
 
-  /* "randomvars/downgrid_maxtol.pyx":123
+  /* "randomvars/downgrid_maxtol.pyx":127
  *         Subset of input xy-grid which differs from it by no more than `tol`.
  *     """
  *     x = x.astype(np.double)             # <<<<<<<<<<<<<<
  *     y = y.astype(np.double)
  *     tol = float(tol)
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_x, __pyx_n_s_astype); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 123, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_x, __pyx_n_s_astype); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 127, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 123, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 127, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_double); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 123, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_double); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 127, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_t_3 = NULL;
@@ -3085,24 +3085,24 @@ static PyObject *__pyx_pf_10randomvars_15downgrid_maxtol_downgrid_maxtol(CYTHON_
   __pyx_t_1 = (__pyx_t_3) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_3, __pyx_t_4) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_4);
   __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 123, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 127, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF_SET(__pyx_v_x, __pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "randomvars/downgrid_maxtol.pyx":124
+  /* "randomvars/downgrid_maxtol.pyx":128
  *     """
  *     x = x.astype(np.double)
  *     y = y.astype(np.double)             # <<<<<<<<<<<<<<
  *     tol = float(tol)
  * 
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_y, __pyx_n_s_astype); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 124, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_y, __pyx_n_s_astype); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 128, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 124, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 128, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_double); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 124, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_double); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 128, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_t_4 = NULL;
@@ -3118,49 +3118,49 @@ static PyObject *__pyx_pf_10randomvars_15downgrid_maxtol_downgrid_maxtol(CYTHON_
   __pyx_t_1 = (__pyx_t_4) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_4, __pyx_t_3) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 124, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 128, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF_SET(__pyx_v_y, __pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "randomvars/downgrid_maxtol.pyx":125
+  /* "randomvars/downgrid_maxtol.pyx":129
  *     x = x.astype(np.double)
  *     y = y.astype(np.double)
  *     tol = float(tol)             # <<<<<<<<<<<<<<
  * 
  *     # Using `np.asarray()` here to turn memoryview into an array
  */
-  __pyx_t_1 = __Pyx_PyNumber_Float(__pyx_v_tol); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 125, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyNumber_Float(__pyx_v_tol); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 129, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF_SET(__pyx_v_tol, __pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "randomvars/downgrid_maxtol.pyx":128
+  /* "randomvars/downgrid_maxtol.pyx":132
  * 
  *     # Using `np.asarray()` here to turn memoryview into an array
  *     res_isin = np.asarray(downgrid_maxtol_isin(x, y, tol))             # <<<<<<<<<<<<<<
  * 
  *     if double_pass:
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 128, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 132, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_asarray); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 128, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_asarray); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 132, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_5 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_x, PyBUF_WRITABLE); if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(0, 128, __pyx_L1_error)
-  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_y, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 128, __pyx_L1_error)
-  __pyx_t_7 = __pyx_PyFloat_AsDouble(__pyx_v_tol); if (unlikely((__pyx_t_7 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 128, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_x, PyBUF_WRITABLE); if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(0, 132, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_y, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 132, __pyx_L1_error)
+  __pyx_t_7 = __pyx_PyFloat_AsDouble(__pyx_v_tol); if (unlikely((__pyx_t_7 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 132, __pyx_L1_error)
   __pyx_t_9.__pyx_n = 1;
   __pyx_t_9.tol = __pyx_t_7;
-  __pyx_t_8 = __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol_isin(__pyx_t_5, __pyx_t_6, &__pyx_t_9); if (unlikely(!__pyx_t_8.memview)) __PYX_ERR(0, 128, __pyx_L1_error)
+  __pyx_t_8 = __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol_isin(__pyx_t_5, __pyx_t_6, &__pyx_t_9); if (unlikely(!__pyx_t_8.memview)) __PYX_ERR(0, 132, __pyx_L1_error)
   __PYX_XDEC_MEMVIEW(&__pyx_t_5, 1);
   __pyx_t_5.memview = NULL;
   __pyx_t_5.data = NULL;
   __PYX_XDEC_MEMVIEW(&__pyx_t_6, 1);
   __pyx_t_6.memview = NULL;
   __pyx_t_6.data = NULL;
-  __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_t_8, 1, (PyObject *(*)(char *)) __pyx_memview_get_nn_uint8_t, (int (*)(char *, PyObject *)) __pyx_memview_set_nn_uint8_t, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 128, __pyx_L1_error)
+  __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_t_8, 1, (PyObject *(*)(char *)) __pyx_memview_get_nn_uint8_t, (int (*)(char *, PyObject *)) __pyx_memview_set_nn_uint8_t, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 132, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __PYX_XDEC_MEMVIEW(&__pyx_t_8, 1);
   __pyx_t_8.memview = NULL;
@@ -3178,77 +3178,77 @@ static PyObject *__pyx_pf_10randomvars_15downgrid_maxtol_downgrid_maxtol(CYTHON_
   __pyx_t_1 = (__pyx_t_4) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_4, __pyx_t_2) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_2);
   __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 128, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 132, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_v_res_isin = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "randomvars/downgrid_maxtol.pyx":130
+  /* "randomvars/downgrid_maxtol.pyx":134
  *     res_isin = np.asarray(downgrid_maxtol_isin(x, y, tol))
  * 
  *     if double_pass:             # <<<<<<<<<<<<<<
  *         rev_x = x[-1] - x[::-1]
  *         rev_y = y[::-1]
  */
-  __pyx_t_10 = __Pyx_PyObject_IsTrue(__pyx_v_double_pass); if (unlikely(__pyx_t_10 < 0)) __PYX_ERR(0, 130, __pyx_L1_error)
+  __pyx_t_10 = __Pyx_PyObject_IsTrue(__pyx_v_double_pass); if (unlikely(__pyx_t_10 < 0)) __PYX_ERR(0, 134, __pyx_L1_error)
   if (__pyx_t_10) {
 
-    /* "randomvars/downgrid_maxtol.pyx":131
+    /* "randomvars/downgrid_maxtol.pyx":135
  * 
  *     if double_pass:
  *         rev_x = x[-1] - x[::-1]             # <<<<<<<<<<<<<<
  *         rev_y = y[::-1]
  *         second_pass = np.asarray(downgrid_maxtol_isin(rev_x, rev_y, tol))[::-1]
  */
-    __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_x, -1L, long, 1, __Pyx_PyInt_From_long, 0, 1, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 131, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_x, -1L, long, 1, __Pyx_PyInt_From_long, 0, 1, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 135, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_3 = __Pyx_PyObject_GetItem(__pyx_v_x, __pyx_slice_); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 131, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_GetItem(__pyx_v_x, __pyx_slice_); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 135, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_2 = PyNumber_Subtract(__pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 131, __pyx_L1_error)
+    __pyx_t_2 = PyNumber_Subtract(__pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 135, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __pyx_v_rev_x = __pyx_t_2;
     __pyx_t_2 = 0;
 
-    /* "randomvars/downgrid_maxtol.pyx":132
+    /* "randomvars/downgrid_maxtol.pyx":136
  *     if double_pass:
  *         rev_x = x[-1] - x[::-1]
  *         rev_y = y[::-1]             # <<<<<<<<<<<<<<
  *         second_pass = np.asarray(downgrid_maxtol_isin(rev_x, rev_y, tol))[::-1]
  *         # Output should be a union of passes, i.e. point should be present in
  */
-    __pyx_t_2 = __Pyx_PyObject_GetItem(__pyx_v_y, __pyx_slice_); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 132, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_GetItem(__pyx_v_y, __pyx_slice_); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 136, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __pyx_v_rev_y = __pyx_t_2;
     __pyx_t_2 = 0;
 
-    /* "randomvars/downgrid_maxtol.pyx":133
+    /* "randomvars/downgrid_maxtol.pyx":137
  *         rev_x = x[-1] - x[::-1]
  *         rev_y = y[::-1]
  *         second_pass = np.asarray(downgrid_maxtol_isin(rev_x, rev_y, tol))[::-1]             # <<<<<<<<<<<<<<
  *         # Output should be a union of passes, i.e. point should be present in
  *         # output if it equals to 1 in at least one of first or second passes
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 133, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 137, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_asarray); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 133, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_asarray); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 137, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_rev_x, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 133, __pyx_L1_error)
-    __pyx_t_5 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_rev_y, PyBUF_WRITABLE); if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(0, 133, __pyx_L1_error)
-    __pyx_t_7 = __pyx_PyFloat_AsDouble(__pyx_v_tol); if (unlikely((__pyx_t_7 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 133, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_rev_x, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 137, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_rev_y, PyBUF_WRITABLE); if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(0, 137, __pyx_L1_error)
+    __pyx_t_7 = __pyx_PyFloat_AsDouble(__pyx_v_tol); if (unlikely((__pyx_t_7 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 137, __pyx_L1_error)
     __pyx_t_9.__pyx_n = 1;
     __pyx_t_9.tol = __pyx_t_7;
-    __pyx_t_8 = __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol_isin(__pyx_t_6, __pyx_t_5, &__pyx_t_9); if (unlikely(!__pyx_t_8.memview)) __PYX_ERR(0, 133, __pyx_L1_error)
+    __pyx_t_8 = __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol_isin(__pyx_t_6, __pyx_t_5, &__pyx_t_9); if (unlikely(!__pyx_t_8.memview)) __PYX_ERR(0, 137, __pyx_L1_error)
     __PYX_XDEC_MEMVIEW(&__pyx_t_6, 1);
     __pyx_t_6.memview = NULL;
     __pyx_t_6.data = NULL;
     __PYX_XDEC_MEMVIEW(&__pyx_t_5, 1);
     __pyx_t_5.memview = NULL;
     __pyx_t_5.data = NULL;
-    __pyx_t_3 = __pyx_memoryview_fromslice(__pyx_t_8, 1, (PyObject *(*)(char *)) __pyx_memview_get_nn_uint8_t, (int (*)(char *, PyObject *)) __pyx_memview_set_nn_uint8_t, 0);; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 133, __pyx_L1_error)
+    __pyx_t_3 = __pyx_memoryview_fromslice(__pyx_t_8, 1, (PyObject *(*)(char *)) __pyx_memview_get_nn_uint8_t, (int (*)(char *, PyObject *)) __pyx_memview_set_nn_uint8_t, 0);; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 137, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __PYX_XDEC_MEMVIEW(&__pyx_t_8, 1);
     __pyx_t_8.memview = NULL;
@@ -3266,25 +3266,25 @@ static PyObject *__pyx_pf_10randomvars_15downgrid_maxtol_downgrid_maxtol(CYTHON_
     __pyx_t_2 = (__pyx_t_4) ? __Pyx_PyObject_Call2Args(__pyx_t_1, __pyx_t_4, __pyx_t_3) : __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_3);
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 133, __pyx_L1_error)
+    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 137, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = __Pyx_PyObject_GetItem(__pyx_t_2, __pyx_slice_); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 133, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetItem(__pyx_t_2, __pyx_slice_); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 137, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __pyx_v_second_pass = __pyx_t_1;
     __pyx_t_1 = 0;
 
-    /* "randomvars/downgrid_maxtol.pyx":136
+    /* "randomvars/downgrid_maxtol.pyx":140
  *         # Output should be a union of passes, i.e. point should be present in
  *         # output if it equals to 1 in at least one of first or second passes
  *         res_isin = np.maximum(res_isin, second_pass)             # <<<<<<<<<<<<<<
  * 
  *     output_inds = res_isin.nonzero()[0]
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 136, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 140, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_maximum); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 136, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_maximum); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 140, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __pyx_t_2 = NULL;
@@ -3302,7 +3302,7 @@ static PyObject *__pyx_pf_10randomvars_15downgrid_maxtol_downgrid_maxtol(CYTHON_
     #if CYTHON_FAST_PYCALL
     if (PyFunction_Check(__pyx_t_3)) {
       PyObject *__pyx_temp[3] = {__pyx_t_2, __pyx_v_res_isin, __pyx_v_second_pass};
-      __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_11, 2+__pyx_t_11); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 136, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_11, 2+__pyx_t_11); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 140, __pyx_L1_error)
       __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
       __Pyx_GOTREF(__pyx_t_1);
     } else
@@ -3310,13 +3310,13 @@ static PyObject *__pyx_pf_10randomvars_15downgrid_maxtol_downgrid_maxtol(CYTHON_
     #if CYTHON_FAST_PYCCALL
     if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
       PyObject *__pyx_temp[3] = {__pyx_t_2, __pyx_v_res_isin, __pyx_v_second_pass};
-      __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_11, 2+__pyx_t_11); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 136, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_11, 2+__pyx_t_11); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 140, __pyx_L1_error)
       __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
       __Pyx_GOTREF(__pyx_t_1);
     } else
     #endif
     {
-      __pyx_t_4 = PyTuple_New(2+__pyx_t_11); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 136, __pyx_L1_error)
+      __pyx_t_4 = PyTuple_New(2+__pyx_t_11); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 140, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
       if (__pyx_t_2) {
         __Pyx_GIVEREF(__pyx_t_2); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_2); __pyx_t_2 = NULL;
@@ -3327,7 +3327,7 @@ static PyObject *__pyx_pf_10randomvars_15downgrid_maxtol_downgrid_maxtol(CYTHON_
       __Pyx_INCREF(__pyx_v_second_pass);
       __Pyx_GIVEREF(__pyx_v_second_pass);
       PyTuple_SET_ITEM(__pyx_t_4, 1+__pyx_t_11, __pyx_v_second_pass);
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 136, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 140, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     }
@@ -3335,7 +3335,7 @@ static PyObject *__pyx_pf_10randomvars_15downgrid_maxtol_downgrid_maxtol(CYTHON_
     __Pyx_DECREF_SET(__pyx_v_res_isin, __pyx_t_1);
     __pyx_t_1 = 0;
 
-    /* "randomvars/downgrid_maxtol.pyx":130
+    /* "randomvars/downgrid_maxtol.pyx":134
  *     res_isin = np.asarray(downgrid_maxtol_isin(x, y, tol))
  * 
  *     if double_pass:             # <<<<<<<<<<<<<<
@@ -3344,14 +3344,14 @@ static PyObject *__pyx_pf_10randomvars_15downgrid_maxtol_downgrid_maxtol(CYTHON_
  */
   }
 
-  /* "randomvars/downgrid_maxtol.pyx":138
+  /* "randomvars/downgrid_maxtol.pyx":142
  *         res_isin = np.maximum(res_isin, second_pass)
  * 
  *     output_inds = res_isin.nonzero()[0]             # <<<<<<<<<<<<<<
  *     return x[output_inds], y[output_inds]
  * 
  */
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_res_isin, __pyx_n_s_nonzero); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 138, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_res_isin, __pyx_n_s_nonzero); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 142, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_4 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_3))) {
@@ -3365,16 +3365,16 @@ static PyObject *__pyx_pf_10randomvars_15downgrid_maxtol_downgrid_maxtol(CYTHON_
   }
   __pyx_t_1 = (__pyx_t_4) ? __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4) : __Pyx_PyObject_CallNoArg(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 138, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 142, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_GetItemInt(__pyx_t_1, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 138, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_GetItemInt(__pyx_t_1, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 142, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_output_inds = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "randomvars/downgrid_maxtol.pyx":139
+  /* "randomvars/downgrid_maxtol.pyx":143
  * 
  *     output_inds = res_isin.nonzero()[0]
  *     return x[output_inds], y[output_inds]             # <<<<<<<<<<<<<<
@@ -3382,11 +3382,11 @@ static PyObject *__pyx_pf_10randomvars_15downgrid_maxtol_downgrid_maxtol(CYTHON_
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_3 = __Pyx_PyObject_GetItem(__pyx_v_x, __pyx_v_output_inds); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 139, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetItem(__pyx_v_x, __pyx_v_output_inds); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 143, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = __Pyx_PyObject_GetItem(__pyx_v_y, __pyx_v_output_inds); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 139, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetItem(__pyx_v_y, __pyx_v_output_inds); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 143, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 139, __pyx_L1_error)
+  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 143, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_GIVEREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3);
@@ -3398,7 +3398,7 @@ static PyObject *__pyx_pf_10randomvars_15downgrid_maxtol_downgrid_maxtol(CYTHON_
   __pyx_t_4 = 0;
   goto __pyx_L0;
 
-  /* "randomvars/downgrid_maxtol.pyx":94
+  /* "randomvars/downgrid_maxtol.pyx":98
  * 
  * 
  * def downgrid_maxtol(x, y, tol, double_pass=True):             # <<<<<<<<<<<<<<
@@ -3431,7 +3431,7 @@ static PyObject *__pyx_pf_10randomvars_15downgrid_maxtol_downgrid_maxtol(CYTHON_
   return __pyx_r;
 }
 
-/* "randomvars/downgrid_maxtol.pyx":142
+/* "randomvars/downgrid_maxtol.pyx":146
  * 
  * 
  * cdef uint8_t[:] downgrid_maxtol_isin(             # <<<<<<<<<<<<<<
@@ -3480,7 +3480,7 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
     }
   }
 
-  /* "randomvars/downgrid_maxtol.pyx":145
+  /* "randomvars/downgrid_maxtol.pyx":149
  *     double[:] x, double[:] y, double tol=0.001
  * ):
  *     if len(x) <= 2:             # <<<<<<<<<<<<<<
@@ -3491,47 +3491,47 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
   __pyx_t_2 = ((__pyx_t_1 <= 2) != 0);
   if (__pyx_t_2) {
 
-    /* "randomvars/downgrid_maxtol.pyx":146
+    /* "randomvars/downgrid_maxtol.pyx":150
  * ):
  *     if len(x) <= 2:
  *         return np.ones(x.shape[0], dtype=np.uint8)             # <<<<<<<<<<<<<<
  * 
  *     cdef int n_x = x.shape[0]
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 146, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 150, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_ones); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 146, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_ones); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 150, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_3 = PyInt_FromSsize_t((__pyx_v_x.shape[0])); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 146, __pyx_L1_error)
+    __pyx_t_3 = PyInt_FromSsize_t((__pyx_v_x.shape[0])); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 150, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 146, __pyx_L1_error)
+    __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 150, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_GIVEREF(__pyx_t_3);
     PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_3);
     __pyx_t_3 = 0;
-    __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 146, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 150, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 146, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 150, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
-    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_uint8); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 146, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_uint8); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 150, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_t_7) < 0) __PYX_ERR(0, 146, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_t_7) < 0) __PYX_ERR(0, 150, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_5, __pyx_t_3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 146, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_5, __pyx_t_3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 150, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_8 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn_uint8_t(__pyx_t_7, PyBUF_WRITABLE); if (unlikely(!__pyx_t_8.memview)) __PYX_ERR(0, 146, __pyx_L1_error)
+    __pyx_t_8 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn_uint8_t(__pyx_t_7, PyBUF_WRITABLE); if (unlikely(!__pyx_t_8.memview)) __PYX_ERR(0, 150, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     __pyx_r = __pyx_t_8;
     __pyx_t_8.memview = NULL;
     __pyx_t_8.data = NULL;
     goto __pyx_L0;
 
-    /* "randomvars/downgrid_maxtol.pyx":145
+    /* "randomvars/downgrid_maxtol.pyx":149
  *     double[:] x, double[:] y, double tol=0.001
  * ):
  *     if len(x) <= 2:             # <<<<<<<<<<<<<<
@@ -3540,7 +3540,7 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
  */
   }
 
-  /* "randomvars/downgrid_maxtol.pyx":148
+  /* "randomvars/downgrid_maxtol.pyx":152
  *         return np.ones(x.shape[0], dtype=np.uint8)
  * 
  *     cdef int n_x = x.shape[0]             # <<<<<<<<<<<<<<
@@ -3549,35 +3549,35 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
  */
   __pyx_v_n_x = (__pyx_v_x.shape[0]);
 
-  /* "randomvars/downgrid_maxtol.pyx":149
+  /* "randomvars/downgrid_maxtol.pyx":153
  * 
  *     cdef int n_x = x.shape[0]
  *     res_boolint = np.zeros(n_x, dtype=np.uint8)             # <<<<<<<<<<<<<<
  *     cdef uint8_t[:] res_boolint_view = res_boolint
  * 
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_np); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 149, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_np); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 153, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_zeros); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 149, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_zeros); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 153, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-  __pyx_t_7 = __Pyx_PyInt_From_int(__pyx_v_n_x); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 149, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyInt_From_int(__pyx_v_n_x); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 153, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
-  __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 149, __pyx_L1_error)
+  __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 153, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_GIVEREF(__pyx_t_7);
   PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_7);
   __pyx_t_7 = 0;
-  __pyx_t_7 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 149, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 153, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
-  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 149, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 153, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_uint8); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 149, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_uint8); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 153, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_dtype, __pyx_t_6) < 0) __PYX_ERR(0, 149, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_dtype, __pyx_t_6) < 0) __PYX_ERR(0, 153, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, __pyx_t_7); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 149, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, __pyx_t_7); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 153, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
@@ -3585,19 +3585,19 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
   __pyx_v_res_boolint = __pyx_t_6;
   __pyx_t_6 = 0;
 
-  /* "randomvars/downgrid_maxtol.pyx":150
+  /* "randomvars/downgrid_maxtol.pyx":154
  *     cdef int n_x = x.shape[0]
  *     res_boolint = np.zeros(n_x, dtype=np.uint8)
  *     cdef uint8_t[:] res_boolint_view = res_boolint             # <<<<<<<<<<<<<<
  * 
  *     # First point is always inside output grid
  */
-  __pyx_t_8 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn_uint8_t(__pyx_v_res_boolint, PyBUF_WRITABLE); if (unlikely(!__pyx_t_8.memview)) __PYX_ERR(0, 150, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn_uint8_t(__pyx_v_res_boolint, PyBUF_WRITABLE); if (unlikely(!__pyx_t_8.memview)) __PYX_ERR(0, 154, __pyx_L1_error)
   __pyx_v_res_boolint_view = __pyx_t_8;
   __pyx_t_8.memview = NULL;
   __pyx_t_8.data = NULL;
 
-  /* "randomvars/downgrid_maxtol.pyx":153
+  /* "randomvars/downgrid_maxtol.pyx":157
  * 
  *     # First point is always inside output grid
  *     res_boolint_view[0] = 1             # <<<<<<<<<<<<<<
@@ -3608,7 +3608,7 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
   if (__pyx_t_9 < 0) __pyx_t_9 += __pyx_v_res_boolint_view.shape[0];
   *((uint8_t *) ( /* dim=0 */ (__pyx_v_res_boolint_view.data + __pyx_t_9 * __pyx_v_res_boolint_view.strides[0]) )) = 1;
 
-  /* "randomvars/downgrid_maxtol.pyx":156
+  /* "randomvars/downgrid_maxtol.pyx":160
  * 
  *     # Initialize base point and slope window
  *     cdef double base_x = x[0], base_y = y[0]             # <<<<<<<<<<<<<<
@@ -3622,7 +3622,7 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
   if (__pyx_t_10 < 0) __pyx_t_10 += __pyx_v_y.shape[0];
   __pyx_v_base_y = (*((double *) ( /* dim=0 */ (__pyx_v_y.data + __pyx_t_10 * __pyx_v_y.strides[0]) )));
 
-  /* "randomvars/downgrid_maxtol.pyx":160
+  /* "randomvars/downgrid_maxtol.pyx":164
  *     cdef double slope_min, slope_max
  *     slope_min, slope_max = tolerance_slope_window(
  *         base_x, base_y, x[1], y[1], tol             # <<<<<<<<<<<<<<
@@ -3634,7 +3634,7 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
   __pyx_t_11 = 1;
   if (__pyx_t_11 < 0) __pyx_t_11 += __pyx_v_y.shape[0];
 
-  /* "randomvars/downgrid_maxtol.pyx":159
+  /* "randomvars/downgrid_maxtol.pyx":163
  * 
  *     cdef double slope_min, slope_max
  *     slope_min, slope_max = tolerance_slope_window(             # <<<<<<<<<<<<<<
@@ -3647,7 +3647,7 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
   __pyx_v_slope_min = __pyx_t_13;
   __pyx_v_slope_max = __pyx_t_14;
 
-  /* "randomvars/downgrid_maxtol.pyx":166
+  /* "randomvars/downgrid_maxtol.pyx":170
  *     cdef double seg_start_x, seg_start_y, seg_end_x, seg_end_y
  *     cdef double seg_end_slope_min, seg_end_slope_max
  *     cdef int cur_i = 2             # <<<<<<<<<<<<<<
@@ -3656,7 +3656,7 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
  */
   __pyx_v_cur_i = 2;
 
-  /* "randomvars/downgrid_maxtol.pyx":168
+  /* "randomvars/downgrid_maxtol.pyx":172
  *     cdef int cur_i = 2
  * 
  *     while cur_i < len(x):             # <<<<<<<<<<<<<<
@@ -3668,7 +3668,7 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
     __pyx_t_2 = ((__pyx_v_cur_i < __pyx_t_1) != 0);
     if (!__pyx_t_2) break;
 
-    /* "randomvars/downgrid_maxtol.pyx":169
+    /* "randomvars/downgrid_maxtol.pyx":173
  * 
  *     while cur_i < len(x):
  *         seg_end_x = x[cur_i]             # <<<<<<<<<<<<<<
@@ -3679,7 +3679,7 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
     if (__pyx_t_11 < 0) __pyx_t_11 += __pyx_v_x.shape[0];
     __pyx_v_seg_end_x = (*((double *) ( /* dim=0 */ (__pyx_v_x.data + __pyx_t_11 * __pyx_v_x.strides[0]) )));
 
-    /* "randomvars/downgrid_maxtol.pyx":170
+    /* "randomvars/downgrid_maxtol.pyx":174
  *     while cur_i < len(x):
  *         seg_end_x = x[cur_i]
  *         seg_end_y = y[cur_i]             # <<<<<<<<<<<<<<
@@ -3690,7 +3690,7 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
     if (__pyx_t_11 < 0) __pyx_t_11 += __pyx_v_y.shape[0];
     __pyx_v_seg_end_y = (*((double *) ( /* dim=0 */ (__pyx_v_y.data + __pyx_t_11 * __pyx_v_y.strides[0]) )));
 
-    /* "randomvars/downgrid_maxtol.pyx":181
+    /* "randomvars/downgrid_maxtol.pyx":185
  *             slope_min=slope_min,
  *             slope_max=slope_max,
  *             seg1_x=x[cur_i - 1],             # <<<<<<<<<<<<<<
@@ -3700,7 +3700,7 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
     __pyx_t_11 = (__pyx_v_cur_i - 1);
     if (__pyx_t_11 < 0) __pyx_t_11 += __pyx_v_x.shape[0];
 
-    /* "randomvars/downgrid_maxtol.pyx":182
+    /* "randomvars/downgrid_maxtol.pyx":186
  *             slope_max=slope_max,
  *             seg1_x=x[cur_i - 1],
  *             seg1_y=y[cur_i - 1],             # <<<<<<<<<<<<<<
@@ -3710,7 +3710,7 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
     __pyx_t_10 = (__pyx_v_cur_i - 1);
     if (__pyx_t_10 < 0) __pyx_t_10 += __pyx_v_y.shape[0];
 
-    /* "randomvars/downgrid_maxtol.pyx":176
+    /* "randomvars/downgrid_maxtol.pyx":180
  *         # that skipping will introduce error strictly more than `tol`, so
  *         # adding current segment start to output xy-grid is necessary.
  *         segment_is_inside = is_segment_inside_cone(             # <<<<<<<<<<<<<<
@@ -3719,7 +3719,7 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
  */
     __pyx_v_segment_is_inside = __pyx_f_10randomvars_15downgrid_maxtol_is_segment_inside_cone(__pyx_v_base_x, __pyx_v_base_y, __pyx_v_slope_min, __pyx_v_slope_max, (*((double *) ( /* dim=0 */ (__pyx_v_x.data + __pyx_t_11 * __pyx_v_x.strides[0]) ))), (*((double *) ( /* dim=0 */ (__pyx_v_y.data + __pyx_t_10 * __pyx_v_y.strides[0]) ))), __pyx_v_seg_end_x, __pyx_v_seg_end_y);
 
-    /* "randomvars/downgrid_maxtol.pyx":187
+    /* "randomvars/downgrid_maxtol.pyx":191
  *         )
  * 
  *         if segment_is_inside:             # <<<<<<<<<<<<<<
@@ -3729,7 +3729,7 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
     __pyx_t_2 = (__pyx_v_segment_is_inside != 0);
     if (__pyx_t_2) {
 
-      /* "randomvars/downgrid_maxtol.pyx":193
+      /* "randomvars/downgrid_maxtol.pyx":197
  *             # inside both current 2d cone and 2d cone defined by end of current
  *             # segment
  *             seg_end_slope_min, seg_end_slope_max = tolerance_slope_window(             # <<<<<<<<<<<<<<
@@ -3742,7 +3742,7 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
       __pyx_v_seg_end_slope_min = __pyx_t_14;
       __pyx_v_seg_end_slope_max = __pyx_t_13;
 
-      /* "randomvars/downgrid_maxtol.pyx":196
+      /* "randomvars/downgrid_maxtol.pyx":200
  *                 base_x, base_y, seg_end_x, seg_end_y, tol
  *             )
  *             slope_min, slope_max = intersect_intervals(             # <<<<<<<<<<<<<<
@@ -3755,7 +3755,7 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
       __pyx_v_slope_min = __pyx_t_13;
       __pyx_v_slope_max = __pyx_t_14;
 
-      /* "randomvars/downgrid_maxtol.pyx":187
+      /* "randomvars/downgrid_maxtol.pyx":191
  *         )
  * 
  *         if segment_is_inside:             # <<<<<<<<<<<<<<
@@ -3765,7 +3765,7 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
       goto __pyx_L6;
     }
 
-    /* "randomvars/downgrid_maxtol.pyx":201
+    /* "randomvars/downgrid_maxtol.pyx":205
  *         else:
  *             # Write segment start as new point in output
  *             res_boolint_view[cur_i - 1] = 1             # <<<<<<<<<<<<<<
@@ -3777,7 +3777,7 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
       if (__pyx_t_10 < 0) __pyx_t_10 += __pyx_v_res_boolint_view.shape[0];
       *((uint8_t *) ( /* dim=0 */ (__pyx_v_res_boolint_view.data + __pyx_t_10 * __pyx_v_res_boolint_view.strides[0]) )) = 1;
 
-      /* "randomvars/downgrid_maxtol.pyx":204
+      /* "randomvars/downgrid_maxtol.pyx":208
  * 
  *             # Update base point to be current segment start
  *             base_x, base_y = x[cur_i - 1], y[cur_i - 1]             # <<<<<<<<<<<<<<
@@ -3793,7 +3793,7 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
       __pyx_v_base_x = __pyx_t_14;
       __pyx_v_base_y = __pyx_t_13;
 
-      /* "randomvars/downgrid_maxtol.pyx":207
+      /* "randomvars/downgrid_maxtol.pyx":211
  * 
  *             # Update slope window to be slope window of current segment end
  *             slope_min, slope_max = tolerance_slope_window(             # <<<<<<<<<<<<<<
@@ -3808,7 +3808,7 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
     }
     __pyx_L6:;
 
-    /* "randomvars/downgrid_maxtol.pyx":211
+    /* "randomvars/downgrid_maxtol.pyx":215
  *             )
  * 
  *         cur_i += 1             # <<<<<<<<<<<<<<
@@ -3818,7 +3818,7 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
     __pyx_v_cur_i = (__pyx_v_cur_i + 1);
   }
 
-  /* "randomvars/downgrid_maxtol.pyx":214
+  /* "randomvars/downgrid_maxtol.pyx":218
  * 
  *     # Last point is always inside output grid
  *     res_boolint_view[n_x-1] = 1             # <<<<<<<<<<<<<<
@@ -3829,18 +3829,18 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
   if (__pyx_t_11 < 0) __pyx_t_11 += __pyx_v_res_boolint_view.shape[0];
   *((uint8_t *) ( /* dim=0 */ (__pyx_v_res_boolint_view.data + __pyx_t_11 * __pyx_v_res_boolint_view.strides[0]) )) = 1;
 
-  /* "randomvars/downgrid_maxtol.pyx":216
+  /* "randomvars/downgrid_maxtol.pyx":220
  *     res_boolint_view[n_x-1] = 1
  * 
  *     return res_boolint             # <<<<<<<<<<<<<<
  */
-  __pyx_t_8 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn_uint8_t(__pyx_v_res_boolint, PyBUF_WRITABLE); if (unlikely(!__pyx_t_8.memview)) __PYX_ERR(0, 216, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn_uint8_t(__pyx_v_res_boolint, PyBUF_WRITABLE); if (unlikely(!__pyx_t_8.memview)) __PYX_ERR(0, 220, __pyx_L1_error)
   __pyx_r = __pyx_t_8;
   __pyx_t_8.memview = NULL;
   __pyx_t_8.data = NULL;
   goto __pyx_L0;
 
-  /* "randomvars/downgrid_maxtol.pyx":142
+  /* "randomvars/downgrid_maxtol.pyx":146
  * 
  * 
  * cdef uint8_t[:] downgrid_maxtol_isin(             # <<<<<<<<<<<<<<
@@ -20239,14 +20239,14 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "randomvars/downgrid_maxtol.pyx":131
+  /* "randomvars/downgrid_maxtol.pyx":135
  * 
  *     if double_pass:
  *         rev_x = x[-1] - x[::-1]             # <<<<<<<<<<<<<<
  *         rev_y = y[::-1]
  *         second_pass = np.asarray(downgrid_maxtol_isin(rev_x, rev_y, tol))[::-1]
  */
-  __pyx_slice_ = PySlice_New(Py_None, Py_None, __pyx_int_neg_1); if (unlikely(!__pyx_slice_)) __PYX_ERR(0, 131, __pyx_L1_error)
+  __pyx_slice_ = PySlice_New(Py_None, Py_None, __pyx_int_neg_1); if (unlikely(!__pyx_slice_)) __PYX_ERR(0, 135, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_slice_);
   __Pyx_GIVEREF(__pyx_slice_);
 
@@ -20519,17 +20519,17 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__26);
   __Pyx_GIVEREF(__pyx_tuple__26);
 
-  /* "randomvars/downgrid_maxtol.pyx":94
+  /* "randomvars/downgrid_maxtol.pyx":98
  * 
  * 
  * def downgrid_maxtol(x, y, tol, double_pass=True):             # <<<<<<<<<<<<<<
  *     """Downgrid with maximum tolerance
  * 
  */
-  __pyx_tuple__27 = PyTuple_Pack(9, __pyx_n_s_x, __pyx_n_s_y, __pyx_n_s_tol, __pyx_n_s_double_pass, __pyx_n_s_res_isin, __pyx_n_s_rev_x, __pyx_n_s_rev_y, __pyx_n_s_second_pass, __pyx_n_s_output_inds); if (unlikely(!__pyx_tuple__27)) __PYX_ERR(0, 94, __pyx_L1_error)
+  __pyx_tuple__27 = PyTuple_Pack(9, __pyx_n_s_x, __pyx_n_s_y, __pyx_n_s_tol, __pyx_n_s_double_pass, __pyx_n_s_res_isin, __pyx_n_s_rev_x, __pyx_n_s_rev_y, __pyx_n_s_second_pass, __pyx_n_s_output_inds); if (unlikely(!__pyx_tuple__27)) __PYX_ERR(0, 98, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__27);
   __Pyx_GIVEREF(__pyx_tuple__27);
-  __pyx_codeobj__28 = (PyObject*)__Pyx_PyCode_New(4, 0, 9, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__27, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_randomvars_downgrid_maxtol_pyx, __pyx_n_s_downgrid_maxtol, 94, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__28)) __PYX_ERR(0, 94, __pyx_L1_error)
+  __pyx_codeobj__28 = (PyObject*)__Pyx_PyCode_New(4, 0, 9, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__27, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_randomvars_downgrid_maxtol_pyx, __pyx_n_s_downgrid_maxtol, 98, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__28)) __PYX_ERR(0, 98, __pyx_L1_error)
 
   /* "View.MemoryView":286
  *         return self.name
@@ -20985,16 +20985,16 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_np, __pyx_t_1) < 0) __PYX_ERR(0, 2, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "randomvars/downgrid_maxtol.pyx":94
+  /* "randomvars/downgrid_maxtol.pyx":98
  * 
  * 
  * def downgrid_maxtol(x, y, tol, double_pass=True):             # <<<<<<<<<<<<<<
  *     """Downgrid with maximum tolerance
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_10randomvars_15downgrid_maxtol_1downgrid_maxtol, NULL, __pyx_n_s_randomvars_downgrid_maxtol); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 94, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_10randomvars_15downgrid_maxtol_1downgrid_maxtol, NULL, __pyx_n_s_randomvars_downgrid_maxtol); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 98, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_downgrid_maxtol, __pyx_t_1) < 0) __PYX_ERR(0, 94, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_downgrid_maxtol, __pyx_t_1) < 0) __PYX_ERR(0, 98, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "randomvars/downgrid_maxtol.pyx":1
