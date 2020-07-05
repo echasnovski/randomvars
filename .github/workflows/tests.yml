@@ -47,6 +47,10 @@ jobs:
         shell: bash
         run: poetry install
 
-      - name: Run pytest
+      - name: Execute tests
         shell: bash
         run: poetry run pytest -q randomvars/tests
+      
+      - name: Execute doctests
+        shell: bash
+        run: poetry run pytest -q --doctest-modules randomvars
