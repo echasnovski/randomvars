@@ -15,7 +15,7 @@ def _searchsorted_wrap(a, v, side="left", edge_inside=True):
 
     Parameters
     ----------
-    edge.inside: Boolean, optional
+    edge.inside: boolean, optional
         Should the most extreme edge (left for `side="left"`, right for
         `side="right"`) be treated as inside its adjacent interior interval?
         Default is `True`.
@@ -240,7 +240,7 @@ class rv_piecelin(rv_continuous):
 
         Parameters
         ----------
-        x : numpy numeric array.
+        x : numpy array.
             Points at which density coefficients should be computed.
         side : str, optional
             Should be one of "right" (default) or "left".
@@ -275,7 +275,51 @@ class rv_piecelin(rv_continuous):
 
     @classmethod
     def from_rv(cls, rv, supp=None, tail_prob=1e-6, n_grid=1001, integr_tol=1e-4):
-        """Create piecewise-linear RV from general RV"""
+        """Create piecewise-linear RV from general RV
+
+        Piecewise-linear RV is created by the following algorithm:
+        - **Detect finite support**. Left and right edges are treated
+          separately. If edge is supplied, it is used untouched. If not, it is
+          computed by "removing" corresponding (left or right) tail which has
+          probability of `tail_prob`.
+        - **Create x-grid**. It is computed as union of equidistant (fixed
+          distance between consecutive points) and equiprobable (fixed
+          probability between consecutive points) grids between edges of
+          detected finite support. Also it is ensured that no points lie very
+          close to each other (order of `1e-13` distance), because otherwise
+          output will have unstable values.
+        - **Create density xy-grid**. X-grid is taken from previous step, while
+          corresponding y-grid is computed as derivatives (with
+          `np.gradient()`) of CDF-values. Density is not used directly to
+          account for its possible infinite values.
+        - **Downgrid density xy-grid**. `downgrid_maxtol()` is used with
+          tolerance ensuring that difference of total integrals between input
+          and downgridded xy-grids is less than `integr_tol`.
+
+        Parameters
+        ----------
+        rv : rv_frozen
+            Object of class `rv_continuous` with all hyperparameters defined.
+        supp : Tuple with two numbers or `None`, optional
+            Forced support edges. Elements should be either finite numbers
+            (returned untouched) or `None` (finite support edge is detected).
+            Single `None` is equivalent to `(None, None)`, i.e. finding both edges
+            of finite support.
+        tail_prob : float, optional
+            Probability value of tail that might be cutoff in order to get finite
+            support.
+        n_grid : int, optional
+            Number of points in initial equidistant and quantile xy-grids, by
+            default 1001.
+        integr_tol : float, optional
+            Integral tolerance for maximum tolerance downgridding, by default 1e-4.
+
+        Returns
+        -------
+        rv_out : rv_piecelin
+            Random variable with finite support and piecewise-linear density
+            which approximates density of input `rv`.
+        """
         # Detect effective support of `rv`
         x_left, x_right = _detect_finite_supp(rv, supp, tail_prob)
 
@@ -289,7 +333,7 @@ class rv_piecelin(rv_continuous):
 
         # Combine equidistant and quantile grids into one sorted array
         x = np.union1d(x_equi, x_quan)
-        ## Ensure that minimum different between consecutive elements isn't
+        ## Ensure that minimum difference between consecutive elements isn't
         ## very small, otherwise this will make `np.gradient()` perform poorly
         x_is_good = np.concatenate([[True], np.ediff1d(x) > 1e-13])
         x = x[x_is_good]
@@ -354,13 +398,13 @@ class rv_piecelin(rv_continuous):
 
         Parameters
         ----------
-        q : numpy numeric array
-        grid : tuple with 3 numpy numeric arrays with lengths same to `len(q)`
-        coeffs : tuple with 3 numpy numeric arrays with lengths same to `len(q)`
+        q : numpy array
+        grid : tuple with 3 numpy arrays with lengths same to `len(q)`
+        coeffs : tuple with 3 numpy arrays with lengths same to `len(q)`
 
         Returns
         -------
-        quant : numpy numeric array with the same length as q
+        quant : numpy array with the same length as q
         """
         res = np.empty_like(q, dtype=np.float64)
         x, _, p = grid

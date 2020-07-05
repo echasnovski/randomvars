@@ -25,15 +25,19 @@ cdef bint is_segment_inside_cone(
 
     Parameters
     ----------
-    base_x, base_y : Numbers for x and y coordinates of 2d cone origin point
-    slope_min, slope_max : Numbers for minimum and maximum values of slope
-    (edges of 2d cone)
-    seg1_x, seg1_y : Numbers for x and y coordinates of segment start
-    seg2_x, seg2_y : Numbers for x and y coordinates of segment end
+    base_x, base_y : double
+        Numbers for x and y coordinates of 2d cone origin point.
+    slope_min, slope_max : double
+        Numbers for minimum and maximum values of slope (edges of 2d cone).
+    seg1_x, seg1_y : double
+        Numbers for x and y coordinates of segment start
+    seg2_x, seg2_y : double
+        Numbers for x and y coordinates of segment end
 
     Returns
     -------
-    is_inside : Boolean value indicating if whole segment lies inside cone.
+    is_inside : bint
+        Boolean value indicating if whole segment lies inside cone.
     """
     cdef double seg_slope_1 = (seg1_y - base_y) / (seg1_x - base_x)
     cdef double seg_slope_2 = (seg2_y - base_y) / (seg2_x - base_x)
@@ -106,18 +110,18 @@ def downgrid_maxtol(x, y, tol, double_pass=True):
 
     Parameters
     ----------
-    x : Numpy numeric array.
-    y : Numpy numeric array.
-    tol : Single number
+    x : numpy array
+    y : numpy array
+    tol : scalar
         Tolerance. If zero, points that lie between colinear segments will be
         removed without precision loss of piecewise-linear function.
-    double_pass : Single boolean value, optional.
+    double_pass : boolean scalar, optional
         Whether to do a double pass (default `True`): one from left to right
         and one from right to left. Output grid is a union of single passes.
 
     Returns
     -------
-    xy_grid : Tuple with two numpy numeric arrays with same lengths
+    xy_grid : Tuple with two numpy arrays with same lengths
         Subset of input xy-grid which differs from it by no more than `tol`.
     """
     x = x.astype(np.double)
