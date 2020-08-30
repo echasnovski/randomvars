@@ -115,7 +115,8 @@ class TestRVPiecelin:
         assert_equal_rv_piecelin(rv_2, rv_ref)
 
         # Check if `x` and `y` are rearranged if not sorted
-        rv_3 = rv_piecelin(x=x_ref[[1, 0, 2]], y=10 * y_ref[[1, 0, 2]])
+        with pytest.warns(UserWarning, match="`x`.*not sorted"):
+            rv_3 = rv_piecelin(x=x_ref[[1, 0, 2]], y=10 * y_ref[[1, 0, 2]])
         assert_equal_rv_piecelin(rv_3, rv_ref)
 
     def test_xyp(self):
