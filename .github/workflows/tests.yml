@@ -26,7 +26,7 @@ jobs:
       - name: Install poetry
         shell: bash
         run: pip install poetry==1.0.5
-      
+
       - name: Configure poetry
         shell: bash
         run: poetry config virtualenvs.in-project true
@@ -50,8 +50,13 @@ jobs:
       - name: Execute tests
         shell: bash
         run: poetry run pytest -q randomvars/tests
-      
+
       - name: Execute doctests on Ubuntu
         shell: bash
         if: runner.os == 'Ubuntu'
         run: poetry run pytest -q --doctest-modules randomvars
+
+      - name: Check formatting on Ubuntu
+        shell: bash
+        if: runner.os == 'Ubuntu'
+        run: poetry run black randomvars --check
