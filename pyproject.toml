@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "randomvars"
 version = "0.0.0.9000"
-description = "Working with Random Variables"
+description = "Work with Random Variables"
 authors = ["Evgeni Chasnovski <evgeni.chasnovski@gmail.com>"]
 license = "MIT"
 readme = 'README.md'
