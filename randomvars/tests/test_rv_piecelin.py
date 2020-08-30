@@ -63,8 +63,7 @@ def assert_almost_equal_rv_piecelin(rv_p_1, rv_p_2, decimal=10):
 
 
 class TestRVPiecelin:
-    """Regression tests for `rv_piecelin` class
-    """
+    """Regression tests for `rv_piecelin` class"""
 
     def test_init_errors(self):
         def check_one_input(def_args, var):
@@ -192,8 +191,7 @@ class TestRVPiecelin:
         assert len(rv_norm_1.x) > len(rv_norm_2.x)
 
     def test_pdf(self):
-        """Tests for `.pdf()` method, which logic is implemented in `._pdf()`
-        """
+        """Tests for `.pdf()` method, which logic is implemented in `._pdf()`"""
         rv = rv_piecelin([0, 1, 3], [0.5, 0.5, 0])
 
         # Regular checks
@@ -219,8 +217,7 @@ class TestRVPiecelin:
         )
 
     def test_cdf(self):
-        """Tests for `.cdf()` method, which logic is implemented in `._cdf()`
-        """
+        """Tests for `.cdf()` method, which logic is implemented in `._cdf()`"""
         rv_1 = rv_piecelin([0, 1, 2], [0, 1, 0])
 
         # Regular checks
@@ -239,8 +236,7 @@ class TestRVPiecelin:
         )
 
     def test_ppf(self):
-        """Tests for `.ppf()` method, which logic is implemented in `._cdf()`
-        """
+        """Tests for `.ppf()` method, which logic is implemented in `._cdf()`"""
         # `ppf()` method should be inverse to `cdf()` for every sensible input
         rv_1 = rv_piecelin([0, 1, 2], [0, 1, 0])
 

@@ -48,8 +48,7 @@ def _searchsorted_wrap(a, v, side="left", edge_inside=True):
 
 
 class rv_piecelin(rv_continuous):
-    """ Random variable with piecewise-linear density
-    """
+    """Random variable with piecewise-linear density"""
 
     def __init__(self, x, y, *args, **kwargs):
         x, y = self._impute_xy(x, y)
@@ -353,8 +352,7 @@ class rv_piecelin(rv_continuous):
         return cls(x, y)
 
     def _pdf(self, x, *args):
-        """Implementation of probability density function
-        """
+        """Implementation of probability density function"""
         return np.interp(x, self._x, self._y, left=0, right=0)
 
     def _cdf(self, x, *args):
@@ -437,7 +435,7 @@ class rv_piecelin(rv_continuous):
 
 
 def _trapez_integral(x, y):
-    """ Compute integral with trapezoidal formula.
+    """Compute integral with trapezoidal formula.
 
     >>> _trapez_integral(np.array([0, 1]), np.array([1, 1]))
     1.0
@@ -448,7 +446,7 @@ def _trapez_integral(x, y):
 
 
 def _trapez_integral_cum(x, y):
-    """ Compute cumulative integral with trapezoidal formula.
+    """Compute cumulative integral with trapezoidal formula.
 
     Element of output represents cumulative probability **before** its left "x"
     edge.
