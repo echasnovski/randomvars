@@ -7,6 +7,7 @@ import scipy.stats.distributions as distrs
 import pytest
 
 from randomvars.rv_piecelin import rv_piecelin
+from randomvars.options import option_context
 
 
 DISTRIBUTIONS_COMMON = {
@@ -170,23 +171,29 @@ class TestRVPiecelin:
         rv_mid_test = rv_piecelin([0.25, 0.75], [2, 2])
         assert_almost_equal_rv_piecelin(rv_mid, rv_mid_test, decimal=12)
 
-        # Finite support detection
-        rv_norm = rv_piecelin.from_rv(norm, tail_prob=1e-6)
+        # Finite support detection and usage of `tail_prob` option
+        with option_context({"tail_prob": 1e-6}):
+            rv_norm = rv_piecelin.from_rv(norm)
         assert_array_almost_equal(rv_norm.support(), norm.ppf([1e-6, 1 - 1e-6]))
 
-        rv_norm_right = rv_piecelin.from_rv(norm, supp=(-1, None), tail_prob=1e-6)
+        with option_context({"tail_prob": 1e-6}):
+            rv_norm_right = rv_piecelin.from_rv(norm, supp=(-1, None))
         assert_array_almost_equal(rv_norm_right.support(), [-1, norm.ppf(1 - 1e-6)])
 
-        rv_norm_left = rv_piecelin.from_rv(norm, supp=(None, 1), tail_prob=1e-6)
+        with option_context({"tail_prob": 1e-6}):
+            rv_norm_left = rv_piecelin.from_rv(norm, supp=(None, 1))
         assert_array_almost_equal(rv_norm_left.support(), [norm.ppf(1e-6), 1])
 
-        # Usage of `n_grid` argument
-        rv_norm_small = rv_piecelin.from_rv(norm, n_grid=11)
+        # Usage of `n_grid` option
+        with option_context({"n_grid": 11}):
+            rv_norm_small = rv_piecelin.from_rv(norm)
         assert len(rv_norm_small.x) <= 20
 
-        # Usage of `integr_tol` argument
-        rv_norm_1 = rv_piecelin.from_rv(norm, integr_tol=1e-4)
-        rv_norm_2 = rv_piecelin.from_rv(norm, integr_tol=1e-1)
+        # Usage of `integr_tol` option
+        with option_context({"integr_tol": 1e-4}):
+            rv_norm_1 = rv_piecelin.from_rv(norm)
+        with option_context({"integr_tol": 1e-1}):
+            rv_norm_2 = rv_piecelin.from_rv(norm)
         ## Increasing tolerance should lead to decrease of density grid
         assert len(rv_norm_1.x) > len(rv_norm_2.x)
 

@@ -274,7 +274,7 @@ class rv_piecelin(rv_continuous):
         return self._coeffs_by_ind(ind)
 
     @classmethod
-    def from_rv(cls, rv, supp=None, tail_prob=None, n_grid=None, integr_tol=None):
+    def from_rv(cls, rv, supp=None):
         """Create piecewise-linear RV from general RV
 
         Piecewise-linear RV is created by the following algorithm:
@@ -311,14 +311,6 @@ class rv_piecelin(rv_continuous):
             (returned untouched) or `None` (finite support edge is detected).
             Single `None` is equivalent to `(None, None)`, i.e. finding both edges
             of finite support.
-        tail_prob : float, optional
-            Probability value of tail that might be cutoff in order to get finite
-            support.
-        n_grid : int, optional
-            Number of points in initial equidistant and quantile xy-grids, by
-            default 1001.
-        integr_tol : float, optional
-            Integral tolerance for maximum tolerance downgridding, by default 1e-4.
 
         Returns
         -------
@@ -326,13 +318,10 @@ class rv_piecelin(rv_continuous):
             Random variable with finite support and piecewise-linear density
             which approximates density of input `rv`.
         """
-        # Ensure settings are set
-        if n_grid is None:
-            n_grid = get_option("n_grid")
-        if tail_prob is None:
-            tail_prob = get_option("tail_prob")
-        if integr_tol is None:
-            integr_tol = get_option("integr_tol")
+        # Get settings
+        n_grid = get_option("n_grid")
+        tail_prob = get_option("tail_prob")
+        integr_tol = get_option("integr_tol")
 
         # Detect effective support of `rv`
         x_left, x_right = _detect_finite_supp(rv, supp, tail_prob)
