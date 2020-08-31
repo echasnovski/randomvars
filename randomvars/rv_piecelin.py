@@ -5,47 +5,9 @@ import warnings
 import numpy as np
 from scipy.stats.distributions import rv_continuous
 
+import randomvars._utils as utils
 from randomvars.downgrid_maxtol import downgrid_maxtol
 from randomvars.options import get_option
-
-
-def _searchsorted_wrap(a, v, side="left", edge_inside=True):
-    """Wrapper for `np.searchsorted()` which respects `np.nan`
-
-    Output index for every `np.nan` value in `v` is `-1`.
-
-    Parameters
-    ----------
-    edge.inside: boolean, optional
-        Should the most extreme edge (left for `side="left"`, right for
-        `side="right"`) be treated as inside its adjacent interior interval?
-        Default is `True`.
-
-    Examples
-    --------
-    >>> _searchsorted_wrap([0, 1], [-np.inf, -1, 0, 0.5, 1, 2, np.inf, np.nan])
-    array([ 0,  0,  1,  1,  1,  2,  2, -1])
-    >>> _searchsorted_wrap([0, 1], [0, 1], side="right", edge_inside=False)
-    array([1, 2])
-    """
-    # Here call to `np.asarray()` is needed to ensure that output is not a scalar
-    # (which can happen in certain cases)
-    res = np.asarray(np.searchsorted(a, v, side=side))
-    a = np.asarray(a)
-    v = np.asarray(v)
-
-    if edge_inside:
-        if side == "right":
-            # For right-most edge return coefficients from last interval
-            res[v == a[-1]] = len(a) - 1
-        elif side == "left":
-            # For left-most edge return coefficients from first interval
-            res[v == a[0]] = 1
-
-    # Return `-1` index if element of `v` is `np.nan`
-    res[np.isnan(v)] = -1
-
-    return res
 
 
 class rv_piecelin(rv_continuous):
@@ -56,7 +18,7 @@ class rv_piecelin(rv_continuous):
 
         self._x = x
         self._y = y
-        self._p = _trapez_integral_cum(self._x, self._y)
+        self._p = utils._trapez_integral_cum(self._x, self._y)
 
         # Set support
         kwargs["a"] = self.a = self._x[0]
@@ -100,7 +62,7 @@ class rv_piecelin(rv_continuous):
         if not np.any(y > 0):
             raise ValueError("`y` has no positive values.")
 
-        y = y / _trapez_integral(x, y)
+        y = y / utils._trapez_integral(x, y)
 
         return x, y
 
@@ -269,7 +231,7 @@ class rv_piecelin(rv_continuous):
         if side not in ["left", "right"]:
             raise ValueError('`side` should be one of "right" or "left"')
 
-        ind = _searchsorted_wrap(self._x, x, side=side, edge_inside=True)
+        ind = utils._searchsorted_wrap(self._x, x, side=side, edge_inside=True)
 
         return self._coeffs_by_ind(ind)
 
@@ -368,7 +330,7 @@ class rv_piecelin(rv_continuous):
         `rv_continuous`.
         """
         x = np.asarray(x, dtype=np.float64)
-        x_ind = _searchsorted_wrap(self._x, x, side="right", edge_inside=True)
+        x_ind = utils._searchsorted_wrap(self._x, x, side="right", edge_inside=True)
 
         gr_x, _, gr_p = self._grid_by_ind(x_ind)
         inter, slope = self._coeffs_by_ind(x_ind)
@@ -385,7 +347,7 @@ class rv_piecelin(rv_continuous):
         Dealing with `q` values outside of `[0; 1]` is supposed to be done in
         `rv_continuous`.
         """
-        q_ind = _searchsorted_wrap(self._p, q, side="right", edge_inside=True)
+        q_ind = utils._searchsorted_wrap(self._p, q, side="right", edge_inside=True)
         grid_q = self._grid_by_ind(q_ind)
         coeffs_q = self._coeffs_by_ind(q_ind)
 
@@ -436,32 +398,6 @@ class rv_piecelin(rv_continuous):
         res[is_const] = x[is_const]
 
         return res
-
-
-def _trapez_integral(x, y):
-    """Compute integral with trapezoidal formula.
-
-    >>> _trapez_integral(np.array([0, 1]), np.array([1, 1]))
-    1.0
-    >>> _trapez_integral(np.array([-1, 0, 1]), np.array([0, 10, 5]))
-    12.5
-    """
-    return np.sum(0.5 * np.diff(x) * (y[:-1] + y[1:]))
-
-
-def _trapez_integral_cum(x, y):
-    """Compute cumulative integral with trapezoidal formula.
-
-    Element of output represents cumulative probability **before** its left "x"
-    edge.
-
-    >>> _trapez_integral_cum(np.array([0, 1]), np.array([1, 1]))
-    array([0., 1.])
-    >>> _trapez_integral_cum(np.array([-1, 0, 1]), np.array([0, 10, 5]))
-    array([ 0. ,  5. , 12.5])
-    """
-    res = np.cumsum(0.5 * np.diff(x) * (y[:-1] + y[1:]))
-    return np.concatenate([[0], res])
 
 
 def _detect_finite_supp(rv, supp=None, tail_prob=1e-6):
