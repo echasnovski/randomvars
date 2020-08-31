@@ -60,3 +60,15 @@ jobs:
         shell: bash
         if: runner.os == 'Linux'
         run: poetry run black randomvars --check
+
+      - name: Generate coverage report
+        if: matrix.os == 'Ubuntu' && matrix.python-version == '3.8'
+        run: |
+          poetry run pytest --cov=randomvars --cov-report=xml
+
+      - name: Upload coverage to Codecov
+        if: matrix.os == 'Ubuntu' && matrix.python-version == '3.8'
+        uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage.xml

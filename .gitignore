@@ -1,13 +1,11 @@
-# Neovim #
+# Neovim
 coc-settings.json
 
-# Directories #
-###############
+# Directories
 build/
 dist/
 
-# Compiled source #
-###################
+# Compiled source
 *.com
 *.class
 *.dll
@@ -23,13 +21,22 @@ dist/
 .vscode/*
 *.code-workspace
 
-# pytest cache #
-################
-.cache/*
-.pytest_cache/*
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
 
 # pyenv
-#######
 .python-version
 
 # Environments
