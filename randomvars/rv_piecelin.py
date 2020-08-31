@@ -6,6 +6,7 @@ import numpy as np
 from scipy.stats.distributions import rv_continuous
 
 from randomvars.downgrid_maxtol import downgrid_maxtol
+from randomvars.options import get_option
 
 
 def _searchsorted_wrap(a, v, side="left", edge_inside=True):
@@ -273,18 +274,19 @@ class rv_piecelin(rv_continuous):
         return self._coeffs_by_ind(ind)
 
     @classmethod
-    def from_rv(cls, rv, supp=None, tail_prob=1e-6, n_grid=1001, integr_tol=1e-4):
+    def from_rv(cls, rv, supp=None, tail_prob=None, n_grid=None, integr_tol=None):
         """Create piecewise-linear RV from general RV
 
         Piecewise-linear RV is created by the following algorithm:
         - **Detect finite support**. Left and right edges are treated
           separately. If edge is supplied, it is used untouched. If not, it is
           computed by "removing" corresponding (left or right) tail which has
-          probability of `tail_prob`.
+          probability of `tail_prob` (package option).
         - **Create x-grid**. It is computed as union of equidistant (fixed
           distance between consecutive points) and equiprobable (fixed
           probability between consecutive points) grids between edges of
-          detected finite support. Also it is ensured that no points lie very
+          detected finite support. Number of points in grids is equal to
+          `n_grid` (package option). Also it is ensured that no points lie very
           close to each other (order of `1e-13` distance), because otherwise
           output will have unstable values.
         - **Create density xy-grid**. X-grid is taken from previous step, while
@@ -293,7 +295,12 @@ class rv_piecelin(rv_continuous):
           account for its possible infinite values.
         - **Downgrid density xy-grid**. `downgrid_maxtol()` is used with
           tolerance ensuring that difference of total integrals between input
-          and downgridded xy-grids is less than `integr_tol`.
+          and downgridded xy-grids is less than `integr_tol` (package option).
+
+        Relevant package options: `n_grid`, `tail_prob`, `integr_tol`. See
+        documentation of `randomvars.options.get_option()` for more
+        infromation. To temporarily set options use
+        `randomvars.options.option_context()` context manager.
 
         Parameters
         ----------
@@ -319,6 +326,14 @@ class rv_piecelin(rv_continuous):
             Random variable with finite support and piecewise-linear density
             which approximates density of input `rv`.
         """
+        # Ensure settings are set
+        if n_grid is None:
+            n_grid = get_option("n_grid")
+        if tail_prob is None:
+            tail_prob = get_option("tail_prob")
+        if integr_tol is None:
+            integr_tol = get_option("integr_tol")
+
         # Detect effective support of `rv`
         x_left, x_right = _detect_finite_supp(rv, supp, tail_prob)
 
