@@ -51,12 +51,12 @@ jobs:
         shell: bash
         run: poetry run pytest -q randomvars/tests
 
-      - name: Execute doctests on Ubuntu
+      - name: Execute doctests on Linux
         shell: bash
-        if: runner.os == 'Ubuntu'
+        if: runner.os == 'Linux'
         run: poetry run pytest -q --doctest-modules randomvars
 
-      - name: Check formatting on Ubuntu
+      - name: Check formatting on Linux
         shell: bash
-        if: runner.os == 'Ubuntu'
+        if: runner.os == 'Linux'
         run: poetry run black randomvars --check
