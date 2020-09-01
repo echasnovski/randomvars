@@ -129,6 +129,22 @@ class TestRVPiecelin:
         assert_array_equal(rv.y, y)
         assert_array_almost_equal(rv.p, np.arange(11) / 10, decimal=15)
 
+    def test__coeffs_by_ind(self):
+        # All coefficients are returned if no `ind` is specified
+        rv = rv_piecelin([0, 1, 2], [0, 1, 0])
+        inter, slope = rv._coeffs_by_ind()
+        assert_array_equal(inter, [0, 2])
+        assert_array_equal(slope, [1, -1])
+
+    def test__grid_by_ind(self):
+        # All grid elements are returned if no `ind` is specified
+        rv = rv_piecelin([0, 1, 2], [0, 1, 0])
+        x_out, y_out, p_out = rv._grid_by_ind()
+        x_ref, y_ref, p_ref = rv.x, rv.y, rv.p
+        assert_array_equal(x_out, x_ref)
+        assert_array_equal(y_out, y_ref)
+        assert_array_equal(p_out, p_ref)
+
     def test_pdf_coeffs(self):
         rv = rv_piecelin([0, 1, 2], [0, 1, 0])
         x = np.array([-1, 0, 0.5, 1, 1.5, 2, 2.5])
