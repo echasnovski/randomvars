@@ -1,9 +1,20 @@
+from scipy.stats.kde import gaussian_kde
+
+
 __all__ = ["get_option", "set_option", "reset_option", "option_context", "OptionError"]
 
-_default_options = {"n_grid": 1001, "tail_prob": 1e-6, "integr_tol": 1e-4}
+_default_options = {
+    "density_estimator": gaussian_kde,
+    "n_grid": 1001,
+    "tail_prob": 1e-6,
+    "integr_tol": 1e-4,
+}
 _options = _default_options.copy()
 
 _options_list = """
+- density_estimator : callable, default scipy.stats.kde.gaussian_kde. Function
+which takes sample as input and returns callable object for density estimate
+(takes points as input and returns density values).
 - n_grid : int, default 1001. Number of points in initial xy-grids when
 creating object of rv_piecelin.
 - tail_prob : float, default 1e-6. Probability value of distribution tail that
