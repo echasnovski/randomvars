@@ -297,11 +297,7 @@ class rv_piecelin(rv_continuous):
         x_quan = rv.ppf(prob_equi)
 
         # Combine equidistant and quantile grids into one sorted array
-        x = np.union1d(x_equi, x_quan)
-        ## Ensure that minimum difference between consecutive elements isn't
-        ## very small, otherwise this will make `np.gradient()` perform poorly
-        x_is_good = np.concatenate([[True], np.ediff1d(x) > 1e-13])
-        x = x[x_is_good]
+        x = _combine_grids(x_equi, x_quan)
 
         # Compute `y` as derivative of CDF. Not using `pdf` directly to account
         # for infinite density values.
@@ -442,3 +438,13 @@ def _detect_finite_supp(rv, supp=None, tail_prob=1e-6):
         right = supp[1]
 
     return left, right
+
+
+def _combine_grids(grid1, grid2, tol=1e-13):
+    x = np.union1d(grid1, grid2)
+
+    ## Ensure that minimum difference between consecutive elements isn't
+    ## very small, otherwise this will make `np.gradient()` perform poorly
+    x_is_good = np.concatenate([[True], np.ediff1d(x) > tol])
+
+    return x[x_is_good]
