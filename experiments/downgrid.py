@@ -382,3 +382,82 @@ x = np.arange(10)
 y = np.array([0, 1, 2, 3, 2, 1, 2, 1, 0, -10])
 
 downgrid_maxtol(x, y, tol=0)
+
+
+#%% Optimality exploration of implemented version
+# Setup
+import numpy as np
+import matplotlib.pyplot as plt
+from randomvars import downgrid_maxtol
+
+n = 1000
+np.random.seed(101)
+x = np.linspace(0, 2*np.pi, n)
+y = np.sin(x) + np.random.uniform(size = n)
+
+def plot_downgrid(x, y, tol):
+    x_new, y_new = downgrid_maxtol(x, y, tol)
+    plt.plot(x, y, "k")
+    plt.plot(x_new, y_new, "r-o")
+    # plt.show()
+
+def max_dist(x_base, y_base, x_ref, y_ref):
+    f_ref = lambda x: np.interp(x, x_ref, y_ref)
+    return np.max(np.abs(f_ref(x_base) - y_base))
+
+def downgrid_n(x, y, tol):
+    x_new, y_new = downgrid_maxtol(x, y, tol)
+    print(
+        f"Tolerance: {tol}; Max. distance: {max_dist(x, y, x_new, y_new)}; "
+        f"n_grid: {len(x_new)}."
+    )
+    return len(x_new)
+
+def seq_cosine(x, y):
+    x_start, y_start = x[0], y[0]
+    x_end, y_end = x[-1], y[-1]
+    inds = slice(1, -1)
+    x_vec_start, y_vec_start = x[inds] - x_start, y[inds] - y_start
+    x_vec_end,   y_vec_end   = x_end - x[inds], y_end - y[inds]
+    in_product = x_vec_start * x_vec_end + y_vec_start * y_vec_end
+    vec_start_len = np.sqrt(x_vec_start * x_vec_start + y_vec_start * y_vec_start)
+    vec_end_len = np.sqrt(x_vec_end * x_vec_end + y_vec_end * y_vec_end)
+
+    return in_product / (vec_start_len * vec_end_len)
+
+# Change in grid length with respect to tolerance
+tol_grid = np.linspace(0, 2, 1001)
+n_grid = np.array([downgrid_n(x, y, tol) for tol in tol_grid])
+
+plt.plot(tol_grid, n_grid)
+plt.show()
+## CONCLUSION: grid length **doesn't strictly decrease when tolerance
+## increases**. This seems to be due to non-optimality of implemented greedy
+## algorithm of `downgrid_maxtol()`.
+
+# Show non-optimality of `downgrid_maxtol()`
+cosines = seq_cosine(x, y)
+max_cosine_ind = cosines.argmax()+1
+x_line, y_line = x[[0, max_cosine_ind, -1]], y[[0, max_cosine_ind, -1]]
+
+plot_downgrid(x, y, 1.948)
+plt.plot(x_line, y_line, "-o")
+plt.show()
+
+x_maxtol, y_maxtol = downgrid_maxtol(x, y, 1.948)
+max_dist(x, y, x_line, y_line)
+max_dist(x, y, x_maxtol, y_maxtol)
+
+x_maxtol_ind = (x == x_maxtol[1]).nonzero()[0][0]
+print(f"`downgrid_maxtol()` middle point index: {x_maxtol_ind}")
+print(f"'Almost straight line' middle point index: {max_cosine_ind}")
+## CONCLUSION: here there is a "more optimal" grid consisting from 3 points
+## which connects start and end points with almost traight line. However,
+## `downgrid_maxtol()` doesn't have it as output because of its greedy
+## nature: it keeps "stretching current segment" until next candidate point
+## makes output have maximum distance higher then input tolerance.
+## Here are findings that are aligned with these conclusions:
+## - Maximum distance from "almost straight line" 3-point downgrid is less than
+##   one from `downgrid_maxtol()` output 3-point downgrid.
+## - Middle point of "almost straight line" downgrid is more to the left than
+## one from `downgrid_maxtol()` output.

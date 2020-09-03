@@ -100,8 +100,8 @@ def downgrid_maxtol(x, y, tol, double_pass=True):
 
     Downgrid input xy-grid so that maximum difference between points on output
     piecewise-linear function and input xy-grid is not more than `tol`. Output
-    xy-grid is a subset of input xy-grid. **Note** that first and last point is
-    always inside output xy-grid.
+    xy-grid is a subset of input xy-grid. **Note** that first and last points
+    are always inside output xy-grid.
 
     There are two variations of downgriddings: single and double (default)
     pass. Single pass is performed by iteratively (from left to right)
@@ -111,7 +111,9 @@ def downgrid_maxtol(x, y, tol, double_pass=True):
     Parameters
     ----------
     x : numpy array
+        Sorted array of x-coordinates.
     y : numpy array
+        Array of y-coordinates.
     tol : scalar
         Tolerance. If zero, points that lie between colinear segments will be
         removed without precision loss of piecewise-linear function.
