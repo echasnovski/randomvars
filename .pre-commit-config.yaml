@@ -3,6 +3,7 @@ repos:
     rev: 20.8b1
     hooks:
       - id: black
+        exclude: ^experiments/
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v3.2.0
@@ -10,3 +11,4 @@ repos:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: debug-statements
+        exclude: ^experiments/
