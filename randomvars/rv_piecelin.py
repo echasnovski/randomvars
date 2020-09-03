@@ -4,6 +4,7 @@ import warnings
 
 import numpy as np
 from scipy.stats.distributions import rv_continuous
+from scipy.integrate import fixed_quad
 
 import randomvars._utils as utils
 from randomvars.downgrid_maxtol import downgrid_maxtol
@@ -280,7 +281,7 @@ class rv_piecelin(rv_continuous):
             Random variable with finite support and piecewise-linear density
             which approximates density of input `rv`.
         """
-        # Get settings
+        # Get options
         n_grid = get_option("n_grid")
         tail_prob = get_option("tail_prob")
         integr_tol = get_option("integr_tol")
@@ -312,6 +313,39 @@ class rv_piecelin(rv_continuous):
         x, y = downgrid_maxtol(x, y, integr_tol / (x[-1] - x[0]))
 
         return cls(x, y)
+
+    @classmethod
+    def from_sample(cls, x):
+        """Create piecewise-linear RV from sample"""
+        # Get options
+        density_estimator = get_option("density_estimator")
+        n_grid = get_option("n_grid")
+        integr_tol = get_option("integr_tol")
+
+        # Estimate density
+        density = density_estimator(x)
+
+        # Estimate density range
+        x_left, x_right = _estimate_density_range(density, x, integr_tol)
+
+        # Construct equidistant grid
+        x_equi = np.linspace(x_left, x_right, n_grid)
+
+        # Construct quantile grid
+        prob_equi = np.linspace(0, 1, n_grid)
+        x_quan = np.quantile(a=x, q=prob_equi, interpolation="linear")
+
+        # Combine equidistant and quantile grids into one sorted array
+        x_grid = _combine_grids(x_equi, x_quan)
+        y_grid = density(x_grid)
+
+        # Reduce grid size allowing such maximum difference so that
+        # piecewise-linear integrals differ by not more than `integr_tol`
+        x_grid, y_grid = downgrid_maxtol(
+            x_grid, y_grid, tol=integr_tol / (x_grid[-1] - x_grid[0])
+        )
+
+        return cls(x_grid, y_grid)
 
     def _pdf(self, x, *args):
         """Implementation of probability density function"""
@@ -438,6 +472,81 @@ def _detect_finite_supp(rv, supp=None, tail_prob=1e-6):
         right = supp[1]
 
     return left, right
+
+
+def _estimate_density_range(density, sample, integr_tol):
+    """Estimate effective range of sample density estimate
+
+    Goal is to estimate range within which integral of density differs from 1
+    by not more than `itegr_tol`.
+
+    Iterative algorithm:
+        - First iteration is to take density range as sample range.
+        - Other iterations: extend current range to reduce difference between
+        integrals. Current algorithm is as follows (subjuect to change):
+            - Compute "non-covered probability": one minus integral of density
+            inside current range.
+            - Compute values of density at range ends and branch:
+                - **If both values are zero** (but covered probability is still
+                significantly less than one), extend both ends equally by the
+                amount `0.5 * noncov_prob * range_width`. Here `noncov_prob` -
+                non-covered probability (one minus density integral inside
+                current range), `range_width` - width of current range.
+                - **If at least one value is not zero**:
+                    - Split non-covered probability to left and right range
+                    ends proportionally with "weights" being density values at
+                    range ends. This illustrates approach "Extend more towards
+                    side with bigger density value (as it make bigger density
+                    coverage gain with smaller efforts)".
+                    - Left and right increases in range are computed using
+                    assumption that density will remain constant (equal to
+                    value at nearest range end) outside of current range.
+    """
+    # Using `fixed_quad()` is considerably faster (around 10 times) than simple
+    # `quad()` but **NOTE** that it might be a cause of numerical inaccuracies
+    # in integral computation. Also there is no particular reason for using
+    # this order of Gaussian quadrature, only that it seems to be a compromise
+    # between both accounting for sample length and computing integral with
+    # more speed.
+    quad_order = max(int(len(sample)), 20)
+
+    cur_range = (sample.min(), sample.max())
+    cur_noncov_prob = (
+        1 - fixed_quad(density, cur_range[0], cur_range[1], n=quad_order)[0]
+    )
+
+    while cur_noncov_prob >= integr_tol:
+        cur_range, cur_noncov_prob = _extend_range(
+            cur_range, density, noncov_prob=cur_noncov_prob, quad_order=quad_order
+        )
+
+    return cur_range
+
+
+def _extend_range(x_range, density, noncov_prob, quad_order):
+    y_left, y_right = density(x_range)
+    y_sum = y_left + y_right
+
+    # Double-check that density returns non-negative values
+    if (y_sum > 0) and ((y_left > 0) or (y_right > 0)):
+        # "Allocate" more probability to end with bigger density value
+        alpha = y_left / y_sum
+        prob_left, prob_right = alpha * noncov_prob, (1 - alpha) * noncov_prob
+
+        # Compute deltas as if extension is done with constant density value
+        delta_left = prob_left / y_left if y_left > 0 else 0
+        delta_right = prob_right / y_right if y_right > 0 else 0
+    else:
+        width = x_range[1] - x_range[0]
+        delta_left = 0.5 * noncov_prob * width
+        delta_right = delta_left
+
+    res_range = (x_range[0] - delta_left, x_range[1] + delta_right)
+    res_noncov_prob = (
+        1 - fixed_quad(density, res_range[0], res_range[1], n=quad_order)[0]
+    )
+
+    return res_range, res_noncov_prob
 
 
 def _combine_grids(grid1, grid2, tol=1e-13):

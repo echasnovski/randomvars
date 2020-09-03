@@ -44,6 +44,8 @@ DISTRIBUTIONS_HEAVY_TAILS = {
     "t": distrs.t(df=2),
 }
 
+np.random.seed(101)
+
 
 def assert_equal_seq(first, second, *args, **kwargs):
     assert len(first) == len(second)
@@ -213,6 +215,43 @@ class TestRVPiecelin:
         ## Increasing tolerance should lead to decrease of density grid
         assert len(rv_norm_1.x) > len(rv_norm_2.x)
 
+    def test_from_sample_basic(self):
+        norm = distrs.norm()
+
+        x = norm.rvs(100)
+        rv = rv_piecelin.from_sample(x)
+        assert isinstance(rv, rv_piecelin)
+
+    def test_from_sample_options(self):
+        norm = distrs.norm()
+
+        np.random.seed(101)
+        x = norm.rvs(100)
+
+        # "density_estimator"
+        def uniform_estimator(x):
+            x_min, x_max = x.min(), x.max()
+
+            def res(x):
+                return np.where((x >= x_min) & (x <= x_max), 1 / (x_max - x_min), 0)
+
+            return res
+
+        with option_context({"density_estimator": uniform_estimator}):
+            rv = rv_piecelin.from_sample(x)
+        assert len(np.unique(rv.y)) == 1
+
+        # "n_grid"
+        with option_context({"n_grid": 11}):
+            rv = rv_piecelin.from_sample(x)
+        assert len(rv.x) <= 22
+
+        # "integr_tol"
+        with option_context({"integr_tol": 1}):
+            rv = rv_piecelin.from_sample(x)
+        # With maximum tolerance density range should be equal to sample range
+        assert_array_equal(rv.x[[0, -1]], [x.min(), x.max()])
+
     def test_pdf(self):
         """Tests for `.pdf()` method, which logic is implemented in `._pdf()`"""
         rv = rv_piecelin([0, 1, 3], [0.5, 0.5, 0])
@@ -321,3 +360,26 @@ class TestFromRVAccuracy:
         ]
         test_arr.append([x[-1]])
         return np.concatenate(test_arr)
+
+
+def test__extend_range():
+    def extra_estimator(x):
+        x_min, x_max = x.min(), x.max()
+        prob_height = 1 / (x_max - x_min + 1)
+
+        def res(x):
+            return np.where(
+                ((x_min < x) & (x < x_max)) | ((x_max + 1 < x) & (x < x_max + 2)),
+                prob_height,
+                0,
+            )
+
+        return res
+
+    norm = distrs.norm()
+    x = norm.rvs(100)
+
+    with option_context({"density_estimator": extra_estimator}):
+        rv = rv_piecelin.from_sample(x)
+
+    assert (rv.x[0] <= x.min()) and (rv.x[-1] >= x.max())
