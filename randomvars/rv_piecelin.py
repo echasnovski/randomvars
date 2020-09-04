@@ -33,7 +33,7 @@ class rv_piecelin(rv_continuous):
             x = np.asarray_chkfinite(x, dtype=np.float64)
         except:
             raise ValueError(
-                "`x` is not convertable to numeric numpy array with finite values."
+                "`x` is not convertible to numeric numpy array with finite values."
             )
         if len(x.shape) > 1:
             raise ValueError("`x` is not a 1d array.")
@@ -42,7 +42,7 @@ class rv_piecelin(rv_continuous):
             y = np.asarray_chkfinite(y, dtype=np.float64)
         except:
             raise ValueError(
-                "`y` is not convertable to numeric numpy array with finite values."
+                "`y` is not convertible to numeric numpy array with finite values."
             )
         if len(y.shape) > 1:
             raise ValueError("`y` is not a 1d array.")
