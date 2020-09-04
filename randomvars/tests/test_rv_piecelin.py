@@ -7,7 +7,7 @@ import scipy.stats.distributions as distrs
 import pytest
 
 from randomvars.rv_piecelin import rv_piecelin
-from randomvars.options import option_context
+from randomvars.options import get_option, option_context
 
 
 DISTRIBUTIONS_COMMON = {
@@ -44,8 +44,6 @@ DISTRIBUTIONS_HEAVY_TAILS = {
     "t": distrs.t(df=2),
 }
 
-np.random.seed(101)
-
 
 def assert_equal_seq(first, second, *args, **kwargs):
     assert len(first) == len(second)
@@ -63,6 +61,57 @@ def assert_almost_equal_rv_piecelin(rv_p_1, rv_p_2, decimal=10):
     assert_array_almost_equal(rv_p_1.x, rv_p_2.x, decimal=decimal)
     assert_array_almost_equal(rv_p_1.y, rv_p_2.y, decimal=decimal)
     assert_array_almost_equal(rv_p_1.p, rv_p_2.p, decimal=decimal)
+
+
+def from_sample_max_error(x):
+    rv = rv_piecelin.from_sample(x)
+    density = get_option("density_estimator")(x)
+
+    return np.max(np.abs(density(rv.x) - rv.y))
+
+
+def circle_fun(x, low, high):
+    x = np.array(x)
+    center = 0.5 * (high + low)
+    radius = 0.5 * (high - low)
+
+    res = np.zeros_like(x)
+
+    center_dist = np.abs(x - center)
+    is_in = center_dist <= radius
+    res[is_in] = np.sqrt(radius ** 2 - center_dist[is_in] ** 2)
+
+    return res
+
+
+def make_circ_density(intervals):
+    """Construct circular density
+
+    Density looks like half-circles with diameters lying in elements of
+    `intervals`. Total integral is equal to 1.
+
+    Parameters
+    ----------
+    intervals : iterable with elements being 2-element iterables
+        Iterable of intervals with non-zero density.
+
+    Returns
+    -------
+    density : callable
+        Function which returns density values.
+    """
+
+    def density(x):
+        res = np.zeros_like(x)
+        tot_integral = 0
+        for low, high in intervals:
+            res += circle_fun(x, low, high)
+            # There is only half of circle
+            tot_integral += np.pi * (high - low) ** 2 / 8
+
+        return res / tot_integral
+
+    return density
 
 
 class TestRVPiecelin:
@@ -218,15 +267,16 @@ class TestRVPiecelin:
     def test_from_sample_basic(self):
         norm = distrs.norm()
 
-        x = norm.rvs(100)
+        rng = np.random.default_rng(101)
+        x = norm.rvs(100, random_state=rng)
         rv = rv_piecelin.from_sample(x)
         assert isinstance(rv, rv_piecelin)
 
     def test_from_sample_options(self):
         norm = distrs.norm()
 
-        np.random.seed(101)
-        x = norm.rvs(100)
+        rng = np.random.default_rng(101)
+        x = norm.rvs(100, random_state=rng)
 
         # "density_estimator"
         def uniform_estimator(x):
@@ -251,6 +301,27 @@ class TestRVPiecelin:
             rv = rv_piecelin.from_sample(x)
         # With maximum tolerance density range should be equal to sample range
         assert_array_equal(rv.x[[0, -1]], [x.min(), x.max()])
+
+    def test_from_sample_single_value(self):
+        """How well `from_sample()` handles single unique value in sample
+
+        Main problem here is how density range is initialized during estimation.
+        """
+
+        zero_vec = np.zeros(10)
+
+        # Default density estimator can't handle situation with single unique
+        # sample value (gives `LinAlgError: singular matrix`).
+
+        # Case when sample width is zero but density is not zero
+        density_centered_interval = make_circ_density([(-1, 1)])
+        with option_context({"density_estimator": lambda x: density_centered_interval}):
+            assert from_sample_max_error(zero_vec) <= 1e-4
+
+        # Case when both sample width and density are zero
+        density_shifted_interval = make_circ_density([(10, 20)])
+        with option_context({"density_estimator": lambda x: density_shifted_interval}):
+            assert from_sample_max_error(zero_vec) <= 1e-4
 
     def test_pdf(self):
         """Tests for `.pdf()` method, which logic is implemented in `._pdf()`"""
@@ -362,6 +433,35 @@ class TestFromRVAccuracy:
         return np.concatenate(test_arr)
 
 
+class TestFromSampleAccuracy:
+    """Accuracy of `rv_piecelin.from_sample()`"""
+
+    # Output of `from_sample()` should differ from original density estimate by
+    # no more than `thres` (with default density estimator)
+    @pytest.mark.slow
+    @pytest.mark.parametrize(
+        "distr_dict,thres",
+        [
+            (DISTRIBUTIONS_COMMON, 1e-3),
+            (DISTRIBUTIONS_INF_DENSITY, 1e-3),
+            (DISTRIBUTIONS_HEAVY_TAILS, 1e-3),
+        ],
+    )
+    def test_close_densities(self, distr_dict, thres):
+        rng = np.random.default_rng(101)
+        maxerrors = {
+            name: TestFromSampleAccuracy.simulated_density_error(distr, rng)
+            for name, distr in distr_dict.items()
+        }
+        test_passed = {name: err <= thres for name, err in maxerrors.items()}
+
+        assert all(test_passed.values())
+
+    def simulated_density_error(distr, rng):
+        x = distr.rvs(size=100, random_state=rng)
+        return from_sample_max_error(x)
+
+
 def test__extend_range():
     def extra_estimator(x):
         x_min, x_max = x.min(), x.max()
@@ -377,7 +477,8 @@ def test__extend_range():
         return res
 
     norm = distrs.norm()
-    x = norm.rvs(100)
+    rng = np.random.default_rng(101)
+    x = norm.rvs(100, random_state=rng)
 
     with option_context({"density_estimator": extra_estimator}):
         rv = rv_piecelin.from_sample(x)
