@@ -4,7 +4,7 @@ import warnings
 
 import numpy as np
 from scipy.stats.distributions import rv_continuous
-from scipy.integrate import fixed_quad
+from scipy.integrate import quad
 
 import randomvars._utils as utils
 from randomvars.downgrid_maxtol import downgrid_maxtol
@@ -481,55 +481,65 @@ def _estimate_density_range(density, sample, integr_tol):
     by not more than `itegr_tol`.
 
     Iterative algorithm:
-        - First iteration is to take density range as sample range.
+        - First iteration is to take density range as sample range. If it has
+        zero width, then return range with assumption of constant density
+        (forced to be 1 if actual value for some reason is zero) at sample
+        point.
         - Other iterations: extend current range to reduce difference between
         integrals. Current algorithm is as follows (subjuect to change):
             - Compute "non-covered probability": one minus integral of density
             inside current range.
             - Compute values of density at range ends and branch:
-                - **If both values are zero** (but covered probability is still
-                significantly less than one), extend both ends equally by the
-                amount `0.5 * noncov_prob * range_width`. Here `noncov_prob` -
-                non-covered probability (one minus density integral inside
-                current range), `range_width` - width of current range.
-                - **If at least one value is not zero**:
+                - **If their sum is positive**:
                     - Split non-covered probability to left and right range
-                    ends proportionally with "weights" being density values at
-                    range ends. This illustrates approach "Extend more towards
-                    side with bigger density value (as it make bigger density
-                    coverage gain with smaller efforts)".
-                    - Left and right increases in range are computed using
-                    assumption that density will remain constant (equal to
-                    value at nearest range end) outside of current range.
+                    ends proportionally with "weights" computed from density
+                    values at range ends. This illustrates approach "Extend
+                    more towards side with bigger density value (as it takes
+                    less effort to make bigger density coverage gain)".
+                    - Left and right additive increases in range are computed
+                    using assumption that density will remain constant (equal
+                    to value at nearest range end) outside of current range.
+                - **If their sum is not positive** (but covered probability is
+                still significantly less than one), extend both ends equally by
+                the amount `0.5 * noncov_prob * range_width`. Here
+                `noncov_prob` - non-covered probability (one minus density
+                integral inside current range), `range_width` - width of
+                current range.
     """
-    # Using `fixed_quad()` is considerably faster (around 10 times) than simple
-    # `quad()` but **NOTE** that it might be a cause of numerical inaccuracies
-    # in integral computation. Also there is no particular reason for using
-    # this order of Gaussian quadrature, only that it seems to be a compromise
-    # between both accounting for sample length and computing integral with
-    # more speed.
-    quad_order = max(int(len(sample)), 20)
-
-    cur_range = (sample.min(), sample.max())
-    cur_noncov_prob = (
-        1 - fixed_quad(density, cur_range[0], cur_range[1], n=quad_order)[0]
-    )
+    cur_range = _init_range(sample, density)
+    cur_noncov_prob = 1 - _quad_silent(density, cur_range[0], cur_range[1])
 
     while cur_noncov_prob >= integr_tol:
-        cur_range, cur_noncov_prob = _extend_range(
-            cur_range, density, noncov_prob=cur_noncov_prob, quad_order=quad_order
-        )
+        cur_range, cur_noncov_prob = _extend_range(cur_range, density, cur_noncov_prob)
 
     return cur_range
 
 
-def _extend_range(x_range, density, noncov_prob, quad_order):
-    y_left, y_right = density(x_range)
+def _init_range(sample, density):
+    x_left, x_right = sample.min(), sample.max()
+
+    if x_left == x_right:
+        x, y = x_left, density(x_left)
+        # Compute width with assumption of constant density
+        half_width = 0.5 / y if y > 0 else 0.5
+        x_left, x_right = x - half_width, x + half_width
+
+    return x_left, x_right
+
+
+def _quad_silent(f, a, b):
+    # Ignore warnings usually resulting from maximum number of subdivisions
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore")
+        return quad(f, a, b, limit=100)[0]
+
+
+def _extend_range(x_range, density, noncov_prob):
+    y_left, y_right = density(np.asarray(x_range))
     y_sum = y_left + y_right
 
-    # Double-check that density returns non-negative values
-    if (y_sum > 0) and ((y_left > 0) or (y_right > 0)):
-        # "Allocate" more probability to end with bigger density value
+    if y_sum > 0:
+        # "Allocate" more probability to side with bigger density value
         alpha = y_left / y_sum
         prob_left, prob_right = alpha * noncov_prob, (1 - alpha) * noncov_prob
 
@@ -542,9 +552,13 @@ def _extend_range(x_range, density, noncov_prob, quad_order):
         delta_right = delta_left
 
     res_range = (x_range[0] - delta_left, x_range[1] + delta_right)
-    res_noncov_prob = (
-        1 - fixed_quad(density, res_range[0], res_range[1], n=quad_order)[0]
-    )
+
+    # Update non-covered probability. Here not using direct approach of the
+    # form `1 - _quad_silent(density, x_range[0], x_range[1])` is crucial
+    # because it may lead to inaccurate results with wide range.
+    cov_prob_left = _quad_silent(density, res_range[0], x_range[0])
+    cov_prob_right = _quad_silent(density, x_range[1], res_range[1])
+    res_noncov_prob = noncov_prob - cov_prob_left - cov_prob_right
 
     return res_range, res_noncov_prob
 

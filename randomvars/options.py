@@ -14,8 +14,10 @@ _options = _default_options.copy()
 _options_list = """
 - density_estimator : callable, default scipy.stats.kde.gaussian_kde. Function
 which takes sample as input and returns callable object for density estimate
-(takes points as input and returns density values). **Note** worse performance if
-there is discontinuity in output density.
+(takes points as input and returns density values). **Notes**:
+    - Output density should be vectorized: allow numpy array as input and
+    return numpy array with the same length.
+    - There is worse performance if output density has discontinuity.
 - n_grid : int, default 1001. Number of points in initial xy-grids when
 creating object of rv_piecelin.
 - tail_prob : float, default 1e-6. Probability value of distribution tail that
