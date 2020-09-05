@@ -271,6 +271,21 @@ class TestRVPiecelin:
         ## Increasing tolerance should lead to decrease of density grid
         assert len(rv_norm_1.x) > len(rv_norm_2.x)
 
+    def test_from_rv_errors(self):
+        class Tmp:
+            def __init__(self):
+                pass
+
+        tmp1 = Tmp()
+        tmp1.cdf = lambda x: np.where((0 <= x) & (x <= 1), 1, 0)
+        with pytest.raises(ValueError, match="ppf"):
+            rv_piecelin.from_rv(tmp1)
+
+        tmp2 = Tmp()
+        tmp2.ppf = lambda x: np.where((0 <= x) & (x <= 1), 1, 0)
+        with pytest.raises(ValueError, match="cdf"):
+            rv_piecelin.from_rv(tmp2)
+
     def test_from_sample_basic(self):
         norm = distrs.norm()
 
@@ -278,6 +293,13 @@ class TestRVPiecelin:
         x = norm.rvs(100, random_state=rng)
         rv = rv_piecelin.from_sample(x)
         assert isinstance(rv, rv_piecelin)
+
+    def test_from_sample_errors(self):
+        with pytest.raises(ValueError, match="numeric numpy array"):
+            rv_piecelin.from_sample(["a"])
+
+        with pytest.raises(ValueError, match="1d"):
+            rv_piecelin.from_sample([[1], [2]])
 
     def test_from_sample_options(self):
         norm = distrs.norm()

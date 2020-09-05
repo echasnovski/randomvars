@@ -267,8 +267,11 @@ class rv_piecelin(rv_continuous):
 
         Parameters
         ----------
-        rv : rv_frozen
-            Object of class `rv_continuous` with all hyperparameters defined.
+        rv : Object with methods `cdf()` and `ppf()`
+            Methods `cdf()` and `ppf()` should implement functions for
+            cumulative distribution and quantile functions respectively.
+            Recommended to be an object of class `rv_continuous` with all
+            hyperparameters defined.
         supp : Tuple with two numbers or `None`, optional
             Forced support edges. Elements should be either finite numbers
             (returned untouched) or `None` (finite support edge is detected).
@@ -281,6 +284,11 @@ class rv_piecelin(rv_continuous):
             Random variable with finite support and piecewise-linear density
             which approximates density of input `rv`.
         """
+        # Check input
+        rv_dir = dir(rv)
+        if not all(method in rv_dir for method in ["cdf", "ppf"]):
+            raise ValueError("`rv` should have methods `cdf()` and `ppf()`.")
+
         # Get options
         n_grid = get_option("n_grid")
         tail_prob = get_option("tail_prob")
@@ -352,7 +360,7 @@ class rv_piecelin(rv_continuous):
         ----------
         x : 1d array-like
             This should be a valid input to `np.asarray()` so that its output
-            has single dimension.
+            is numeric and has single dimension.
 
         Returns
         -------
@@ -360,6 +368,15 @@ class rv_piecelin(rv_continuous):
             Random variable with finite support and piecewise-linear density
             which approximates density estimate of input sample `x`.
         """
+        # Check input
+        try:
+            x = np.asarray(x, dtype=np.float64)
+        except ValueError:
+            raise ValueError("`x` is not convertible to numeric numpy array.")
+
+        if len(x.shape) != 1:
+            raise ValueError("`x` is not a 1d array.")
+
         # Get options
         density_estimator = get_option("density_estimator")
         n_grid = get_option("n_grid")
