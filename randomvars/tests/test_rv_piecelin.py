@@ -4,6 +4,7 @@
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 import scipy.stats.distributions as distrs
+from scipy.integrate import quad
 import pytest
 
 from randomvars.rv_piecelin import rv_piecelin
@@ -30,18 +31,24 @@ DISTRIBUTIONS_COMMON = {
 }
 
 DISTRIBUTIONS_INF_DENSITY = {
-    "beta_both": distrs.beta(a=0.4, b=0.6),
-    "beta_left": distrs.beta(a=0.5, b=2),
-    "beta_right": distrs.beta(a=2, b=0.5),
-    "chi_sq": distrs.chi2(df=1),
-    "weibull_max": distrs.weibull_max(c=0.5),
-    "weibull_min": distrs.weibull_min(c=0.5),
+    "inf_beta_both": distrs.beta(a=0.4, b=0.6),
+    "inf_beta_left": distrs.beta(a=0.5, b=2),
+    "inf_beta_right": distrs.beta(a=2, b=0.5),
+    "inf_chi_sq": distrs.chi2(df=1),
+    "inf_weibull_max": distrs.weibull_max(c=0.5),
+    "inf_weibull_min": distrs.weibull_min(c=0.5),
 }
 
 DISTRIBUTIONS_HEAVY_TAILS = {
-    "cauchy": distrs.cauchy(),
-    "lognorm": distrs.lognorm(s=1),
-    "t": distrs.t(df=2),
+    "heavy_cauchy": distrs.cauchy(),
+    "heavy_lognorm": distrs.lognorm(s=1),
+    "heavy_t": distrs.t(df=2),
+}
+
+DISTRIBUTIONS = {
+    **DISTRIBUTIONS_COMMON,
+    **DISTRIBUTIONS_HEAVY_TAILS,
+    **DISTRIBUTIONS_INF_DENSITY,
 }
 
 
@@ -408,11 +415,10 @@ class TestFromRVAccuracy:
         ],
     )
     def test_cdf_maxerror(self, distr_dict, thres):
-        maxerrors = {
-            name: TestFromRVAccuracy.from_rv_cdf_maxerror(distr)
+        test_passed = {
+            name: TestFromRVAccuracy.from_rv_cdf_maxerror(distr) <= thres
             for name, distr in distr_dict.items()
         }
-        test_passed = {name: err <= thres for name, err in maxerrors.items()}
 
         assert all(test_passed.values())
 
@@ -449,14 +455,33 @@ class TestFromSampleAccuracy:
     )
     def test_close_densities(self, distr_dict, thres):
         rng = np.random.default_rng(101)
-        maxerrors = {
-            name: TestFromSampleAccuracy.simulated_density_error(distr, rng)
+        test_passed = {
+            name: TestFromSampleAccuracy.simulated_density_error(distr, rng) <= thres
             for name, distr in distr_dict.items()
         }
-        test_passed = {name: err <= thres for name, err in maxerrors.items()}
 
         assert all(test_passed.values())
 
+    @pytest.mark.slow
+    def test_density_range(self):
+        integr_tol = get_option("integr_tol")
+        density_estimator = get_option("density_estimator")
+        rng = np.random.default_rng(101)
+
+        def density_noncoverage(distr):
+            x = distr.rvs(size=100, random_state=rng)
+            density = density_estimator(x)
+            rv = rv_piecelin.from_sample(x)
+            return 1 - quad(density, rv.x[0], rv.x[-1])[0]
+
+        test_passed = {
+            distr_name: density_noncoverage(distr) < integr_tol
+            for distr_name, distr in DISTRIBUTIONS.items()
+        }
+
+        assert all(test_passed.values())
+
+    @staticmethod
     def simulated_density_error(distr, rng):
         x = distr.rvs(size=100, random_state=rng)
         return from_sample_max_error(x)
