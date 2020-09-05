@@ -262,7 +262,7 @@ class rv_piecelin(rv_continuous):
 
         Relevant package options: `n_grid`, `tail_prob`, `integr_tol`. See
         documentation of `randomvars.options.get_option()` for more
-        infromation. To temporarily set options use
+        information. To temporarily set options use
         `randomvars.options.option_context()` context manager.
 
         Parameters
@@ -316,7 +316,50 @@ class rv_piecelin(rv_continuous):
 
     @classmethod
     def from_sample(cls, x):
-        """Create piecewise-linear RV from sample"""
+        """Create piecewise-linear RV from sample
+
+        Piecewise-linear RV is created by the following algorithm:
+        - **Estimate density** with density estimator (taken from package
+        option "density_estimator").
+        - **Estimate effective range of density**: interval inside which total
+        integral of density is not less than `1 - integr_tol`, where
+        `integr_tol` is taken from "integr_tol" package option. Specific
+        algorithm how it is done is subject to change. General description of
+        the current one:
+            - Make educated guess about initial range (usually with input
+            sample range).
+            - Iteratively extend range in both directions until density total
+            integral is above desired threshold.
+        - **Create x-grid**. It is computed as union of equidistant (fixed
+          distance between consecutive points) and equiprobable (fixed
+          probability between consecutive points based on sample quantiles)
+          grids between edges of detected density range. Number of points in
+          grids is equal to `n_grid` (package option). Also it is ensured that
+          no points lie very close to each other (order of `1e-13` distance),
+          because otherwise output will have unstable values.
+        - **Create density xy-grid**. X-grid is taken from previous step,
+          y-grid is taken as values of density estimate at points of x-grid.
+        - **Downgrid density xy-grid**. `downgrid_maxtol()` is used with
+          tolerance ensuring that difference of total integrals between input
+          and downgridded xy-grids is less than `integr_tol` (package option).
+
+        Relevant package options: `density_estimator`, `n_grid`, `integr_tol`.
+        See documentation of `randomvars.options.get_option()` for more
+        information. To temporarily set options use
+        `randomvars.options.option_context()` context manager.
+
+        Parameters
+        ----------
+        x : 1d array-like
+            This should be a valid input to `np.asarray()` so that its output
+            has single dimension.
+
+        Returns
+        -------
+        rv_out : rv_piecelin
+            Random variable with finite support and piecewise-linear density
+            which approximates density estimate of input sample `x`.
+        """
         # Get options
         density_estimator = get_option("density_estimator")
         n_grid = get_option("n_grid")
