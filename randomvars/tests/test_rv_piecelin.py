@@ -320,6 +320,21 @@ class TestRVPiecelin:
             rv = rv_piecelin.from_sample(x)
         assert len(np.unique(rv.y)) == 1
 
+        # "density_estimator" which returns allowed classes
+        ## `rv_piecelin` object should be returned untouched
+        rv_estimation = rv_piecelin([0, 1], [1, 1])
+        rv_estimation.aaa = "Extra method"
+        with option_context({"density_estimator": lambda x: rv_estimation}):
+            rv = rv_piecelin.from_sample(np.asarray([0, 1, 2]))
+            assert "aaa" in dir(rv)
+
+        ## `rv_continuous` should be forwarded to `rv_piecelin.from_rv()`
+        rv_norm = distrs.norm()
+        with option_context({"density_estimator": lambda x: rv_norm}):
+            rv = rv_piecelin.from_sample(np.asarray([0, 1, 2]))
+            rv_ref = rv_piecelin.from_rv(rv_norm)
+            assert_equal_rv_piecelin(rv, rv_ref)
+
         # "n_grid"
         with option_context({"n_grid": 11}):
             rv = rv_piecelin.from_sample(x)

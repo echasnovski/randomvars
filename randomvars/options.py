@@ -13,18 +13,22 @@ _options = _default_options.copy()
 
 _options_list = """
 - density_estimator : callable, default scipy.stats.kde.gaussian_kde. Function
-which takes sample as input and returns callable object for density estimate
-(takes points as input and returns density values). **Notes**:
-    - Output density should be vectorized: allow numpy array as input and
-    return numpy array with the same length.
-    - There is worse performance if output density has discontinuity.
+  which takes sample as input and returns one of:
+    - Callable object for density estimate (takes points as input and returns
+      density values).
+    - Object of class `rv_piecelin` or `rv_frozen` (`rv_continuous` with all
+      hyperparameters defined).
+  **Notes**:
+    - Output density callable should be vectorized: allow numpy array as input
+      and return numpy array with the same length.
+    - There is worse performance if output density callable has discontinuity.
 - n_grid : int, default 1001. Number of points in initial xy-grids when
-creating object of rv_piecelin.
+  creating object of rv_piecelin.
 - tail_prob : float, default 1e-6. Probability value of distribution tail that
-might be cutoff in order to get finite support.
+  might be cutoff in order to get finite support.
 - integr_tol : float, default 1e-4. Integral tolerance for maximum tolerance
-downgridding. Used to ensure that difference of total integrals between input
-and downgridded xy-grids is less than `integr_tol`.
+  downgridding. Used to ensure that difference of total integrals between input
+  and downgridded xy-grids is less than `integr_tol`.
 """
 
 

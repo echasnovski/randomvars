@@ -3,7 +3,7 @@
 import warnings
 
 import numpy as np
-from scipy.stats.distributions import rv_continuous
+from scipy.stats.distributions import rv_continuous, rv_frozen
 from scipy.integrate import quad
 
 import randomvars._utils as utils
@@ -270,8 +270,8 @@ class rv_piecelin(rv_continuous):
         rv : Object with methods `cdf()` and `ppf()`
             Methods `cdf()` and `ppf()` should implement functions for
             cumulative distribution and quantile functions respectively.
-            Recommended to be an object of class `rv_continuous` with all
-            hyperparameters defined.
+            Recommended to be an object of class `rv_frozen` (`rv_continuous`
+            with all hyperparameters defined).
         supp : Tuple with two numbers or `None`, optional
             Forced support edges. Elements should be either finite numbers
             (returned untouched) or `None` (finite support edge is detected).
@@ -328,7 +328,11 @@ class rv_piecelin(rv_continuous):
 
         Piecewise-linear RV is created by the following algorithm:
         - **Estimate density** with density estimator (taken from package
-        option "density_estimator").
+          option "density_estimator") in the form `density =
+          density_estimator(x)`. If `density` is object of class `rv_piecelin`,
+          it is returned untouched. If it is object of `rv_frozen`
+          (`rv_continuous` with all hyperparameters defined), it is forwarded
+          to `rv_piecelin.from_rv()`.
         - **Estimate effective range of density**: interval inside which total
         integral of density is not less than `1 - integr_tol`, where
         `integr_tol` is taken from "integr_tol" package option. Specific
@@ -368,7 +372,7 @@ class rv_piecelin(rv_continuous):
             Random variable with finite support and piecewise-linear density
             which approximates density estimate of input sample `x`.
         """
-        # Check input
+        # Check and prepare input
         try:
             x = np.asarray(x, dtype=np.float64)
         except ValueError:
@@ -384,6 +388,12 @@ class rv_piecelin(rv_continuous):
 
         # Estimate density
         density = density_estimator(x)
+
+        # Make early return if `density` is random variable
+        if isinstance(density, rv_piecelin):
+            return density
+        if isinstance(density, rv_frozen):
+            return rv_piecelin.from_rv(density)
 
         # Estimate density range
         x_left, x_right = _estimate_density_range(density, x, integr_tol)
