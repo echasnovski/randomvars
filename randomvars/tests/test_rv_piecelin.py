@@ -232,6 +232,13 @@ class TestRVPiecelin:
         rv_unif_test = rv_piecelin(x=[0, 1], y=[1, 1])
         assert_almost_equal_rv_piecelin(rv_unif, rv_unif_test, decimal=12)
 
+        # Object of `rv_piecelin` class should be returned untouched
+        rv = rv_piecelin.from_rv(uniform)
+        rv.aaa = "Extra method"
+        rv2 = rv_piecelin.from_rv(rv)
+        assert_equal_rv_piecelin(rv, rv2)
+        assert "aaa" in dir(rv2)
+
         # Forced support edges
         rv_right = rv_piecelin.from_rv(uniform, supp=(0.5, None))
         rv_right_test = rv_piecelin([0.5, 1], [2, 2])

@@ -260,6 +260,9 @@ class rv_piecelin(rv_continuous):
           tolerance ensuring that difference of total integrals between input
           and downgridded xy-grids is less than `integr_tol` (package option).
 
+        **Note** that if `rv` is already an object of class `rv_piecelin`, it
+        is returned untouched.
+
         Relevant package options: `n_grid`, `tail_prob`, `integr_tol`. See
         documentation of `randomvars.options.get_option()` for more
         information. To temporarily set options use
@@ -284,6 +287,10 @@ class rv_piecelin(rv_continuous):
             Random variable with finite support and piecewise-linear density
             which approximates density of input `rv`.
         """
+        # Make early return
+        if isinstance(rv, rv_piecelin):
+            return rv
+
         # Check input
         rv_dir = dir(rv)
         if not all(method in rv_dir for method in ["cdf", "ppf"]):
