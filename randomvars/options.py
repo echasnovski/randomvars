@@ -5,6 +5,7 @@ __all__ = ["get_option", "set_option", "reset_option", "option_context", "Option
 
 _default_options = {
     "density_estimator": gaussian_kde,
+    "density_mincoverage": 0.9999,
     "n_grid": 1001,
     "tail_prob": 1e-6,
     "integr_tol": 1e-4,
@@ -19,9 +20,12 @@ _options_list = """
     - Object of class `rv_piecelin` or `rv_frozen` (`rv_continuous` with all
       hyperparameters defined).
   **Notes**:
+    - Theoretical integral of density over whole real line should be 1.
     - Output density callable should be vectorized: allow numpy array as input
       and return numpy array with the same length.
     - There is worse performance if output density callable has discontinuity.
+- density_mincoverage : float, default 0.9999. Minimum value of integral within
+  output of density range estimation.
 - n_grid : int, default 1001. Number of points in initial xy-grids when
   creating object of rv_piecelin.
 - tail_prob : float, default 1e-6. Probability value of distribution tail that

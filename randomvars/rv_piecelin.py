@@ -334,14 +334,13 @@ class rv_piecelin(rv_continuous):
           (`rv_continuous` with all hyperparameters defined), it is forwarded
           to `rv_piecelin.from_rv()`.
         - **Estimate effective range of density**: interval inside which total
-        integral of density is not less than `1 - integr_tol`, where
-        `integr_tol` is taken from "integr_tol" package option. Specific
-        algorithm how it is done is subject to change. General description of
-        the current one:
+          integral of density is not less than `density_mincoverage` (package
+          option). Specific algorithm how it is done is subject to change.
+          General description of the current one:
             - Make educated guess about initial range (usually with input
-            sample range).
+              sample range).
             - Iteratively extend range in both directions until density total
-            integral is above desired threshold.
+              integral is above desired threshold.
         - **Create x-grid**. It is computed as union of equidistant (fixed
           distance between consecutive points) and equiprobable (fixed
           probability between consecutive points based on sample quantiles)
@@ -355,10 +354,10 @@ class rv_piecelin(rv_continuous):
           tolerance ensuring that difference of total integrals between input
           and downgridded xy-grids is less than `integr_tol` (package option).
 
-        Relevant package options: `density_estimator`, `n_grid`, `integr_tol`.
-        See documentation of `randomvars.options.get_option()` for more
-        information. To temporarily set options use
-        `randomvars.options.option_context()` context manager.
+        Relevant package options: `density_estimator`, `density_mincoverage`,
+        `n_grid`, `integr_tol`. See documentation of
+        `randomvars.options.get_option()` for more information. To temporarily
+        set options use `randomvars.options.option_context()` context manager.
 
         Parameters
         ----------
@@ -383,6 +382,7 @@ class rv_piecelin(rv_continuous):
 
         # Get options
         density_estimator = get_option("density_estimator")
+        density_mincoverage = get_option("density_mincoverage")
         n_grid = get_option("n_grid")
         integr_tol = get_option("integr_tol")
 
@@ -396,7 +396,7 @@ class rv_piecelin(rv_continuous):
             return rv_piecelin.from_rv(density)
 
         # Estimate density range
-        x_left, x_right = _estimate_density_range(density, x, integr_tol)
+        x_left, x_right = _estimate_density_range(density, x, density_mincoverage)
 
         # Construct equidistant grid
         x_equi = np.linspace(x_left, x_right, n_grid)
@@ -544,43 +544,42 @@ def _detect_finite_supp(rv, supp=None, tail_prob=1e-6):
     return left, right
 
 
-def _estimate_density_range(density, sample, integr_tol):
+def _estimate_density_range(density, sample, density_mincoverage):
     """Estimate effective range of sample density estimate
 
-    Goal is to estimate range within which integral of density differs from 1
-    by not more than `itegr_tol`.
+    Goal is to estimate range within which integral of density is not less than
+    `density_mincoverage`.
 
     Iterative algorithm:
         - First iteration is to take density range as sample range. If it has
-        zero width, then return range with assumption of constant density
-        (forced to be 1 if actual value for some reason is zero) at sample
-        point.
-        - Other iterations: extend current range to reduce difference between
-        integrals. Current algorithm is as follows (subjuect to change):
-            - Compute "non-covered probability": one minus integral of density
-            inside current range.
+          zero width, then return range with assumption of constant density
+          (forced to be 1 if actual value for some reason is zero) at sample
+          point.
+        - Other iterations: extend current range to increase covered
+          probability. Current algorithm is as follows (subject to change):
+            - Compute "covered probability": integral of density inside current
+              range.
             - Compute values of density at range ends and branch:
                 - **If their sum is positive**:
                     - Split non-covered probability to left and right range
-                    ends proportionally with "weights" computed from density
-                    values at range ends. This illustrates approach "Extend
-                    more towards side with bigger density value (as it takes
-                    less effort to make bigger density coverage gain)".
+                      ends proportionally with "weights" computed from density
+                      values at range ends. This illustrates approach "Extend
+                      more towards side with bigger density value (as it takes
+                      less effort to make bigger density coverage gain)".
                     - Left and right additive increases in range are computed
-                    using assumption that density will remain constant (equal
-                    to value at nearest range end) outside of current range.
+                      using assumption that density will remain constant (equal
+                      to value at nearest range end) outside of current range.
                 - **If their sum is not positive** (but covered probability is
-                still significantly less than one), extend both ends equally by
-                the amount `0.5 * noncov_prob * range_width`. Here
-                `noncov_prob` - non-covered probability (one minus density
-                integral inside current range), `range_width` - width of
-                current range.
+                  still not enough), extend both ends equally by the amount
+                  `0.5 * noncov_prob * range_width`. Here `noncov_prob` -
+                  non-covered probability (one minus density integral inside
+                  current range), `range_width` - width of current range.
     """
     cur_range = _init_range(sample, density)
-    cur_noncov_prob = 1 - _quad_silent(density, cur_range[0], cur_range[1])
+    cur_cov_prob = _quad_silent(density, cur_range[0], cur_range[1])
 
-    while cur_noncov_prob >= integr_tol:
-        cur_range, cur_noncov_prob = _extend_range(cur_range, density, cur_noncov_prob)
+    while cur_cov_prob < density_mincoverage:
+        cur_range, cur_cov_prob = _extend_range(cur_range, density, cur_cov_prob)
 
     return cur_range
 
@@ -604,7 +603,8 @@ def _quad_silent(f, a, b):
         return quad(f, a, b, limit=100)[0]
 
 
-def _extend_range(x_range, density, noncov_prob):
+def _extend_range(x_range, density, cov_prob):
+    noncov_prob = 1 - cov_prob
     y_left, y_right = density(np.asarray(x_range))
     y_sum = y_left + y_right
 
@@ -617,20 +617,19 @@ def _extend_range(x_range, density, noncov_prob):
         delta_left = prob_left / y_left if y_left > 0 else 0
         delta_right = prob_right / y_right if y_right > 0 else 0
     else:
-        width = x_range[1] - x_range[0]
-        delta_left = 0.5 * noncov_prob * width
+        delta_left = 0.5 * noncov_prob * (x_range[1] - x_range[0])
         delta_right = delta_left
 
     res_range = (x_range[0] - delta_left, x_range[1] + delta_right)
 
-    # Update non-covered probability. Here not using direct approach of the
-    # form `1 - _quad_silent(density, x_range[0], x_range[1])` is crucial
-    # because it may lead to inaccurate results with wide range.
+    # Update covered probability. Here not using direct approach of the form
+    # `_quad_silent(density, x_range[0], x_range[1])` is crucial because it may
+    # lead to inaccurate results with wide range.
     cov_prob_left = _quad_silent(density, res_range[0], x_range[0])
     cov_prob_right = _quad_silent(density, x_range[1], res_range[1])
-    res_noncov_prob = noncov_prob - cov_prob_left - cov_prob_right
+    res_cov_prob = cov_prob + cov_prob_left + cov_prob_right
 
-    return res_range, res_noncov_prob
+    return res_range, res_cov_prob
 
 
 def _combine_grids(grid1, grid2, tol=1e-13):

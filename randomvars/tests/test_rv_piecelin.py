@@ -335,16 +335,24 @@ class TestRVPiecelin:
             rv_ref = rv_piecelin.from_rv(rv_norm)
             assert_equal_rv_piecelin(rv, rv_ref)
 
+        # "density_mincoverage"
+        with option_context({"density_mincoverage": 0}):
+            rv = rv_piecelin.from_sample(x)
+        ## With minimal density mincoverage output range should be equal to
+        ## sample range
+        assert_array_equal(rv.x[[0, -1]], [x.min(), x.max()])
+
         # "n_grid"
         with option_context({"n_grid": 11}):
             rv = rv_piecelin.from_sample(x)
         assert len(rv.x) <= 22
 
         # "integr_tol"
-        with option_context({"integr_tol": 1}):
+        with option_context({"integr_tol": 1e5}):
             rv = rv_piecelin.from_sample(x)
-        # With maximum tolerance density range should be equal to sample range
-        assert_array_equal(rv.x[[0, -1]], [x.min(), x.max()])
+        ## With very high integral tolerance downgridding should result into
+        ## grid with two elements
+        assert len(rv.x) == 2
 
     def test_from_sample_single_value(self):
         """How well `from_sample()` handles single unique value in sample
@@ -501,18 +509,18 @@ class TestFromSampleAccuracy:
 
     @pytest.mark.slow
     def test_density_range(self):
-        integr_tol = get_option("integr_tol")
         density_estimator = get_option("density_estimator")
+        density_mincoverage = get_option("density_mincoverage")
         rng = np.random.default_rng(101)
 
-        def density_noncoverage(distr):
+        def generate_density_coverage(distr):
             x = distr.rvs(size=100, random_state=rng)
             density = density_estimator(x)
             rv = rv_piecelin.from_sample(x)
-            return 1 - quad(density, rv.x[0], rv.x[-1])[0]
+            return quad(density, rv.x[0], rv.x[-1])[0]
 
         test_passed = {
-            distr_name: density_noncoverage(distr) < integr_tol
+            distr_name: generate_density_coverage(distr) >= density_mincoverage
             for distr_name, distr in DISTRIBUTIONS.items()
         }
 
