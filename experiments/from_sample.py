@@ -3,10 +3,10 @@ from scipy.stats.distributions import norm, beta
 from scipy.integrate import quad
 import matplotlib.pyplot as plt
 
-from randomvars import rv_piecelin
+from randomvars import rv_cont
 import randomvars.options as op
 
-# %% `from_sample()` from `rv_piecelin`
+# %% `from_sample()` from `rv_cont`
 def sklearn_density_estimator(*args, **kwargs):
     from sklearn.neighbors import KernelDensity
 
@@ -64,15 +64,15 @@ x = np.concatenate([norm().rvs(size=500), norm(loc=100).rvs(size=500)])
 # true_pdf = lambda x: 0.5 * beta1.pdf(x) + 0.5 * beta2.pdf(x)
 
 op.reset_option("density_estimator")
-rv_scipy = rv_piecelin.from_sample(x)
+rv_scipy = rv_cont.from_sample(x)
 describe_output(rv_scipy, x, "Scipy")
 
 with op.option_context({"density_estimator": sklearn_density_estimator()}):
-    rv_sklearn = rv_piecelin.from_sample(x)
+    rv_sklearn = rv_cont.from_sample(x)
     describe_output(rv_sklearn, x, "Sklearn")
 
 with op.option_context({"density_estimator": statsmodels_density_estimator()}):
-    rv_statsmodels = rv_piecelin.from_sample(x)
+    rv_statsmodels = rv_cont.from_sample(x)
     describe_output(rv_statsmodels, x, "Statsmodels")
 
 plt.plot(rv_scipy.x, rv_scipy.y, "-k")
@@ -127,7 +127,7 @@ def test_from_sample_accuracy(rng, low, high):
     x = DISTRIBUTIONS[distr_name].rvs(size=size, random_state=rng)
 
     time_start = time.time()
-    rv = rv_piecelin.from_sample(x)
+    rv = rv_cont.from_sample(x)
     time_end = time.time()
 
     density = op.get_option("density_estimator")(x)

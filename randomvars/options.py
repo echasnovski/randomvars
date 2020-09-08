@@ -17,7 +17,7 @@ _options_list = """
   which takes sample as input and returns one of:
     - Callable object for density estimate (takes points as input and returns
       density values).
-    - Object of class `rv_piecelin` or `rv_frozen` (`rv_continuous` with all
+    - Object of class `rv_cont` or `rv_frozen` (`rv_continuous` with all
       hyperparameters defined).
   **Notes**:
     - Theoretical integral of density over whole real line should be 1.
@@ -27,7 +27,7 @@ _options_list = """
 - density_mincoverage : float, default 0.9999. Minimum value of integral within
   output of density range estimation.
 - n_grid : int, default 1001. Number of points in initial xy-grids when
-  creating object of rv_piecelin.
+  creating object of rv_cont.
 - tail_prob : float, default 1e-6. Probability value of distribution tail that
   might be cutoff in order to get finite support.
 - integr_tol : float, default 1e-4. Integral tolerance for maximum tolerance
