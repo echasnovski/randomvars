@@ -5,10 +5,10 @@ import numpy as np
 import scipy.stats.distributions as distrs
 import matplotlib.pyplot as plt
 
-# This uses "development" version of `rv_cont`. instead of "installed in
+# This uses "development" version of `Cont`. instead of "installed in
 # current virtual environment" version.
 sys.path.insert(0, os.path.abspath("../randomvars"))
-from rv_cont import rv_cont
+from _cont import Cont
 
 from downgrid_maxtol import downgrid_maxtol
 
@@ -39,8 +39,8 @@ def mean_piecelin(self):
     return np.nansum(x_mass * prob)
 
 
-setattr(rv_cont, "plot", plot_pdf)
-setattr(rv_cont, "mean", mean_piecelin)
+setattr(Cont, "plot", plot_pdf)
+setattr(Cont, "mean", mean_piecelin)
 
 
 def max_finite(x):
@@ -64,7 +64,7 @@ def from_rv_equi(rv, supp=None, n_grid=1001, integr_tol=1e-4, *args, **kwargs):
 
     x, y = downgrid_maxtol(x, y, integr_tol / (right - left))
 
-    return rv_cont(x, y)
+    return Cont(x, y)
 
 
 def from_rv_double(
@@ -82,7 +82,7 @@ def from_rv_double(
 
     x, y = downgrid_maxtol(x, y, integr_tol / (x[-1] - x[0]), double_pass=double_pass)
 
-    return rv_cont(x, y)
+    return Cont(x, y)
 
 
 def combine_x(x1, x2, min_diff=1e-13):

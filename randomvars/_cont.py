@@ -11,7 +11,7 @@ from randomvars.downgrid_maxtol import downgrid_maxtol
 from randomvars.options import get_option
 
 
-class rv_cont(rv_continuous):
+class Cont(rv_continuous):
     """Random variable with piecewise-linear density"""
 
     def __init__(self, x, y, *args, **kwargs):
@@ -25,7 +25,7 @@ class rv_cont(rv_continuous):
         kwargs["a"] = self.a = self._x[0]
         kwargs["b"] = self.b = self._x[-1]
 
-        super(rv_cont, self).__init__(*args, **kwargs)
+        super(Cont, self).__init__(*args, **kwargs)
 
     @staticmethod
     def _impute_xy(x, y):
@@ -108,7 +108,7 @@ class rv_cont(rv_continuous):
 
         Examples
         --------
-        >>> rv = rv_cont([0, 1, 2], [0, 1, 0])
+        >>> rv = Cont([0, 1, 2], [0, 1, 0])
         >>> rv._coeffs_by_ind()
         (array([0., 2.]), array([ 1., -1.]))
         >>> rv._coeffs_by_ind(np.array([0, 1, 2, 3]))
@@ -158,7 +158,7 @@ class rv_cont(rv_continuous):
 
         Examples
         --------
-        >>> rv = rv_cont([0, 1, 2], [0, 1, 0])
+        >>> rv = Cont([0, 1, 2], [0, 1, 0])
         >>> x, y, p = rv._grid_by_ind(np.array([-1, 0, 1, 2, 3, 4]))
         >>> x
         array([nan, nan,  0.,  1.,  2., nan])
@@ -220,7 +220,7 @@ class rv_cont(rv_continuous):
 
         Examples
         --------
-        >>> rv_p = rv_cont([0, 1, 2], [0, 1, 0])
+        >>> rv_p = Cont([0, 1, 2], [0, 1, 0])
         >>> x = np.array([-1, 0, 0.5, 1, 1.5, 2, 2.5])
         >>> rv_p.pdf_coeffs(x)
         (array([0., 0., 0., 2., 2., 2., 0.]), array([ 0.,  1.,  1., -1., -1., -1.,  0.]))
@@ -260,7 +260,7 @@ class rv_cont(rv_continuous):
           tolerance ensuring that difference of total integrals between input
           and downgridded xy-grids is less than `integr_tol` (package option).
 
-        **Note** that if `rv` is already an object of class `rv_cont`, it is
+        **Note** that if `rv` is already an object of class `Cont`, it is
         returned untouched.
 
         Relevant package options: `n_grid`, `tail_prob`, `integr_tol`. See
@@ -283,12 +283,12 @@ class rv_cont(rv_continuous):
 
         Returns
         -------
-        rv_out : rv_cont
+        rv_out : Cont
             Random variable with finite support and piecewise-linear density
             which approximates density of input `rv`.
         """
         # Make early return
-        if isinstance(rv, rv_cont):
+        if isinstance(rv, Cont):
             return rv
 
         # Check input
@@ -336,10 +336,10 @@ class rv_cont(rv_continuous):
         Piecewise-linear RV is created by the following algorithm:
         - **Estimate density** with density estimator (taken from package
           option "density_estimator") in the form `density =
-          density_estimator(x)`. If `density` is object of class `rv_cont`, it
+          density_estimator(x)`. If `density` is object of class `Cont`, it
           is returned untouched. If it is object of `rv_frozen`
           (`rv_continuous` with all hyperparameters defined), it is forwarded
-          to `rv_cont.from_rv()`.
+          to `Cont.from_rv()`.
         - **Estimate effective range of density**: interval inside which total
           integral of density is not less than `density_mincoverage` (package
           option). Specific algorithm how it is done is subject to change.
@@ -374,7 +374,7 @@ class rv_cont(rv_continuous):
 
         Returns
         -------
-        rv_out : rv_cont
+        rv_out : Cont
             Random variable with finite support and piecewise-linear density
             which approximates density estimate of input sample `x`.
         """
@@ -397,10 +397,10 @@ class rv_cont(rv_continuous):
         density = density_estimator(x)
 
         # Make early return if `density` is random variable
-        if isinstance(density, rv_cont):
+        if isinstance(density, Cont):
             return density
         if isinstance(density, rv_frozen):
-            return rv_cont.from_rv(density)
+            return Cont.from_rv(density)
 
         # Estimate density range
         x_left, x_right = _estimate_density_range(density, x, density_mincoverage)

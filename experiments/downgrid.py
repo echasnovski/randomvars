@@ -4,10 +4,10 @@ from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 import sys
 
-# This uses "development" version of `rv_cont`. instead of "installed in
+# This uses "development" version of `Cont`. instead of "installed in
 # current virtual environment" version.
 sys.path.insert(0, "../randomvars")
-from rv_cont import rv_cont
+from _cont import Cont
 
 from downgrid_maxtol import downgrid_maxtol
 
@@ -192,7 +192,7 @@ def abs_curvature(x, y):
 
 
 def piecelin_quantiles(x, y, probs):
-    rv = rv_cont(x, y)
+    rv = Cont(x, y)
     return rv.ppf(probs)
 
 
@@ -221,8 +221,8 @@ def dist_grid(grid_base, grid_new, method=None):
 
 
 def dist_grid_cdf(grid_base, grid_new, method=None):
-    base_rv = rv_cont(*grid_base)
-    new_rv = rv_cont(*grid_new)
+    base_rv = Cont(*grid_base)
+    new_rv = Cont(*grid_new)
 
     diff = new_rv.cdf(grid_base[0]) - base_rv.cdf(grid_base[0])
     return diff_summary(diff)
@@ -259,7 +259,7 @@ def dist_pdf_fun(pdf, grid, method=None, n_inner_points=10):
 
 def dist_cdf_fun(cdf, grid, method=None, n_inner_points=10):
     x_test = augment_x_grid(grid[0])
-    rv_grid = rv_cont(*grid)
+    rv_grid = Cont(*grid)
 
     diff = cdf(x_test) - rv_grid.cdf(x_test)
 
