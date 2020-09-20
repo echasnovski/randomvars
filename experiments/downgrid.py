@@ -7,7 +7,7 @@ import sys
 # This uses "development" version of `Cont`. instead of "installed in
 # current virtual environment" version.
 sys.path.insert(0, "../randomvars")
-from _cont import Cont
+from _continuous import Cont
 
 from downgrid_maxtol import downgrid_maxtol
 

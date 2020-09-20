@@ -1,4 +1,4 @@
-""" Code for random variable with piecewise-linear density
+""" Code for continuous random variable
 """
 import warnings
 

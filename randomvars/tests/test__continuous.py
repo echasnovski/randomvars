@@ -1,5 +1,5 @@
 # pylint: disable=missing-function-docstring
-"""Tests for '_cont.py' file
+"""Tests for '_continuous.py' file
 """
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
@@ -7,7 +7,7 @@ import scipy.stats.distributions as distrs
 from scipy.integrate import quad
 import pytest
 
-from randomvars._cont import Cont
+from randomvars._continuous import Cont
 from randomvars.options import get_option, option_context
 
 
