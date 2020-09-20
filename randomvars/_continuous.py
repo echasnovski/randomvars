@@ -4,7 +4,6 @@ import warnings
 
 import numpy as np
 from scipy.stats.distributions import rv_continuous, rv_frozen
-from scipy.integrate import quad
 
 import randomvars._utils as utils
 from randomvars.downgrid_maxtol import downgrid_maxtol
@@ -29,34 +28,10 @@ class Cont(rv_continuous):
 
     @staticmethod
     def _impute_xy(x, y):
-        try:
-            x = np.asarray_chkfinite(x, dtype=np.float64)
-        except:
-            raise ValueError(
-                "`x` is not convertible to numeric numpy array with finite values."
-            )
-        if len(x.shape) > 1:
-            raise ValueError("`x` is not a 1d array.")
+        x = utils._as_1d_finite_float(x, "x")
+        y = utils._as_1d_finite_float(y, "y")
 
-        try:
-            y = np.asarray_chkfinite(y, dtype=np.float64)
-        except:
-            raise ValueError(
-                "`y` is not convertible to numeric numpy array with finite values."
-            )
-        if len(y.shape) > 1:
-            raise ValueError("`y` is not a 1d array.")
-
-        if len(x) != len(y):
-            raise ValueError("Lengths of `x` and `y` do not match.")
-
-        if not np.all(np.diff(x) > 0):
-            warnings.warn(
-                "`x` is not sorted. `x` and `y` are rearranged so as `x` is sorted."
-            )
-            x_argsort = np.argsort(x)
-            x = x[x_argsort]
-            y = y[x_argsort]
+        x, y = utils._sort_parallel(x, y, warn=True)
 
         if np.any(y < 0):
             raise ValueError("`y` has negative values.")
@@ -583,7 +558,7 @@ def _estimate_density_range(density, sample, density_mincoverage):
                   current range), `range_width` - width of current range.
     """
     cur_range = _init_range(sample, density)
-    cur_cov_prob = _quad_silent(density, cur_range[0], cur_range[1])
+    cur_cov_prob = utils._quad_silent(density, cur_range[0], cur_range[1])
 
     while cur_cov_prob < density_mincoverage:
         cur_range, cur_cov_prob = _extend_range(cur_range, density, cur_cov_prob)
@@ -601,13 +576,6 @@ def _init_range(sample, density):
         x_left, x_right = x - half_width, x + half_width
 
     return x_left, x_right
-
-
-def _quad_silent(f, a, b):
-    # Ignore warnings usually resulting from maximum number of subdivisions
-    with warnings.catch_warnings():
-        warnings.filterwarnings("ignore")
-        return quad(f, a, b, limit=100)[0]
 
 
 def _extend_range(x_range, density, cov_prob):
@@ -630,10 +598,10 @@ def _extend_range(x_range, density, cov_prob):
     res_range = (x_range[0] - delta_left, x_range[1] + delta_right)
 
     # Update covered probability. Here not using direct approach of the form
-    # `_quad_silent(density, x_range[0], x_range[1])` is crucial because it may
-    # lead to inaccurate results with wide range.
-    cov_prob_left = _quad_silent(density, res_range[0], x_range[0])
-    cov_prob_right = _quad_silent(density, x_range[1], res_range[1])
+    # `utils._quad_silent(density, x_range[0], x_range[1])` is crucial because
+    # it may lead to inaccurate results with wide range.
+    cov_prob_left = utils._quad_silent(density, res_range[0], x_range[0])
+    cov_prob_right = utils._quad_silent(density, x_range[1], res_range[1])
     res_cov_prob = cov_prob + cov_prob_left + cov_prob_right
 
     return res_range, res_cov_prob

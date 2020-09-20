@@ -1,4 +1,40 @@
+import warnings
+
 import numpy as np
+from scipy.integrate import quad
+
+
+def _as_1d_finite_float(x, x_name):
+    """Convert input to numeric numpy array and check for 1 dimension"""
+    try:
+        res = np.asarray_chkfinite(x, dtype=np.float64)
+    except:
+        raise ValueError(
+            f"`{x_name}` is not convertible to numeric numpy array with finite values."
+        )
+
+    if len(res.shape) > 1:
+        raise ValueError(f"`{x_name}` is not a 1d array.")
+
+    return res
+
+
+def _sort_parallel(x, y, y_name="y", warn=True):
+    if len(x) != len(y):
+        raise ValueError(f"Lengths of `x` and `{y_name}` do not match.")
+
+    if not np.all(np.diff(x) >= 0):
+        if warn:
+            warnings.warn(
+                "`x` is not sorted. "
+                f"`x` and `{y_name}` are rearranged so as `x` is sorted."
+            )
+
+        x_argsort = np.argsort(x)
+        x = x[x_argsort]
+        y = y[x_argsort]
+
+    return x, y
 
 
 def _searchsorted_wrap(a, v, side="left", edge_inside=True):
@@ -46,3 +82,12 @@ def _trapez_integral_cum(x, y):
     """
     res = np.cumsum(0.5 * np.diff(x) * (y[:-1] + y[1:]))
     return np.concatenate([[0], res])
+
+
+def _quad_silent(f, a, b):
+    """`quad()` with increased accuracy and direct numerical output"""
+    # Ignore warnings usually resulting from reaching maximum number of
+    # subdivisions without enough accuracy or bad integrand behavior
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore")
+        return quad(f, a, b, limit=100)[0]

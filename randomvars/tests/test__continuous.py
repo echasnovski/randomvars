@@ -1,6 +1,5 @@
 # pylint: disable=missing-function-docstring
-"""Tests for '_continuous.py' file
-"""
+"""Tests for '_continuous.py' file"""
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 import scipy.stats.distributions as distrs
@@ -148,7 +147,7 @@ class TestRVPiecelin:
         with pytest.raises(ValueError, match="[Ll]engths.*match"):
             Cont([0, 1], [1, 1, 1])
 
-        with pytest.warns(UserWarning, match="`x`.*not sorted"):
+        with pytest.warns(UserWarning, match="`x`.*not sorted.*`x` and `y`"):
             rv = Cont([1, 0], [0, 2])
             rv_ref = Cont([0, 1], [2, 0])
             assert_equal_cont(rv, rv_ref)
