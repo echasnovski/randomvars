@@ -37,6 +37,13 @@ def _sort_parallel(x, y, y_name="y", warn=True):
     return x, y
 
 
+def _assert_positive(x, x_name):
+    if np.any(x < 0):
+        raise ValueError(f"`{x_name}` has negative values.")
+    if not np.any(x > 0):
+        raise ValueError(f"`{x_name}` has no positive values.")
+
+
 def _searchsorted_wrap(a, v, side="left", edge_inside=True):
     """Wrapper for `np.searchsorted()` which respects `np.nan`
 

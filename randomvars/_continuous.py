@@ -33,10 +33,7 @@ class Cont(rv_continuous):
 
         x, y = utils._sort_parallel(x, y, warn=True)
 
-        if np.any(y < 0):
-            raise ValueError("`y` has negative values.")
-        if not np.any(y > 0):
-            raise ValueError("`y` has no positive values.")
+        utils._assert_positive(y, "y")
 
         y = y / utils._trapez_integral(x, y)
 

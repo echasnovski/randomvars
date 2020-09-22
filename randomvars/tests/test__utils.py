@@ -5,6 +5,7 @@ import pytest
 from randomvars._utils import (
     _as_1d_finite_float,
     _sort_parallel,
+    _assert_positive,
     _searchsorted_wrap,
     _trapez_integral,
     _trapez_integral_cum,
@@ -54,6 +55,13 @@ def test__sort_parallel():
         assert_array_equal(x_out, x[[1, 0]])
         assert_array_equal(y_out, y[[1, 0]])
     assert len(record) == 0
+
+
+def test__assert_positive():
+    with pytest.raises(ValueError, match="`tmp_name`.*negative"):
+        _assert_positive(np.array([-1, 0, 1]), x_name="tmp_name")
+    with pytest.raises(ValueError, match="`tmp_name`.*no positive"):
+        _assert_positive(np.array([0, 0, 0]), x_name="tmp_name")
 
 
 def test__searchsorted_wrap():
