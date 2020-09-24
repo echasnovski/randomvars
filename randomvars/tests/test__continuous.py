@@ -57,16 +57,16 @@ def assert_equal_seq(first, second, *args, **kwargs):
         assert_array_equal(el1, el2, *args, **kwargs)
 
 
-def assert_equal_cont(rv_p_1, rv_p_2):
-    grid_1 = rv_p_1.x, rv_p_1.y, rv_p_1.p
-    grid_2 = rv_p_2.x, rv_p_2.y, rv_p_2.p
+def assert_equal_cont(rv_1, rv_2):
+    grid_1 = rv_1.x, rv_1.y, rv_1.p
+    grid_2 = rv_2.x, rv_2.y, rv_2.p
     assert_equal_seq(grid_1, grid_2)
 
 
-def assert_almost_equal_cont(rv_p_1, rv_p_2, decimal=10):
-    assert_array_almost_equal(rv_p_1.x, rv_p_2.x, decimal=decimal)
-    assert_array_almost_equal(rv_p_1.y, rv_p_2.y, decimal=decimal)
-    assert_array_almost_equal(rv_p_1.p, rv_p_2.p, decimal=decimal)
+def assert_almost_equal_cont(rv_1, rv_2, decimal=10):
+    assert_array_almost_equal(rv_1.x, rv_2.x, decimal=decimal)
+    assert_array_almost_equal(rv_1.y, rv_2.y, decimal=decimal)
+    assert_array_almost_equal(rv_1.p, rv_2.p, decimal=decimal)
 
 
 def from_sample_max_error(x):
@@ -120,7 +120,7 @@ def make_circ_density(intervals):
     return density
 
 
-class TestRVPiecelin:
+class TestCont:
     """Regression tests for `Cont` class"""
 
     def test_init_errors(self):
@@ -407,6 +407,10 @@ class TestRVPiecelin:
             rv_dirac.pdf(x), np.array([0, 0.5e8, 1e8, 0.5e8, 0]), decimal=-1
         )
 
+        # Broadcasting
+        x = np.array([[-1, 0.5], [2, 4]])
+        assert_array_equal(rv.pdf(x), np.array([[0.0, 0.5], [0.25, 0.0]]))
+
     def test_cdf(self):
         """Tests for `.cdf()` method, which logic is implemented in `._cdf()`"""
         rv_1 = Cont([0, 1, 2], [0, 1, 0])
@@ -425,6 +429,10 @@ class TestRVPiecelin:
         assert_array_almost_equal(
             rv_dirac.cdf(x), np.array([0, 0.125, 0.5, 0.875, 1]), decimal=7
         )
+
+        # Broadcasting
+        x = np.array([[-1, 0.5], [2, 4]])
+        assert_array_equal(rv_1.cdf(x), np.array([[0.0, 0.125], [1.0, 1.0]]))
 
     def test_ppf(self):
         """Tests for `.ppf()` method, which logic is implemented in `._cdf()`"""
@@ -449,6 +457,27 @@ class TestRVPiecelin:
             np.array([10 - 1e-8, 10 - 0.5e-8, 10, 10 + 0.5e-8, 10 + 1e-8]),
             decimal=9,
         )
+
+        # Broadcasting
+        q = np.array([[0, 0.5], [0.0, 1.0]])
+        assert_array_equal(rv_1.ppf(q), np.array([[0.0, 1.0], [0.0, 2.0]]))
+
+    def test_rvs(self):
+        """Tests for `.rvs()`"""
+        rv_1 = Cont([0, 1, 2], [0, 1, 0])
+
+        # Regular checks
+        smpl = rv_1.rvs(size=10)
+        assert np.all((rv_1.a <= smpl) & (smpl <= rv_1.b))
+
+        # Broadcasting
+        smpl_array = rv_1.rvs(size=(10, 2))
+        assert smpl_array.shape == (10, 2)
+
+        # Usage of `random_state`
+        smpl_1 = rv_1.rvs(size=100, random_state=np.random.RandomState(101))
+        smpl_2 = rv_1.rvs(size=100, random_state=np.random.RandomState(101))
+        assert_array_equal(smpl_1, smpl_2)
 
 
 class TestFromRVAccuracy:
