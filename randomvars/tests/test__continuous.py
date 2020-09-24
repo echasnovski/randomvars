@@ -147,6 +147,9 @@ class TestCont:
         with pytest.raises(ValueError, match="[Ll]engths.*match"):
             Cont([0, 1], [1, 1, 1])
 
+        with pytest.raises(ValueError, match="two"):
+            Cont([1], [1])
+
         with pytest.warns(UserWarning, match="`x`.*not sorted.*`x` and `y`"):
             rv = Cont([1, 0], [0, 2])
             rv_ref = Cont([0, 1], [2, 0])

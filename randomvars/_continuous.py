@@ -33,6 +33,9 @@ class Cont(rv_continuous):
 
         x, y = utils._sort_parallel(x, y, warn=True)
 
+        if (len(x) < 2) or (len(y) < 2):
+            raise ValueError("Both `x` and `y` should have at least two elements.")
+
         utils._assert_positive(y, "y")
 
         y = y / utils._trapez_integral(x, y)
