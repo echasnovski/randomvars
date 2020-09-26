@@ -7,6 +7,7 @@ from randomvars._utils import (
     _sort_parallel,
     _assert_positive,
     _searchsorted_wrap,
+    _find_nearest_ind,
     _trapez_integral,
     _trapez_integral_cum,
     _quad_silent,
@@ -90,6 +91,51 @@ def test__searchsorted_wrap():
 
     # Index for `np.nan` input is `-1`
     assert _searchsorted_wrap([0, 1], [np.nan]) == -1
+
+
+def test__find_nearest_ind():
+    x = np.array([-10, -1.01, -1, -0.99, -0.5, -0.01, 0, 0.01, 0.5, 0.99, 1, 1.01, 10])
+    v = np.array([-1, 0, 1])
+
+    # Input errors
+    with pytest.raises(ValueError, match="one"):
+        _find_nearest_ind(x, v.reshape((1, -1)))
+
+    with pytest.raises(ValueError, match="`side`.*one of"):
+        _find_nearest_ind(x, v, side="aaa")
+
+    # General usage
+    out = _find_nearest_ind(x, v)
+    out_ref = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2])
+    assert_array_equal(out, out_ref)
+
+    out = _find_nearest_ind(x, v, side="right")
+    out_ref = np.array([0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2])
+    assert_array_equal(out, out_ref)
+
+    # Unsorted reference array
+    ord = np.array([1, 2, 0])
+    ord_inv = np.array([2, 0, 1])
+    v_unsorted = v[ord]
+
+    out = _find_nearest_ind(x, v_unsorted)
+    out_ref = ord_inv[_find_nearest_ind(x, v)]
+    assert_array_equal(out, out_ref)
+
+    # Broadcasting
+    x_arr = np.array([[-2, 5, 0.5], [0.1, 0.7, 1.5]])
+    out = _find_nearest_ind(x_arr, v)
+    assert out.shape == x_arr.shape
+
+    # `v` as scalar value
+    out = _find_nearest_ind(x, 1)
+    out_ref = np.repeat(0, len(x))
+    assert_array_equal(out, out_ref)
+
+    # `v` with single element
+    out = _find_nearest_ind(x, [1])
+    out_ref = np.repeat(0, len(x))
+    assert_array_equal(out, out_ref)
 
 
 def test__trapez_integral():

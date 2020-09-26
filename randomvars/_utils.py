@@ -76,6 +76,60 @@ def _searchsorted_wrap(a, v, side="left", edge_inside=True):
     return res
 
 
+def _find_nearest_ind(x, v, side="left"):
+    """Find index of nearest reference point
+
+    For every element in `x` (arbitrary shape) find index of the nearest
+    element of `v` (1d array, possibly not sorted). If there are two nearest
+    reference points, choose the one from `side` ("left" or "right").
+
+    **Note** that `nan` values are handled the same way as in `numpy.searchsorted()`.
+
+    Parameters
+    ----------
+    x : array_like
+        Elements for which closest ones should be found.
+    v : array_like with one dimension or numerical scalar
+        Array of reference points.
+    side : string
+        One of "left" or "right".
+
+    Returns
+    -------
+    inds : array_like with shape equal to `x`'s shape
+        Indices of `v`s nearest elements.
+    """
+    v = np.atleast_1d(v)
+    if len(v.shape) != 1:
+        raise ValueError("`v` should have exactly one dimension.")
+    if not side in ["left", "right"]:
+        raise ValueError('`side` should be one of "left" or "right".')
+
+    if not np.all(np.diff(v) >= 0):
+        v_ord = np.argsort(v)
+    else:
+        v_ord = np.arange(len(v))
+
+    v_sorted = v[v_ord]
+    last_v_ind = len(v) - 1
+
+    inds = np.clip(np.searchsorted(v_sorted, x), 0, last_v_ind)
+    inds_left = np.clip(inds - 1, 0, last_v_ind)
+
+    # Modify indices to become left if it is closer than right
+    ## Check for not equal left and right indices to avoid decreasing in
+    ## that case, as it will lead to incorrect result
+    left_isnt_right = inds_left != inds
+    left_dist = x - v_sorted[inds_left]
+    right_dist = v_sorted[inds] - x
+    if side == "left":
+        inds -= left_isnt_right & (left_dist <= right_dist)
+    else:
+        inds -= left_isnt_right & (left_dist < right_dist)
+
+    return v_ord[inds]
+
+
 def _trapez_integral(x, y):
     """Compute integral with trapezoidal formula."""
     return np.sum(0.5 * np.diff(x) * (y[:-1] + y[1:]))
