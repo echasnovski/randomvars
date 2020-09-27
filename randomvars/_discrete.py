@@ -74,3 +74,13 @@ class Disc(rv_discrete):
     # Override default `rv_discrete`'s `_pmf` to `pmf` transition to properly
     # work with "tolerance matching"
     pmf = _pmf
+
+    def _cdf(self, x):
+        inds = np.searchsorted(self.x, x, side="right")
+        res = np.ones_like(x, dtype=np.float64)
+        res = np.where(inds == 0, 0.0, self.p[inds - 1])
+
+        return utils._copy_nan(fr=x, to=res)
+
+    # Override default `rv_discrete`'s `_cdf` to `cdf` transition for speed reasons
+    cdf = _cdf

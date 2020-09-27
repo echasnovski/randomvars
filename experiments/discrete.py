@@ -26,6 +26,7 @@ rv_2 = rv_discrete(values=([0.5, 1, 3], [0.1, 0.2, 0.7]))
 rv_2.pmf(0.5)
 
 
+# %% Probability mass function
 def pmf_scipy(vals, x_ref, prob):
     return np.select(
         [vals == k for k in x_ref],
@@ -56,3 +57,32 @@ vals = np.concatenate([x, x + 1e-7])
 
 # %timeit pmf_scipy(vals, x_ref, prob)
 # %timeit pmf_my(vals, x_ref, prob)
+
+
+# %% Cdf function
+import randomvars._utils as utils
+
+
+def cdf_my(rv, x):
+    inds = np.searchsorted(rv.x, x, side="right")
+    res = np.ones_like(x, dtype=np.float64)
+    res = np.where(inds == 0, 0.0, rv.p[inds - 1])
+
+    return utils._copy_nan(fr=x, to=res)
+
+
+def cdf_scipy(rv, x):
+    xx, xxk = np.broadcast_arrays(x[:, None], rv.x)
+    indx = np.argmax(xxk > xx, axis=-1) - 1
+    return rv.p[indx]
+
+
+n = 1000
+x = np.sort(np.random.rand(n))
+prob = np.random.rand(n)
+prob = prob / np.sum(prob)
+rv = Disc(x=x, prob=prob)
+vals = np.concatenate([x, x + 1e-7, x - 1e-7])
+
+# %timeit cdf_scipy(rv, x)
+# %timeit cdf_my(rv, x)

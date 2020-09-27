@@ -1,7 +1,7 @@
 # pylint: disable=missing-function-docstring
 """Tests for '_discrete.py' file"""
 import numpy as np
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_equal, assert_array_almost_equal
 import pytest
 
 from randomvars._discrete import Disc
@@ -112,3 +112,26 @@ class TestDisc:
         # Broadcasting
         x = np.array([[-1, 0.5], [2, 4]])
         assert_array_equal(rv.pmf(x), np.array([[0.0, 0.1], [0.0, 0.0]]))
+
+    def test_cdf(self):
+        """Tests for `.cdf()` method, which logic is implemented in `._cdf()`"""
+        rv = Disc([0.5, 1, 3], [0.1, 0.2, 0.7])
+        h = 1e-12
+
+        # Regular checks
+        x = np.array([-10, 0.5 - h, 0.5, 0.5 + h, 1 - h, 1, 1 + h, 3 - h, 3, 3 + h, 10])
+        assert_array_almost_equal(
+            rv.cdf(x),
+            np.array([0, 0, 0.1, 0.1, 0.1, 0.3, 0.3, 0.3, 1, 1, 1]),
+            decimal=12,
+        )
+
+        # Bad input
+        x = np.array([-np.inf, np.nan, np.inf])
+        assert_array_equal(rv.cdf(x), np.array([0, np.nan, 1]))
+
+        # Broadcasting
+        x = np.array([[-1, 0.5], [2, 4]])
+        assert_array_almost_equal(
+            rv.cdf(x), np.array([[0.0, 0.1], [0.3, 1.0]]), decimal=12
+        )
