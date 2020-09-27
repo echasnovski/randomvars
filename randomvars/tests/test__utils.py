@@ -8,6 +8,7 @@ from randomvars._utils import (
     _assert_positive,
     _searchsorted_wrap,
     _find_nearest_ind,
+    _copy_nan,
     _trapez_integral,
     _trapez_integral_cum,
     _quad_silent,
@@ -136,6 +137,16 @@ def test__find_nearest_ind():
     out = _find_nearest_ind(x, [1])
     out_ref = np.repeat(0, len(x))
     assert_array_equal(out, out_ref)
+
+
+def test__copy_nan():
+    x = np.array([[np.nan, 1, 0], [np.inf, np.nan, np.nan]])
+    y = np.zeros_like(x)
+    out = _copy_nan(fr=x, to=y)
+    out_ref = np.array([[np.nan, 0, 0], [0, np.nan, np.nan]])
+    assert_array_equal(out, out_ref)
+    # Check that `_copy_nan` returned copy of `from_arr` array
+    assert_array_equal(y, np.zeros_like(x))
 
 
 def test__trapez_integral():

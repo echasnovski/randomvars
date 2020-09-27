@@ -4,6 +4,7 @@ import numpy as np
 from scipy.integrate import quad
 
 
+# %% Array manipulations
 def _as_1d_finite_float(x, x_name):
     """Convert input to numeric numpy array and check for 1 dimension"""
     try:
@@ -130,6 +131,11 @@ def _find_nearest_ind(x, v, side="left"):
     return v_ord[inds]
 
 
+def _copy_nan(fr, to):
+    return np.where(np.isnan(fr), fr, to)
+
+
+# %% Math functions
 def _trapez_integral(x, y):
     """Compute integral with trapezoidal formula."""
     return np.sum(0.5 * np.diff(x) * (y[:-1] + y[1:]))
