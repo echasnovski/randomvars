@@ -100,3 +100,14 @@ class Disc(rv_discrete):
     # of `ppf(0)` (which should return minimum element of distribution `x_min` and not
     # `x_min - 1`)
     ppf = _ppf
+
+    def _rvs(self, size=None, random_state=None):
+        if random_state is None:
+            U = np.random.uniform(size=size)
+        else:
+            U = random_state.uniform(size=size)
+        return self._ppf(U)
+
+    # Override default `rv_discrete`'s `_rvs` to `rvs` transition to make it possible to
+    # work with non-integers. `scipy`'s version produces only integer output.
+    rvs = _rvs
