@@ -9,6 +9,7 @@ _default_options = {
     "n_grid": 1001,
     "tail_prob": 1e-6,
     "integr_tol": 1e-4,
+    "tolerance": (0.0, 1e-8),
 }
 _options = _default_options.copy()
 
@@ -33,6 +34,10 @@ _options_list = """
 - integr_tol : float, default 1e-4. Integral tolerance for maximum tolerance
   downgridding. Used to ensure that difference of total integrals between input
   and downgridded xy-grids is less than `integr_tol`.
+- tolerance : tuple with two elements, default (0.0, 1e-8). Tuple with
+  relative and absolute tolerance to be used as `rtol` and `atol` arguments in
+  `numpy.isclose()` and similar functions. **Note** that default values are
+  different than in `numpy.isclose()`.
 """
 
 

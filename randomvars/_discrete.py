@@ -52,3 +52,25 @@ class Disc(rv_discrete):
     def p(self):
         """Return cumulative probabilities of discrete distribution"""
         return self._p
+
+    def _pmf(self, x):
+        """Probability mass function
+
+        **Note** that probability is taken from object probabilities if input
+        value is "close enough" to the corresponding value of object's `x`.
+        Function `numpy.isclose()` is used with relative and absolute tolerance
+        values taken from `tolerance` package option. See documentation of
+        `randomvars.options.get_option()` for more information.
+        """
+        rtol, atol = op.get_option("tolerance")
+
+        inds = utils._find_nearest_ind(x, self.x)
+
+        x_is_matched = np.isclose(x, self.x[inds], rtol=rtol, atol=atol)
+
+        res = np.where(x_is_matched, self.prob[inds], 0)
+        return utils._copy_nan(fr=x, to=res)
+
+    # Override default `rv_discrete`'s `_pmf` to `pmf` transition to properly
+    # work with "tolerance matching"
+    pmf = _pmf

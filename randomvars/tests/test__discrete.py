@@ -85,3 +85,30 @@ class TestDisc:
         assert_array_equal(rv.x, x)
         assert_array_equal(rv.prob, prob)
         assert_array_equal(rv.p, np.cumsum(prob))
+
+    def test_pmf(self):
+        """Tests for `.pmf()` method, which logic is implemented in `._pmf()`"""
+        rv = Disc([0.5, 1, 3], [0.1, 0.2, 0.7])
+        rtol, atol = op.get_option("tolerance")
+
+        # Regular checks
+        x = np.array([0, 0.5, 1, 3, (1 + rtol) * 3 + 0.5 * atol])
+        assert_array_equal(rv.pmf(x), np.array([0, 0.1, 0.2, 0.7, 0.7]))
+
+        # Bad input
+        x = np.array([-np.inf, np.nan, np.inf])
+        assert_array_equal(rv.pmf(x), np.array([0, np.nan, 0]))
+
+        # Using tolerance option
+        with op.option_context({"tolerance": (0, 1e-10)}):
+            assert_array_equal(rv.pmf([1 + 1.01e-10, 1 + 0.9e-10]), [0.0, 0.2])
+
+        with op.option_context({"tolerance": (1e-2, 1e-10)}):
+            assert_array_equal(
+                rv.pmf([(1 + 1e-2) * 1 + 1.01e-10, (1 + 1e-2) * 1 + 0.99e-10]),
+                [0.0, 0.2],
+            )
+
+        # Broadcasting
+        x = np.array([[-1, 0.5], [2, 4]])
+        assert_array_equal(rv.pmf(x), np.array([[0.0, 0.1], [0.0, 0.0]]))
