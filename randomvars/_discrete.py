@@ -84,3 +84,19 @@ class Disc(rv_discrete):
 
     # Override default `rv_discrete`'s `_cdf` to `cdf` transition for speed reasons
     cdf = _cdf
+
+    def _ppf(self, q):
+        q_inds = np.searchsorted(self.p, q, side="left")
+        # This is needed to avoid `IndexError` in later `np.where()` call
+        q_inds_clipped = np.minimum(q_inds, len(self.p) - 1)
+
+        res = np.empty_like(q, dtype=np.float64)
+        res = np.where(q_inds != len(self.p), self.x[q_inds_clipped], res)
+        res[(q < 0) | (q > 1)] = np.nan
+
+        return utils._copy_nan(fr=q, to=res)
+
+    # Override default `rv_discrete`'s `_ppf` to `ppf` transition to change behavior
+    # of `ppf(0)` (which should return minimum element of distribution `x_min` and not
+    # `x_min - 1`)
+    ppf = _ppf

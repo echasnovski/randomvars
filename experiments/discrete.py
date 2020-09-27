@@ -86,3 +86,19 @@ vals = np.concatenate([x, x + 1e-7, x - 1e-7])
 
 # %timeit cdf_scipy(rv, x)
 # %timeit cdf_my(rv, x)
+
+
+# %% Quantile function
+x = np.array([0.5, 1, 3])
+prob = np.array([0.1, 0.2, 0.7])
+
+h = 1e-12
+q_vec = np.array([0, 0.1 - h, 0.1, 0.1 + h, 0.3 - h, 0.3, 0.3 + h, 1 - h, 1])
+
+rv_scipy = rv_discrete(values=(x, prob))
+rv_scipy.ppf(q_vec)
+rv_scipy.ppf(np.array([-np.inf, -h, np.nan, 1 + h, np.inf]))
+
+rv_my = Disc(x, prob)
+rv_my.ppf(q_vec)
+rv_my.ppf(np.array([-np.inf, -h, np.nan, 1 + h, np.inf]))

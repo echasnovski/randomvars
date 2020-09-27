@@ -135,3 +135,23 @@ class TestDisc:
         assert_array_almost_equal(
             rv.cdf(x), np.array([[0.0, 0.1], [0.3, 1.0]]), decimal=12
         )
+
+    def test_ppf(self):
+        """Tests for `.ppf()` method, which logic is implemented in `._ppf()`"""
+        rv = Disc([0.5, 1, 3], [0.1, 0.2, 0.7])
+        h = 1e-12
+
+        # Regular checks
+        ## Outputs for q=0 and q=1 should be equal to minimum and maximum elements
+        q = np.array([0, 0.1 - h, 0.1, 0.1 + h, 0.3 - h, 0.3, 0.3 + h, 1 - h, 1])
+        assert_array_equal(rv.ppf(q), np.array([0.5, 0.5, 0.5, 1, 1, 1, 3, 3, 3]))
+
+        # Bad input
+        q = np.array([-np.inf, -h, np.nan, 1 + h, np.inf])
+        assert_array_equal(
+            rv.ppf(q), np.array([np.nan, np.nan, np.nan, np.nan, np.nan])
+        )
+
+        # Broadcasting
+        q = np.array([[0, 0.5], [0.0, 1.0]])
+        assert_array_equal(rv.ppf(q), np.array([[0.5, 3], [0.5, 3]]))
