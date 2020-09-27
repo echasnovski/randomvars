@@ -1,0 +1,87 @@
+# pylint: disable=missing-function-docstring
+"""Tests for '_discrete.py' file"""
+import numpy as np
+from numpy.testing import assert_array_equal
+import pytest
+
+from randomvars._discrete import Disc
+import randomvars.options as op
+
+
+def assert_equal_seq(first, second, *args, **kwargs):
+    assert len(first) == len(second)
+    for el1, el2 in zip(first, second):
+        assert_array_equal(el1, el2, *args, **kwargs)
+
+
+def assert_equal_disc(rv_1, rv_2):
+    grid_1 = rv_1.x, rv_1.prob, rv_1.p
+    grid_2 = rv_2.x, rv_2.prob, rv_2.p
+    assert_equal_seq(grid_1, grid_2)
+
+
+class TestDisc:
+    """Regression tests for `Disc` class"""
+
+    def test_init_errors(self):
+        def check_one_input(def_args, var):
+            with pytest.raises(ValueError, match=f"`{var}`.*numpy array"):
+                def_args[var] = {"a": None}
+                Disc(**def_args)
+            with pytest.raises(ValueError, match=f"`{var}`.*numeric"):
+                def_args[var] = ["a", "a"]
+                Disc(**def_args)
+            with pytest.raises(ValueError, match=f"`{var}`.*finite values"):
+                def_args[var] = [0, np.nan]
+                Disc(**def_args)
+            with pytest.raises(ValueError, match=f"`{var}`.*finite values"):
+                def_args[var] = [0, np.inf]
+                Disc(**def_args)
+            with pytest.raises(ValueError, match=f"`{var}`.*1d array"):
+                def_args[var] = [[0, 1]]
+                Disc(**def_args)
+
+        check_one_input({"prob": [0.2, 0.8]}, "x")
+        check_one_input({"x": [0, 1]}, "prob")
+
+        with pytest.raises(ValueError, match="[Ll]engths.*match"):
+            Disc([0, 1], [1, 1, 1])
+
+        with pytest.warns(UserWarning, match="`x`.*not sorted.*`x` and `prob`"):
+            rv = Disc([1, 0], [0.2, 0.8])
+            rv_ref = Disc([0, 1], [0.8, 0.2])
+            assert_equal_disc(rv, rv_ref)
+
+        with pytest.raises(ValueError, match="`prob`.*negative"):
+            Disc([0, 1], [0.8, -1])
+
+        with pytest.raises(ValueError, match="`prob`.*no positive"):
+            Disc([0, 1], [0, 0])
+
+    def test_init(self):
+        x_ref = np.array([0, 1, 2])
+        prob_ref = np.array([0.1, 0.2, 0.7])
+        rv_ref = Disc(x_ref, prob_ref)
+
+        # Simple case with non-numpy input
+        rv_1 = Disc(x=x_ref.tolist(), prob=prob_ref.tolist())
+        assert_equal_disc(rv_1, rv_ref)
+
+        # Check if `prob` is normalized
+        rv_2 = Disc(x=x_ref, prob=10 * prob_ref)
+        assert_equal_disc(rv_2, rv_ref)
+
+        # Check if `x` and `prob` are rearranged if not sorted
+        with pytest.warns(UserWarning, match="`x`.*not sorted"):
+            rv_3 = Disc(x=x_ref[[1, 0, 2]], prob=prob_ref[[1, 0, 2]])
+        assert_equal_disc(rv_3, rv_ref)
+
+    def test_xprobp(self):
+        """Tests for `x`, `prob`, and `p` properties"""
+        x = np.arange(10)
+        prob = np.repeat(0.1, 10)
+        rv = Disc(x, prob)
+
+        assert_array_equal(rv.x, x)
+        assert_array_equal(rv.prob, prob)
+        assert_array_equal(rv.p, np.cumsum(prob))
