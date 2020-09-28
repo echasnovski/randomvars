@@ -77,8 +77,12 @@ class Disc(rv_discrete):
 
     def _cdf(self, x):
         inds = np.searchsorted(self.x, x, side="right")
+        # This is needed to avoid possible confusion at index 0 when subsetting
+        # `self.p`
+        inds_clipped = np.maximum(inds, 1)
+
         res = np.ones_like(x, dtype=np.float64)
-        res = np.where(inds == 0, 0.0, self.p[inds - 1])
+        res = np.where(inds == 0, 0.0, self.p[inds_clipped - 1])
 
         return utils._copy_nan(fr=x, to=res)
 
