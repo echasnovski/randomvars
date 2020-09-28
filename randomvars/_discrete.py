@@ -9,6 +9,20 @@ import randomvars._utils as utils
 
 
 class Disc(rv_discrete):
+    """Discrete random variable
+
+    Class for discrete random variable with **finite number of (finite) values**.
+    It is similar to `rv_sample` class from `scipy.stats.distributions`, but works with
+    float numbers as distributions values (opposite to only integers in `rv_sample`).
+
+    Main way to create instance of `Disc` is to directly supply values (`x`)
+    and probabilities (`prob`) of distribution:
+    ```
+        my_disc = Disc(x=[1.618, 2.718, 3.141], prob=[0.1, 0.2, 0.7])
+        my_disc.pmf([1.618, 1.619])
+    ```
+    """
+
     def __new__(cls, x, prob, *args, **kwargs):
         return super().__new__(cls, *args, **kwargs)
 
@@ -56,11 +70,22 @@ class Disc(rv_discrete):
     def _pmf(self, x):
         """Probability mass function
 
+        Return values of probability mass function at points `x`.
+
         **Note** that probability is taken from object probabilities if input
         value is "close enough" to the corresponding value of object's `x`.
-        Function `numpy.isclose()` is used with relative and absolute tolerance
-        values taken from `tolerance` package option. See documentation of
-        `randomvars.options.get_option()` for more information.
+        Function `numpy.isclose()` is used for that, with relative and absolute
+        tolerance values taken from `tolerance` package option. See
+        documentation of `randomvars.options.get_option()` for more
+        information.
+
+        Parameters
+        ----------
+        x : array_like with numeric values
+
+        Returns
+        -------
+        pmf_vals : ndarray with shape inferred from `x`
         """
         rtol, atol = op.get_option("tolerance")
 
@@ -76,6 +101,18 @@ class Disc(rv_discrete):
     pmf = _pmf
 
     def _cdf(self, x):
+        """Cumulative distribution function
+
+        Return values of cumulative distribution function at points `x`.
+
+        Parameters
+        ----------
+        x : array_like with numeric values
+
+        Returns
+        -------
+        cdf_vals : ndarray with shape inferred from `x`
+        """
         inds = np.searchsorted(self.x, x, side="right")
         # This is needed to avoid possible confusion at index 0 when subsetting
         # `self.p`
@@ -90,6 +127,19 @@ class Disc(rv_discrete):
     cdf = _cdf
 
     def _ppf(self, q):
+        """Percent point (quantile, inverse of cdf) function
+
+        Return values of percent point (quantile, inverse of cdf) function at
+        cumulative probabilities `q`.
+
+        Parameters
+        ----------
+        q : array_like with numeric values
+
+        Returns
+        -------
+        ppf_vals : ndarray with shape inferred from `q`
+        """
         q_inds = np.searchsorted(self.p, q, side="left")
         # This is needed to avoid `IndexError` in later `np.where()` call
         q_inds_clipped = np.minimum(q_inds, len(self.p) - 1)
@@ -106,6 +156,18 @@ class Disc(rv_discrete):
     ppf = _ppf
 
     def _rvs(self, size=None, random_state=None):
+        """Random number generation
+
+        Generate random numbers into array of desired size.
+
+        Parameters
+        ----------
+        size : int or tuple of ints, optional
+            Defining number of random variates (default is 1).
+        random_state : `None` or RandomState, optional
+            Source of uniform random number generator. If `None`,
+            `numpy.random.uniform()` is used.
+        """
         if random_state is None:
             U = np.random.uniform(size=size)
         else:
