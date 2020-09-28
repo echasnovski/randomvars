@@ -305,14 +305,14 @@ class Cont(rv_continuous):
         return cls(x, y)
 
     @classmethod
-    def from_sample(cls, x):
+    def from_sample(cls, sample):
         """Create piecewise-linear RV from sample
 
         Piecewise-linear RV is created by the following algorithm:
         - **Estimate density** with density estimator (taken from package
           option "density_estimator") in the form `density =
-          density_estimator(x)`. If `density` is object of class `Cont`, it
-          is returned untouched. If it is object of `rv_frozen`
+          density_estimator(sample)`. If `density` is object of class `Cont`,
+          it is returned untouched. If it is object of `rv_frozen`
           (`rv_continuous` with all hyperparameters defined), it is forwarded
           to `Cont.from_rv()`.
         - **Estimate effective range of density**: interval inside which total
@@ -343,7 +343,7 @@ class Cont(rv_continuous):
 
         Parameters
         ----------
-        x : 1d array-like
+        sample : 1d array-like
             This should be a valid input to `np.asarray()` so that its output
             is numeric and has single dimension.
 
@@ -351,16 +351,16 @@ class Cont(rv_continuous):
         -------
         rv_out : Cont
             Random variable with finite support and piecewise-linear density
-            which approximates density estimate of input sample `x`.
+            which approximates density estimate of input `sample`.
         """
         # Check and prepare input
         try:
-            x = np.asarray(x, dtype=np.float64)
+            sample = np.asarray(sample, dtype=np.float64)
         except ValueError:
-            raise ValueError("`x` is not convertible to numeric numpy array.")
+            raise ValueError("`sample` is not convertible to numeric numpy array.")
 
-        if len(x.shape) != 1:
-            raise ValueError("`x` is not a 1d array.")
+        if len(sample.shape) != 1:
+            raise ValueError("`sample` is not a 1d array.")
 
         # Get options
         density_estimator = get_option("density_estimator")
@@ -369,7 +369,7 @@ class Cont(rv_continuous):
         integr_tol = get_option("integr_tol")
 
         # Estimate density
-        density = density_estimator(x)
+        density = density_estimator(sample)
 
         # Make early return if `density` is random variable
         if isinstance(density, Cont):
@@ -378,14 +378,14 @@ class Cont(rv_continuous):
             return Cont.from_rv(density)
 
         # Estimate density range
-        x_left, x_right = _estimate_density_range(density, x, density_mincoverage)
+        x_left, x_right = _estimate_density_range(density, sample, density_mincoverage)
 
         # Construct equidistant grid
         x_equi = np.linspace(x_left, x_right, n_grid)
 
         # Construct quantile grid
         prob_equi = np.linspace(0, 1, n_grid)
-        x_quan = np.quantile(a=x, q=prob_equi, interpolation="linear")
+        x_quan = np.quantile(a=sample, q=prob_equi, interpolation="linear")
 
         # Combine equidistant and quantile grids into one sorted array
         x_grid = _combine_grids(x_equi, x_quan)
