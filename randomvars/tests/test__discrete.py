@@ -175,3 +175,8 @@ class TestDisc:
         smpl_1 = rv.rvs(size=100, random_state=np.random.RandomState(101))
         smpl_2 = rv.rvs(size=100, random_state=np.random.RandomState(101))
         assert_array_equal(smpl_1, smpl_2)
+
+        # Usage of integer `random_state` as a seed
+        smpl_1 = rv.rvs(size=100, random_state=101)
+        smpl_2 = rv.rvs(size=100, random_state=101)
+        assert_array_equal(smpl_1, smpl_2)

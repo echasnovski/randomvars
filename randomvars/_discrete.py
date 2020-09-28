@@ -164,14 +164,18 @@ class Disc(rv_discrete):
         ----------
         size : int or tuple of ints, optional
             Defining number of random variates (default is 1).
-        random_state : `None` or RandomState, optional
-            Source of uniform random number generator. If `None`,
-            `numpy.random.uniform()` is used.
+        random_state : `None`, int, or RandomState, optional
+            Source of uniform random number generator. If `None`, it is
+            initiated as `numpy.random.RandomState()`. If integer,
+            `numpy.random.RandomState(seed=random_state)` is used.
         """
         if random_state is None:
-            U = np.random.uniform(size=size)
-        else:
-            U = random_state.uniform(size=size)
+            random_state = np.random.RandomState()
+        elif isinstance(random_state, int):
+            random_state = np.random.RandomState(seed=random_state)
+
+        U = random_state.uniform(size=size)
+
         return self._ppf(U)
 
     # Override default `rv_discrete`'s `_rvs` to `rvs` transition to make it possible to
