@@ -438,7 +438,7 @@ class TestCont:
         assert_array_equal(rv_1.cdf(x), np.array([[0.0, 0.125], [1.0, 1.0]]))
 
     def test_ppf(self):
-        """Tests for `.ppf()` method, which logic is implemented in `._cdf()`"""
+        """Tests for `.ppf()` method, which logic is implemented in `._ppf()`"""
         # `ppf()` method should be inverse to `cdf()` for every sensible input
         rv_1 = Cont([0, 1, 2], [0, 1, 0])
 
