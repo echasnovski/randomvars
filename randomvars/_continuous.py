@@ -11,7 +11,39 @@ from randomvars.options import get_option
 
 
 class Cont(rv_continuous):
-    """Random variable with piecewise-linear density"""
+    """Continuous random variable
+
+    Class for continuous random variable **defined by piecewise-linear linear
+    density**. It has **finite support** and **finite density values**.
+
+    There are three ways to create instance of `Cont` class:
+
+    1. Directly supply x-grid (`x`) and y-grid (`prob`) of piecewise-linear density:
+    ```
+        # "Triangular" distribution
+        my_cont = Cont(x=[0, 1, 2], y=[0, 1, 0])
+        my_cont.pdf([0.5, 1, 2.5])
+    ```
+    2. Use `Cont.from_rv()` to create approximation of some existing continuous
+    random variable (object with methods `cdf()` and `ppf()`):
+    ```
+        from scipy.stats import norm
+        rv_norm = norm()
+        my_norm = Cont.from_rv(rv_norm)
+
+        # Approximations are designed to be a compromise between high accuracy
+        # and low number of grid points in piecewise-linear density
+        rv_norm.pdf([-4, -0.1, 0, 0.1, 4])
+        my_norm.pdf([-4, -0.1, 0, 0.1, 4])
+    ```
+    3. Use `Cont.from_sample()` to create estimation based on some existing sample:
+    ```
+        from scipy.stats import norm
+        sample = norm().rvs(size=100, random_state=101)
+        my_rv = Cont.from_sample(sample)
+        my_rv.pdf([-0.1, 0, 0.1])
+    ```
+    """
 
     def __init__(self, x, y, *args, **kwargs):
         x, y = self._impute_xy(x, y)
@@ -400,7 +432,18 @@ class Cont(rv_continuous):
         return cls(x_grid, y_grid)
 
     def _pdf(self, x):
-        """Implementation of probability density function"""
+        """Probability density function
+
+        Return values of probability density function at points `x`.
+
+        Parameters
+        ----------
+        x : array_like with numeric values
+
+        Returns
+        -------
+        pdf_vals : ndarray with shape inferred from `x`
+        """
         return np.interp(x, self._x, self._y, left=0, right=0)
 
     # Override default `rv_continuous`'s `_pdf` to `pdf` transition to make
@@ -408,7 +451,18 @@ class Cont(rv_continuous):
     pdf = _pdf
 
     def _cdf(self, x):
-        """Implementation of cumulative distribution function"""
+        """Cumulative distribution function
+
+        Return values of cumulative distribution function at points `x`.
+
+        Parameters
+        ----------
+        x : array_like with numeric values
+
+        Returns
+        -------
+        cdf_vals : ndarray with shape inferred from `x`
+        """
         x = np.asarray(x, dtype=np.float64)
         res = np.zeros_like(x, dtype=np.float64)
 
@@ -441,7 +495,19 @@ class Cont(rv_continuous):
     cdf = _cdf
 
     def _ppf(self, q):
-        """Implementation of Percent point function"""
+        """Percent point (quantile, inverse of cdf) function
+
+        Return values of percent point (quantile, inverse of cdf) function at
+        cumulative probabilities `q`.
+
+        Parameters
+        ----------
+        q : array_like with numeric values
+
+        Returns
+        -------
+        ppf_vals : ndarray with shape inferred from `q`
+        """
         q = np.asarray(q, dtype=np.float64)
         res = np.zeros_like(q, dtype=np.float64)
 
@@ -477,6 +543,19 @@ class Cont(rv_continuous):
     ppf = _ppf
 
     def _rvs(self, size=None, random_state=None):
+        """Random number generation
+
+        Generate random numbers into array of desired size.
+
+        Parameters
+        ----------
+        size : int or tuple of ints, optional
+            Defining number of random variates (default is 1).
+        random_state : `None`, int, or RandomState, optional
+            Source of uniform random number generator. If `None`, it is
+            initiated as `numpy.random.RandomState()`. If integer,
+            `numpy.random.RandomState(seed=random_state)` is used.
+        """
         if random_state is None:
             random_state = np.random.RandomState()
         elif isinstance(random_state, int):
