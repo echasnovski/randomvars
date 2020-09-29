@@ -473,6 +473,9 @@ class TestCont:
         smpl = rv_1.rvs(size=10)
         assert np.all((rv_1.a <= smpl) & (smpl <= rv_1.b))
 
+        # Treats default `size` as 1
+        assert rv_1.rvs().shape == tuple()
+
         # Broadcasting
         smpl_array = rv_1.rvs(size=(10, 2))
         assert smpl_array.shape == (10, 2)
@@ -480,6 +483,11 @@ class TestCont:
         # Usage of `random_state`
         smpl_1 = rv_1.rvs(size=100, random_state=np.random.RandomState(101))
         smpl_2 = rv_1.rvs(size=100, random_state=np.random.RandomState(101))
+        assert_array_equal(smpl_1, smpl_2)
+
+        # Usage of integer `random_state` as a seed
+        smpl_1 = rv_1.rvs(size=100, random_state=101)
+        smpl_2 = rv_1.rvs(size=100, random_state=101)
         assert_array_equal(smpl_1, smpl_2)
 
 

@@ -399,41 +399,96 @@ class Cont(rv_continuous):
 
         return cls(x_grid, y_grid)
 
-    def _pdf(self, x, *args):
+    def _pdf(self, x):
         """Implementation of probability density function"""
         return np.interp(x, self._x, self._y, left=0, right=0)
 
-    def _cdf(self, x, *args):
-        """Implementation of cumulative distribution function
+    # Override default `rv_continuous`'s `_pdf` to `pdf` transition to make
+    # custom arguments and docstring.
+    pdf = _pdf
 
-        Notes
-        -----
-        Dealing with `x` values outside of support is supposed to be done in
-        `rv_continuous`.
-        """
+    def _cdf(self, x):
+        """Implementation of cumulative distribution function"""
         x = np.asarray(x, dtype=np.float64)
+        res = np.zeros_like(x, dtype=np.float64)
+
         x_ind = utils._searchsorted_wrap(self._x, x, side="right", edge_inside=True)
+        ind_is_good = (x_ind > 0) & (x_ind < len(self._x))
 
-        gr_x, _, gr_p = self._grid_by_ind(x_ind)
-        inter, slope = self._coeffs_by_ind(x_ind)
+        if np.any(ind_is_good):
+            x_good = x[ind_is_good]
+            x_ind_good = x_ind[ind_is_good]
 
-        # Using `(a+b)*(a-b)` instead of `(a*a-b*b)` for better accuracy in
-        # case density x-grid has really close elements
-        return gr_p + inter * (x - gr_x) + 0.5 * slope * (x + gr_x) * (x - gr_x)
+            gr_x, _, gr_p = self._grid_by_ind(x_ind_good)
+            inter, slope = self._coeffs_by_ind(x_ind_good)
 
-    def _ppf(self, q, *args):
-        """Implementation of Percent point function
+            # Using `(a+b)*(a-b)` instead of `(a*a-b*b)` for better accuracy in
+            # case density x-grid has really close elements
+            res[ind_is_good] = (
+                gr_p
+                + inter * (x_good - gr_x)
+                + 0.5 * slope * (x_good + gr_x) * (x_good - gr_x)
+            )
 
-        Notes
-        -----
-        Dealing with `q` values outside of `[0; 1]` is supposed to be done in
-        `rv_continuous`.
-        """
+        # `res` is already initialized with zeros, so taking care of `x` to the
+        # left of support is not necessary
+        res[x_ind == len(self.x)] = 1.0
+
+        return utils._copy_nan(fr=x, to=res)
+
+    # Override default `rv_continuous`'s `_cdf` to `cdf` transition to make
+    # custom arguments and docstring.
+    cdf = _cdf
+
+    def _ppf(self, q):
+        """Implementation of Percent point function"""
+        q = np.asarray(q, dtype=np.float64)
+        res = np.zeros_like(q, dtype=np.float64)
+
         q_ind = utils._searchsorted_wrap(self._p, q, side="right", edge_inside=True)
-        grid_q = self._grid_by_ind(q_ind)
-        coeffs_q = self._coeffs_by_ind(q_ind)
+        ind_is_good = (q_ind > 0) & (q_ind < len(self._x)) & (q != 0.0) & (q != 1.0)
 
-        return self._find_quant(q, grid_q, coeffs_q)
+        if np.any(ind_is_good):
+            q_good = q[ind_is_good]
+            q_ind_good = q_ind[ind_is_good]
+
+            grid_q = self._grid_by_ind(q_ind_good)
+            coeffs_q = self._coeffs_by_ind(q_ind_good)
+
+            res[ind_is_good] = self._find_quant(q_good, grid_q, coeffs_q)
+
+        # All values of `q` outside of [0; 1] and equal to `nan` should result
+        # into `nan`
+        res[np.invert(ind_is_good)] = np.nan
+
+        # Values 0.0 and 1.0 should be treated separately due to floating point
+        # representation issues during `utils._searchsorted_wrap()`
+        # application. In some extreme cases last `_p` can be smaller than 1 by
+        # value of 10**(-16) magnitude, which will result into "bad" value of
+        # `q_ind` (that is why this should also be done after assigning `nan`
+        # to "bad" values)
+        res[q == 0.0] = self._x[0]
+        res[q == 1.0] = self._x[-1]
+
+        return res
+
+    # Override default `rv_continuous`'s `_ppf` to `ppf` transition to make
+    # custom arguments and docstring.
+    ppf = _ppf
+
+    def _rvs(self, size=None, random_state=None):
+        if random_state is None:
+            random_state = np.random.RandomState()
+        elif isinstance(random_state, int):
+            random_state = np.random.RandomState(seed=random_state)
+
+        U = random_state.uniform(size=size)
+
+        return self._ppf(U)
+
+    # Override default `rv_continuous`'s `_rvs` to `rvs` transition to make
+    # custom arguments and docstring.
+    rvs = _rvs
 
     def _find_quant(self, q, grid, coeffs):
         """Compute quantiles with data from linearity intervals
