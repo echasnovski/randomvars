@@ -369,6 +369,8 @@ class Cont(rv_continuous):
         - **Downgrid density xy-grid**. `downgrid_maxtol()` is used with
           tolerance ensuring that difference of total integrals between input
           and downgridded xy-grids is less than `integr_tol` (package option).
+        - **Create random variable** with `Cont(x=x, y=y)`, where `x` and `y`
+          are x-grid and y-grid.
 
         Relevant package options: `density_estimator`, `density_mincoverage`,
         `n_grid`, `integr_tol`. See documentation of
