@@ -1,9 +1,29 @@
 # pylint: disable=missing-function-docstring
 """Tests for 'options.py' file"""
+import numpy as np
+from numpy.testing import assert_array_equal
 import pytest
 
 from randomvars.options import *
 from randomvars.options import _default_options
+
+
+def test_default_discrete_estimator():
+    # Normal usage
+    out = default_discrete_estimator([3, 1, 2, 1, 3])
+    assert len(out) == 2
+    assert_array_equal(out[0], np.array([1, 2, 3]))
+    assert_array_equal(out[1], np.array([0.4, 0.2, 0.4]))
+
+    # Error if no finite values
+    with pytest.raises(ValueError, match="doesn't have finite values"):
+        default_discrete_estimator([-np.inf, np.nan, np.inf])
+
+    # Warning if there are some non-finite values
+    with pytest.warns(UserWarning, match="non-finite values"):
+        out = default_discrete_estimator([1, np.nan, np.inf])
+        assert_array_equal(out[0], np.array([1]))
+        assert_array_equal(out[1], np.array([1]))
 
 
 def test_get_option():

@@ -4,6 +4,42 @@ import numpy as np
 from scipy.integrate import quad
 
 
+# %% User-facing functions
+## Currently exported in `options.py`
+def default_discrete_estimator(sample):
+    """Default estimator of discrete distribution
+
+    This estimator returns unique values of input as distributions values.
+    Their probabilities are proportional to number of their occurrences in input.
+
+    Parameters
+    ----------
+    sample : array_like
+        This should be a valid input to `np.asarray()` so that its output is
+        numeric.
+
+    Returns
+    -------
+    x, prob : tuple with two elements
+        Here `x` represents estimated values of distribution and `prob` -
+        estimated probabilities.
+    """
+    sample = np.asarray(sample, dtype=np.float64)
+
+    sample_is_finite = np.isfinite(sample)
+    if not np.all(sample_is_finite):
+        if not np.any(sample_is_finite):
+            raise ValueError(
+                "Input sample in discrete estimator doesn't have finite values."
+            )
+        else:
+            warnings.warn("Input sample in discrete estimator has non-finite values.")
+            sample = sample[sample_is_finite]
+
+    vals, counts = np.unique(sample, return_counts=True)
+    return vals, counts / np.sum(counts)
+
+
 # %% Array manipulations
 def _as_1d_finite_float(x, x_name):
     """Convert input to numeric numpy array and check for 1 dimension"""

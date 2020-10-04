@@ -1,11 +1,21 @@
 from scipy.stats.kde import gaussian_kde
 
+from randomvars._utils import default_discrete_estimator
 
-__all__ = ["get_option", "set_option", "reset_option", "option_context", "OptionError"]
+
+__all__ = [
+    "get_option",
+    "set_option",
+    "reset_option",
+    "option_context",
+    "OptionError",
+    "default_discrete_estimator",
+]
 
 _default_options = {
     "density_estimator": gaussian_kde,
     "density_mincoverage": 0.9999,
+    "discrete_estimator": default_discrete_estimator,
     "n_grid": 1001,
     "tail_prob": 1e-6,
     "integr_tol": 1e-4,
@@ -27,6 +37,12 @@ _options_list = """
     - There is worse performance if output density callable has discontinuity.
 - density_mincoverage : float, default 0.9999. Minimum value of integral within
   output of density range estimation.
+- discrete_estimator : callable, default
+  randomvars.options.default_discrete_estimator. Function which takes sample as
+  input and returns one of:
+    - Tuple with two elements representing `x` and `prob` of discrete distribution.
+    - Object of class `Disc` or `rv_frozen` (`rv_discrete` with all
+      hyperparameters defined).
 - n_grid : int, default 1001. Number of points in initial xy-grids when
   creating object of class `Cont`.
 - tail_prob : float, default 1e-6. Probability value of distribution tail that
