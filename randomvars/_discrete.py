@@ -67,6 +67,59 @@ class Disc(rv_discrete):
         """Return cumulative probabilities of discrete distribution"""
         return self._p
 
+    @classmethod
+    def from_sample(cls, sample):
+        """Create discrete RV from sample
+
+        Discrete RV is created by the following algorithm:
+        - **Estimate distribution** with discrete estimator (taken from package
+          option "discrete_estimator") in the form `estimate =
+          discrete_estimator(sample)`. If `estimator` is object of class
+          `Disc`, it is returned untouched. If it is object of `rv_frozen`
+          (`rv_discrete` with all hyperparameters defined), it is forwarded to
+          `Disc.from_rv()`.
+        - **Create random variable** with `Disc(x=x, prob=prob)`, where `x` and `prob`
+          are first and second values of `estimate`.
+
+        Relevant package options: `discrete_estimator`. See documentation of
+        `randomvars.options.get_option()` for more information. To temporarily
+        set options use `randomvars.options.option_context()` context manager.
+
+        Parameters
+        ----------
+        sample : 1d array-like
+            This should be a valid input to `np.asarray()` so that its output
+            is numeric and has single dimension.
+
+        Returns
+        -------
+        rv_out : Disc
+            Discrete random variable with **finite number of (finite) values**
+            which is an estimate based on input `sample`.
+        """
+        # Check and prepare input
+        try:
+            sample = np.asarray(sample, dtype=np.float64)
+        except ValueError:
+            raise ValueError("`sample` is not convertible to numeric numpy array.")
+
+        if len(sample.shape) != 1:
+            raise ValueError("`sample` is not a 1d array.")
+
+        # Get options
+        discrete_estimator = op.get_option("discrete_estimator")
+
+        # Estimate distribution
+        estimate = discrete_estimator(sample)
+
+        # Make early return if `estimate` is random variable
+        if isinstance(estimate, Disc):
+            return estimate
+        # if isinstance(estimate, rv_frozen):
+        #     return Disc.from_rv(estimate)
+
+        return cls(x=estimate[0], prob=estimate[1])
+
     def _pmf(self, x):
         """Probability mass function
 

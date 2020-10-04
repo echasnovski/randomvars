@@ -2,6 +2,7 @@
 """Tests for '_discrete.py' file"""
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
+import scipy.stats.distributions as distrs
 import pytest
 
 from randomvars._discrete import Disc
@@ -85,6 +86,65 @@ class TestDisc:
         assert_array_equal(rv.x, x)
         assert_array_equal(rv.prob, prob)
         assert_array_equal(rv.p, np.cumsum(prob))
+
+    def test_from_sample_basic(self):
+        x = np.array([0.1, -100, 1, np.pi, np.pi, 1, 3, 0.1])
+
+        rv = Disc.from_sample(x)
+        rv_ref = Disc(
+            x=[-100, 0.1, 1, 3, np.pi],
+            prob=[0.125, 0.25, 0.25, 0.125, 0.25],
+        )
+        assert isinstance(rv, Disc)
+        assert_equal_disc(rv, rv_ref)
+
+    def test_from_sample_errors(self):
+        with pytest.raises(ValueError, match="numeric numpy array"):
+            Disc.from_sample(["a"])
+
+        with pytest.raises(ValueError, match="1d"):
+            Disc.from_sample([[1], [2]])
+
+        # Warning is given with default discrete estimator if not all values
+        # are finite
+        with pytest.warns(UserWarning, match="has non-finite"):
+            rv = Disc.from_sample([1, 2, np.nan])
+            rv_ref = Disc(x=[1, 2], prob=[0.5, 0.5])
+            assert_equal_disc(rv, rv_ref)
+
+        # Error is given with default discrete estimator if there is no finite
+        # values
+        with pytest.raises(ValueError, match="doesn't have finite values"):
+            Disc.from_sample([-np.inf, np.nan, np.inf])
+
+    def test_from_sample_options(self):
+        binom = distrs.binom(n=10, p=0.5)
+
+        rng = np.random.default_rng(101)
+        x = binom.rvs(100, random_state=rng)
+
+        # "discrete_estimator"
+        def single_value_estimator(x):
+            return np.array([1.0]), np.array([1.0])
+
+        with op.option_context({"discrete_estimator": single_value_estimator}):
+            rv = Disc.from_sample(x)
+            assert_equal_disc(rv, Disc(x=[1.0], prob=[1.0]))
+
+        # "discrete_estimator" which returns allowed classes
+        ## `Disc` object should be returned untouched
+        rv_estimation = Disc(x=[0, 1], prob=[0.5, 0.5])
+        rv_estimation.aaa = "Extra method"
+        with op.option_context({"discrete_estimator": lambda x: rv_estimation}):
+            rv = Disc.from_sample(np.asarray([0, 1, 2]))
+            assert "aaa" in dir(rv)
+
+        # ## `Discrete` should be forwarded to `Disc.from_rv()`
+        # rv_binom = distrs.binom(n=10, p=0.5)
+        # with op.option_context({"discrete_estimator": lambda x: rv_binom}):
+        #     rv = Disc.from_sample(np.asarray([0, 1, 2]))
+        #     rv_ref = Disc.from_rv(rv_binom)
+        #     assert_equal_disc(rv, rv_ref)
 
     def test_pmf(self):
         """Tests for `.pmf()` method, which logic is implemented in `._pmf()`"""
