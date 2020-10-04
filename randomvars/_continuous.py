@@ -245,9 +245,10 @@ class Cont(rv_continuous):
 
     @classmethod
     def from_rv(cls, rv, supp=None):
-        """Create piecewise-linear RV from general RV
+        """Create continuous RV from general RV
 
-        Piecewise-linear RV is created by the following algorithm:
+        Continuous RV with piecewise-linear density is created by the following
+        algorithm:
         - **Detect finite support**. Left and right edges are treated
           separately. If edge is supplied, it is used untouched. If not, it is
           computed by "removing" corresponding (left or right) tail which has
@@ -338,9 +339,10 @@ class Cont(rv_continuous):
 
     @classmethod
     def from_sample(cls, sample):
-        """Create piecewise-linear RV from sample
+        """Create continuous RV from sample
 
-        Piecewise-linear RV is created by the following algorithm:
+        Continuous RV with piecewise-linear density is created by the following
+        algorithm:
         - **Estimate density** with density estimator (taken from package
           option "density_estimator") in the form `density =
           density_estimator(sample)`. If `density` is object of class `Cont`,
