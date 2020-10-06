@@ -16,9 +16,9 @@ _default_options = {
     "density_estimator": gaussian_kde,
     "density_mincoverage": 0.9999,
     "discrete_estimator": default_discrete_estimator,
+    "integr_tol": 1e-4,
     "n_grid": 1001,
     "tail_prob": 1e-6,
-    "integr_tol": 1e-4,
     "tolerance": (0.0, 1e-8),
 }
 _options = _default_options.copy()
@@ -43,13 +43,13 @@ _options_list = """
     - Tuple with two elements representing `x` and `prob` of discrete distribution.
     - Object of class `Disc` or `rv_frozen` (`rv_discrete` with all
       hyperparameters defined).
+- integr_tol : float, default 1e-4. Integral tolerance for maximum tolerance
+  downgridding. Used to ensure that difference of total integrals between input
+  and downgridded xy-grids is less than `integr_tol`.
 - n_grid : int, default 1001. Number of points in initial xy-grids when
   creating object of class `Cont`.
 - tail_prob : float, default 1e-6. Probability value of distribution tail that
   might be cutoff in order to get finite support.
-- integr_tol : float, default 1e-4. Integral tolerance for maximum tolerance
-  downgridding. Used to ensure that difference of total integrals between input
-  and downgridded xy-grids is less than `integr_tol`.
 - tolerance : tuple with two elements, default (0.0, 1e-8). Tuple with
   relative and absolute tolerance to be used as `rtol` and `atol` arguments in
   `numpy.isclose()` and similar functions. **Note** that default values are
