@@ -60,7 +60,7 @@ class TestDisc:
             Disc([0, 1], [0, 0])
 
     def test_init(self):
-        x_ref = np.array([0, 1, 2])
+        x_ref = np.array([0.1, 1, 2])
         prob_ref = np.array([0.1, 0.2, 0.7])
         rv_ref = Disc(x_ref, prob_ref)
 
@@ -72,10 +72,16 @@ class TestDisc:
         rv_2 = Disc(x=x_ref, prob=10 * prob_ref)
         assert_equal_disc(rv_2, rv_ref)
 
+        # Check that zero probability is allowed
+        rv_3 = Disc(x=[0, 1, 3], prob=[0, 0.5, 0.5])
+        assert_array_equal(rv_3.x, np.array([0, 1, 3]))
+        assert_array_equal(rv_3.prob, np.array([0, 0.5, 0.5]))
+        assert_array_equal(rv_3.p, np.array([0.0, 0.5, 1.0]))
+
         # Check if `x` and `prob` are rearranged if not sorted
         with pytest.warns(UserWarning, match="`x`.*not sorted"):
-            rv_3 = Disc(x=x_ref[[1, 0, 2]], prob=prob_ref[[1, 0, 2]])
-        assert_equal_disc(rv_3, rv_ref)
+            rv_4 = Disc(x=x_ref[[1, 0, 2]], prob=prob_ref[[1, 0, 2]])
+            assert_equal_disc(rv_4, rv_ref)
 
     def test_xprobp(self):
         """Tests for `x`, `prob`, and `p` properties"""
