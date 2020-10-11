@@ -102,3 +102,44 @@ rv_scipy.ppf(np.array([-np.inf, -h, np.nan, 1 + h, np.inf]))
 rv_my = Disc(x, prob)
 rv_my.ppf(q_vec)
 rv_my.ppf(np.array([-np.inf, -h, np.nan, 1 + h, np.inf]))
+
+
+# %% from_rv
+import scipy.stats as ss
+
+from randomvars import Disc
+import randomvars.options as op
+
+
+def disc_from_rv(rv):
+    # Get options
+    small_prob = op.get_option("small_prob")
+
+    # Construct values
+    x = []
+    prob = []
+    tot_prob = 0.0
+
+    while tot_prob < 1 - small_prob:
+        cur_x = rv.ppf(tot_prob + small_prob)
+        cur_tot_prob = rv.cdf(cur_x)
+
+        if cur_tot_prob <= tot_prob:
+            raise ValueError(
+                "`Disc.from_rv`: Couldn't get increase in total probability. "
+                "Check corretness of `ppf` and `cdf` methods."
+            )
+
+        x.append(cur_x)
+        prob.append(cur_tot_prob - tot_prob)
+
+        tot_prob = cur_tot_prob
+
+    return Disc(x=x, prob=prob)
+
+
+rv = ss.poisson(mu=10)
+rv_disc = disc_from_rv(rv)
+
+rv.pmf(rv_disc.x) - rv_disc.pmf(rv_disc.x)
+1 - rv.cdf(np.max(rv_disc.x))

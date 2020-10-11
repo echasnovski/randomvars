@@ -8,6 +8,30 @@ import pytest
 from randomvars._discrete import Disc
 import randomvars.options as op
 
+DISTRIBUTIONS_FINITE = {
+    "fin_bernoulli": distrs.bernoulli(p=0.9),
+    "fin_binom": distrs.binom(n=10, p=0.7),
+    "fin_binom_wide": distrs.binom(n=101, p=0.7),
+    "fin_randint": distrs.randint(low=-5, high=4),
+}
+
+DISTRIBUTIONS_INFINITE = {
+    "inf_geom": distrs.geom(p=0.1),
+    "inf_poisson": distrs.poisson(mu=5),
+    "inf_poisson_big": distrs.poisson(mu=1001),
+}
+
+DISTRIBUTIONS_SHIFTED = {
+    "shift_binom": distrs.binom(n=10, p=0.7, loc=-np.pi),
+    "shift_randint": distrs.randint(low=-5, high=4, loc=np.pi),
+}
+
+DISTRIBUTIONS = {
+    **DISTRIBUTIONS_FINITE,
+    **DISTRIBUTIONS_INFINITE,
+    **DISTRIBUTIONS_SHIFTED,
+}
+
 
 def assert_equal_seq(first, second, *args, **kwargs):
     assert len(first) == len(second)
@@ -99,6 +123,66 @@ class TestDisc:
         assert_array_equal(rv.prob, prob)
         assert_array_equal(rv.p, np.cumsum(prob))
 
+    def test_from_rv_basic(self):
+        x = [0, 1, 5]
+        prob = [0.1, 0.4, 0.5]
+        rv = distrs.rv_discrete(values=(x, prob))
+        rv_out = Disc.from_rv(rv)
+        rv_ref = Disc(x=x, prob=prob)
+        assert_equal_disc(rv_out, rv_ref)
+
+        # Object of `Disc` class should be returned untouched
+        rv = Disc([0, 1], [0.1, 0.9])
+        rv.aaa = "Extra method"
+        rv2 = Disc.from_rv(rv)
+        assert_equal_disc(rv, rv2)
+        assert "aaa" in dir(rv2)
+
+        # Works with single-valued rv
+        rv_single = distrs.rv_discrete(values=(2, 1))
+        rv_out = Disc.from_rv(rv_single)
+        assert_array_equal(rv_out.x, [2])
+
+    def test_from_rv_errors(self):
+        # Absence of either `cdf` or `ppf` method should result intro error
+        class Tmp:
+            pass
+
+        tmp1 = Tmp()
+        tmp1.ppf = lambda x: np.where((0 <= x) & (x <= 1), 1, 0)
+        with pytest.raises(ValueError, match="cdf"):
+            Disc.from_rv(tmp1)
+
+        tmp2 = Tmp()
+        tmp2.cdf = lambda x: np.where((0 <= x) & (x <= 1), 1, 0)
+        with pytest.raises(ValueError, match="ppf"):
+            Disc.from_rv(tmp2)
+
+        # Using inappropriate `small_prob` options should result into error
+        rv = distrs.rv_discrete(values=([0, 1], [0.1, 0.9]))
+        with pytest.raises(ValueError, match="`small_prob`.*bigger than 0"):
+            with op.option_context({"small_prob": 0}):
+                Disc.from_rv(rv)
+
+        # Having bad `cdf()` or `ppf()` that result into infinite loop should
+        # result into error
+        tmp3 = Tmp()
+        tmp3.cdf = lambda x: x
+        tmp3.ppf = lambda x: 0.5
+        with pytest.raises(ValueError, match="Couldn't get increase"):
+            Disc.from_rv(tmp3)
+
+    def test_from_rv_options(self):
+        # Usage of `small_prob` option
+        x = [1, 2, 3]
+        prob = [0.5, 0.125, 0.375]
+        rv = distrs.rv_discrete(values=(x, prob))
+
+        with op.option_context({"small_prob": 0.125 + 1e-8}):
+            rv_out = Disc.from_rv(rv)
+            rv_ref = Disc([1, 3], [0.5, 0.5])
+            assert_equal_disc(rv_out, rv_ref)
+
     def test_from_sample_basic(self):
         x = np.array([0.1, -100, 1, np.pi, np.pi, 1, 3, 0.1])
 
@@ -151,12 +235,12 @@ class TestDisc:
             rv = Disc.from_sample(np.asarray([0, 1, 2]))
             assert "aaa" in dir(rv)
 
-        # ## `Discrete` should be forwarded to `Disc.from_rv()`
-        # rv_binom = distrs.binom(n=10, p=0.5)
-        # with op.option_context({"discrete_estimator": lambda x: rv_binom}):
-        #     rv = Disc.from_sample(np.asarray([0, 1, 2]))
-        #     rv_ref = Disc.from_rv(rv_binom)
-        #     assert_equal_disc(rv, rv_ref)
+        ## "Scipy" distribution should be forwarded to `Disc.from_rv()`
+        rv_binom = distrs.binom(n=10, p=0.5)
+        with op.option_context({"discrete_estimator": lambda x: rv_binom}):
+            rv = Disc.from_sample(np.asarray([0, 1, 2]))
+            rv_ref = Disc.from_rv(rv_binom)
+            assert_equal_disc(rv, rv_ref)
 
     def test_pmf(self):
         """Tests for `.pmf()` method, which logic is implemented in `._pmf()`"""
@@ -252,3 +336,51 @@ class TestDisc:
         smpl_1 = rv.rvs(size=100, random_state=101)
         smpl_2 = rv.rvs(size=100, random_state=101)
         assert_array_equal(smpl_1, smpl_2)
+
+
+class TestFromRVAccuracy:
+    """Accuracy of `Disc.from_rv()`"""
+
+    def test_tails(self):
+        test_passed = {
+            name: TestFromRVAccuracy.is_from_rv_small_tails(distr)
+            for name, distr in DISTRIBUTIONS.items()
+        }
+
+        assert all(test_passed.values())
+
+    def test_small_prob_detection(self):
+        # Currently small probabilities can be not detected due to "stepping"
+        # procedure of x-values detection.
+
+        # If small probability element is not detected, its probability is
+        # "squashed" to the next (bigger) detected element
+        rv_1 = distrs.rv_discrete(values=([1, 2, 3], [0.5, 0.125, 0.375]))
+        with op.option_context({"small_prob": 0.125 + 1e-8}):
+            rv_1_out = Disc.from_rv(rv_1)
+            rv_1_ref = Disc([1, 3], [0.5, 0.5])
+            assert_equal_disc(rv_1_out, rv_1_ref)
+
+        # Currently not all elements with small probabilities are not detected,
+        # but only those, which cumulative probability after previous detected
+        # element is less than threshold.
+        rv_2 = distrs.rv_discrete(values=([1, 2, 3, 4], [0.5, 0.0625, 0.0625, 0.375]))
+        with op.option_context({"small_prob": 0.1}):
+            rv_2_out = Disc.from_rv(rv_2)
+            rv_2_ref = Disc([1, 3, 4], [0.5, 0.125, 0.375])
+            assert_equal_disc(rv_2_out, rv_2_ref)
+
+    @staticmethod
+    def is_from_rv_small_tails(rv):
+        small_prob = op.get_option("small_prob")
+
+        rv_disc = Disc.from_rv(rv)
+        x = rv_disc.x
+
+        # Left tail
+        left_tail_prob = rv.cdf(x[0] - 1e-13)
+
+        # Right tail
+        right_tail_prob = 1 - rv.cdf(x[-1])
+
+        return (left_tail_prob <= small_prob) and (right_tail_prob <= small_prob)

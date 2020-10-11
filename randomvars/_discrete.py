@@ -2,7 +2,7 @@
 """
 
 import numpy as np
-from scipy.stats.distributions import rv_discrete
+from scipy.stats.distributions import rv_discrete, rv_frozen
 
 import randomvars.options as op
 import randomvars._utils as utils
@@ -72,6 +72,49 @@ class Disc(rv_discrete):
         return self._p
 
     @classmethod
+    def from_rv(cls, rv):
+        # Make early return
+        if isinstance(rv, Disc):
+            return rv
+
+        # Check input
+        rv_dir = dir(rv)
+        if not all(method in rv_dir for method in ["cdf", "ppf"]):
+            raise ValueError("`rv` should have methods `cdf()` and `ppf()`.")
+
+        # Get options
+        small_prob = op.get_option("small_prob")
+
+        if (small_prob <= 0) or (small_prob >= 1):
+            raise ValueError(
+                "Option `small_prob` in `Disc.from_rv` should be "
+                "bigger than 0 and smaller than 1."
+            )
+
+        # Find values with non-zero probability mass
+        x = []
+        prob = []
+        tot_prob = 0.0
+
+        while tot_prob <= 1 - small_prob:
+            cur_x = rv.ppf(tot_prob + small_prob)
+            cur_tot_prob = rv.cdf(cur_x)
+
+            # Try to guard from infinite loop
+            if cur_tot_prob <= tot_prob:
+                raise ValueError(
+                    "Couldn't get increase of total probability in `Disc.from_rv`. "
+                    "Check correctness of `ppf` and `cdf` methods."
+                )
+
+            x.append(cur_x)
+            prob.append(cur_tot_prob - tot_prob)
+
+            tot_prob = cur_tot_prob
+
+        return cls(x=x, prob=prob)
+
+    @classmethod
     def from_sample(cls, sample):
         """Create discrete RV from sample
 
@@ -119,8 +162,8 @@ class Disc(rv_discrete):
         # Make early return if `estimate` is random variable
         if isinstance(estimate, Disc):
             return estimate
-        # if isinstance(estimate, rv_frozen):
-        #     return Disc.from_rv(estimate)
+        if isinstance(estimate, rv_frozen):
+            return Disc.from_rv(estimate)
 
         return cls(x=estimate[0], prob=estimate[1])
 
