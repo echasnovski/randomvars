@@ -252,7 +252,7 @@ class Cont(rv_continuous):
         - **Detect finite support**. Left and right edges are treated
           separately. If edge is supplied, it is used untouched. If not, it is
           computed by "removing" corresponding (left or right) tail which has
-          probability of `tail_prob` (package option).
+          probability of `small_prob` (package option).
         - **Create x-grid**. It is computed as union of equidistant (fixed
           distance between consecutive points) and equiprobable (fixed
           probability between consecutive points) grids between edges of
@@ -271,7 +271,7 @@ class Cont(rv_continuous):
         **Note** that if `rv` is already an object of class `Cont`, it is
         returned untouched.
 
-        Relevant package options: `n_grid`, `tail_prob`, `integr_tol`. See
+        Relevant package options: `n_grid`, `small_prob`, `integr_tol`. See
         documentation of `randomvars.options.get_option()` for more
         information. To temporarily set options use
         `randomvars.options.option_context()` context manager.
@@ -306,11 +306,11 @@ class Cont(rv_continuous):
 
         # Get options
         n_grid = get_option("n_grid")
-        tail_prob = get_option("tail_prob")
+        small_prob = get_option("small_prob")
         integr_tol = get_option("integr_tol")
 
         # Detect effective support of `rv`
-        x_left, x_right = _detect_finite_supp(rv, supp, tail_prob)
+        x_left, x_right = _detect_finite_supp(rv, supp, small_prob)
 
         # Construct equidistant grid
         x_equi = np.linspace(x_left, x_right, n_grid)
@@ -620,13 +620,13 @@ class Cont(rv_continuous):
         return res
 
 
-def _detect_finite_supp(rv, supp=None, tail_prob=1e-6):
+def _detect_finite_supp(rv, supp=None, small_prob=1e-6):
     """Detect finite support of random variable
 
     Finite support edge is detected via testing actual edge to be finite:
     - If finite, it is returned.
     - If infinite, output is a value with outer tail having probability
-      `tail_prob`.
+      `small_prob`.
 
     Parameters
     ----------
@@ -636,7 +636,7 @@ def _detect_finite_supp(rv, supp=None, tail_prob=1e-6):
         (returned untouched) or `None` (finite support edge is detected).
         Single `None` is equivalent to `(None, None)`, i.e. finding both edges
         of finite support.
-    tail_prob : Tail probability, optional
+    small_prob : Tail probability, optional
         Probability value of tail that might be cutoff in order to get finite
         support.
 
@@ -650,14 +650,14 @@ def _detect_finite_supp(rv, supp=None, tail_prob=1e-6):
     if supp[0] is None:
         left = rv.ppf(0)
         if np.isneginf(left):
-            left = rv.ppf(tail_prob)
+            left = rv.ppf(small_prob)
     else:
         left = supp[0]
 
     if supp[1] is None:
         right = rv.ppf(1)
         if np.isposinf(right):
-            right = rv.ppf(1 - tail_prob)
+            right = rv.ppf(1 - small_prob)
     else:
         right = supp[1]
 

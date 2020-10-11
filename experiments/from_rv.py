@@ -92,16 +92,16 @@ def combine_x(x1, x2, min_diff=1e-13):
     return x[x_is_good]
 
 
-def get_rv_supp_probs(rv, tail_prob=1e-6):
+def get_rv_supp_probs(rv, small_prob=1e-6):
     if np.isfinite(rv.ppf(0)):
         left = 0
     else:
-        left = tail_prob
+        left = small_prob
 
     if np.isfinite(rv.ppf(1)):
         right = 1
     else:
-        right = 1 - tail_prob
+        right = 1 - small_prob
 
     return left, right
 
@@ -115,21 +115,21 @@ def augment_grid(x, n_inner_points):
     return np.concatenate(test_arr)
 
 
-def get_rv_supp(rv, supp, tail_prob=1e-6, *args, **kwargs):
+def get_rv_supp(rv, supp, small_prob=1e-6, *args, **kwargs):
     if supp is None:
         supp = [None, None]
 
     if supp[0] is None:
         left = rv.ppf(0)
         if np.isneginf(left):
-            left = rv.ppf(tail_prob)
+            left = rv.ppf(small_prob)
     else:
         left = supp[0]
 
     if supp[1] is None:
         right = rv.ppf(1)
         if np.isposinf(right):
-            right = rv.ppf(1 - tail_prob)
+            right = rv.ppf(1 - small_prob)
     else:
         right = supp[1]
 

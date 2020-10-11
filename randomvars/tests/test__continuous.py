@@ -254,16 +254,16 @@ class TestCont:
         rv_mid_test = Cont([0.25, 0.75], [2, 2])
         assert_almost_equal_cont(rv_mid, rv_mid_test, decimal=12)
 
-        # Finite support detection and usage of `tail_prob` option
-        with option_context({"tail_prob": 1e-6}):
+        # Finite support detection and usage of `small_prob` option
+        with option_context({"small_prob": 1e-6}):
             rv_norm = Cont.from_rv(norm)
         assert_array_almost_equal(rv_norm.support(), norm.ppf([1e-6, 1 - 1e-6]))
 
-        with option_context({"tail_prob": 1e-6}):
+        with option_context({"small_prob": 1e-6}):
             rv_norm_right = Cont.from_rv(norm, supp=(-1, None))
         assert_array_almost_equal(rv_norm_right.support(), [-1, norm.ppf(1 - 1e-6)])
 
-        with option_context({"tail_prob": 1e-6}):
+        with option_context({"small_prob": 1e-6}):
             rv_norm_left = Cont.from_rv(norm, supp=(None, 1))
         assert_array_almost_equal(rv_norm_left.support(), [norm.ppf(1e-6), 1])
 

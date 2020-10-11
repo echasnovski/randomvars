@@ -18,7 +18,7 @@ _default_options = {
     "discrete_estimator": default_discrete_estimator,
     "integr_tol": 1e-4,
     "n_grid": 1001,
-    "tail_prob": 1e-6,
+    "small_prob": 1e-6,
     "tolerance": (0.0, 1e-8),
 }
 _options = _default_options.copy()
@@ -48,8 +48,8 @@ _options_list = """
   and downgridded xy-grids is less than `integr_tol`.
 - n_grid : int, default 1001. Number of points in initial xy-grids when
   creating object of class `Cont`.
-- tail_prob : float, default 1e-6. Probability value of distribution tail that
-  might be cutoff in order to get finite support.
+- small_prob : float, default 1e-6. Probability value that can be considered
+  "small" during approximations.
 - tolerance : tuple with two elements, default (0.0, 1e-8). Tuple with
   relative and absolute tolerance to be used as `rtol` and `atol` arguments in
   `numpy.isclose()` and similar functions. **Note** that default values are
