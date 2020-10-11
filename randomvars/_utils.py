@@ -74,6 +74,21 @@ def _sort_parallel(x, y, y_name="y", warn=True):
     return x, y
 
 
+def _unique_parallel(x, y, warn=True):
+    """Remove duplicated values
+
+    This removes duplicated values from `x` along with corresponding elements
+    in second array. `x` and `y` should be the same length.
+    """
+    if warn:
+        warnings.warn("There are duplicated values in `x`. Using first ones.")
+
+    x, ind = np.unique(x, return_index=True)
+    y = y[ind]
+
+    return x, y
+
+
 def _assert_positive(x, x_name):
     if np.any(x < 0):
         raise ValueError(f"`{x_name}` has negative values.")

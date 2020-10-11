@@ -83,6 +83,12 @@ class TestDisc:
             rv_4 = Disc(x=x_ref[[1, 0, 2]], prob=prob_ref[[1, 0, 2]])
             assert_equal_disc(rv_4, rv_ref)
 
+        # Check if duplicated values are removed from `x`
+        with pytest.warns(UserWarning, match="duplicated"):
+            # First pair of xy-grid is taken among duplicates
+            rv_5 = Disc(x=x_ref[[0, 1, 1, 2]], prob=prob_ref[[0, 1, 2, 2]])
+            assert_equal_disc(rv_5, rv_ref)
+
     def test_xprobp(self):
         """Tests for `x`, `prob`, and `p` properties"""
         x = np.arange(10)

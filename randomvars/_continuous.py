@@ -13,8 +13,9 @@ from randomvars.options import get_option
 class Cont(rv_continuous):
     """Continuous random variable
 
-    Class for continuous random variable **defined by piecewise-linear linear
-    density**. It has **finite support** and **finite density values**.
+    Class for continuous random variable **defined by piecewise-linear
+    density**. It has **finite support**, **on which it is continuous**, and
+    **finite density values**.
 
     There are three ways to create instance of `Cont` class:
 
@@ -64,6 +65,9 @@ class Cont(rv_continuous):
         y = utils._as_1d_finite_float(y, "y")
 
         x, y = utils._sort_parallel(x, y, warn=True)
+
+        if not np.all(np.diff(x) > 0):
+            x, y = utils._unique_parallel(x, y, warn=True)
 
         if (len(x) < 2) or (len(y) < 2):
             raise ValueError("Both `x` and `y` should have at least two elements.")

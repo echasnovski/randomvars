@@ -176,8 +176,14 @@ class TestCont:
 
         # Check if `x` and `y` are rearranged if not sorted
         with pytest.warns(UserWarning, match="`x`.*not sorted"):
-            rv_3 = Cont(x=x_ref[[1, 0, 2]], y=10 * y_ref[[1, 0, 2]])
-        assert_equal_cont(rv_3, rv_ref)
+            rv_3 = Cont(x=x_ref[[1, 0, 2]], y=y_ref[[1, 0, 2]])
+            assert_equal_cont(rv_3, rv_ref)
+
+        # Check if duplicated values are removed from `x`
+        with pytest.warns(UserWarning, match="duplicated"):
+            # First pair of xy-grid is taken among duplicates
+            rv_4 = Cont(x=x_ref[[0, 1, 1, 2]], y=y_ref[[0, 1, 2, 2]])
+            assert_equal_cont(rv_4, rv_ref)
 
     def test_xyp(self):
         """Tests for `x`, `y`, and `p` properties"""

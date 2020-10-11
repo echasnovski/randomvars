@@ -5,6 +5,7 @@ import pytest
 from randomvars._utils import (
     _as_1d_finite_float,
     _sort_parallel,
+    _unique_parallel,
     _assert_positive,
     _searchsorted_wrap,
     _find_nearest_ind,
@@ -51,14 +52,34 @@ def test__sort_parallel():
     # Warning should be given by default
     with pytest.warns(UserWarning, match="`x`.*not sorted.*`x` and `tmp_name`"):
         x_out, y_out = _sort_parallel(x, y, y_name="tmp_name")
-        assert_array_equal(x_out, x[[1, 0]])
-        assert_array_equal(y_out, y[[1, 0]])
+        assert_array_equal(x_out, x_sorted)
+        assert_array_equal(y_out, y_sorted)
 
     # No warning should be given if `warn=False`
     with pytest.warns(None) as record:
         x_out, y_out = _sort_parallel(x, y, warn=False)
-        assert_array_equal(x_out, x[[1, 0]])
-        assert_array_equal(y_out, y[[1, 0]])
+        assert_array_equal(x_out, x_sorted)
+        assert_array_equal(y_out, y_sorted)
+    assert len(record) == 0
+
+
+def test__unique_parallel():
+    x = np.array([0, 1, 1, 2])
+    y = np.array([0, 1, 2, 3])
+    x_unique = np.array([0, 1, 2])
+    y_unique = np.array([0, 1, 3])
+
+    # Warning should be given by default
+    with pytest.warns(UserWarning, match="duplicated values"):
+        x_out, y_out = _unique_parallel(x, y)
+        assert_array_equal(x_out, x_unique)
+        assert_array_equal(y_out, y_unique)
+
+    # No warning should be given if `warn=False`
+    with pytest.warns(None) as record:
+        x_out, y_out = _unique_parallel(x, y, warn=False)
+        assert_array_equal(x_out, x_unique)
+        assert_array_equal(y_out, y_unique)
     assert len(record) == 0
 
 

@@ -11,9 +11,10 @@ import randomvars._utils as utils
 class Disc(rv_discrete):
     """Discrete random variable
 
-    Class for discrete random variable with **finite number of (finite) values**.
-    It is similar to `rv_sample` class from `scipy.stats.distributions`, but works with
-    float numbers as distributions values (opposite to only integers in `rv_sample`).
+    Class for discrete random variable with **finite number of (finite and
+    unique) values**.  It is similar to `rv_sample` class from
+    `scipy.stats.distributions`, but works with float numbers as distribution
+    values (opposite to only integers in `rv_sample`).
 
     Main way to create instance of `Disc` is to directly supply values (`x`)
     and probabilities (`prob`) of distribution:
@@ -45,6 +46,9 @@ class Disc(rv_discrete):
         prob = utils._as_1d_finite_float(prob, "prob")
 
         x, prob = utils._sort_parallel(x, prob, y_name="prob", warn=True)
+
+        if not np.all(np.diff(x) > 0):
+            x, prob = utils._unique_parallel(x, prob, warn=True)
 
         utils._assert_positive(prob, "prob")
 
