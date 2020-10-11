@@ -231,7 +231,7 @@ class TestCont:
             (np.array([0, np.nan, 0]), np.array([0, np.nan, 0])),
         )
 
-    def test_from_rv(self):
+    def test_from_rv_basic(self):
         uniform = distrs.uniform
         norm = distrs.norm
 
@@ -260,18 +260,36 @@ class TestCont:
         rv_mid_test = Cont([0.25, 0.75], [2, 2])
         assert_almost_equal_cont(rv_mid, rv_mid_test, decimal=12)
 
+    def test_from_rv_errors(self):
+        # Absence of either `cdf` or `ppf` method should result intro error
+        class Tmp:
+            pass
+
+        tmp1 = Tmp()
+        tmp1.ppf = lambda x: np.where((0 <= x) & (x <= 1), 1, 0)
+        with pytest.raises(ValueError, match="cdf"):
+            Cont.from_rv(tmp1)
+
+        tmp2 = Tmp()
+        tmp2.cdf = lambda x: np.where((0 <= x) & (x <= 1), 1, 0)
+        with pytest.raises(ValueError, match="ppf"):
+            Cont.from_rv(tmp2)
+
+    def test_from_rv_options(self):
+        norm = distrs.norm
+
         # Finite support detection and usage of `small_prob` option
         with option_context({"small_prob": 1e-6}):
             rv_norm = Cont.from_rv(norm)
-        assert_array_almost_equal(rv_norm.support(), norm.ppf([1e-6, 1 - 1e-6]))
+            assert_array_almost_equal(rv_norm.support(), norm.ppf([1e-6, 1 - 1e-6]))
 
         with option_context({"small_prob": 1e-6}):
             rv_norm_right = Cont.from_rv(norm, supp=(-1, None))
-        assert_array_almost_equal(rv_norm_right.support(), [-1, norm.ppf(1 - 1e-6)])
+            assert_array_almost_equal(rv_norm_right.support(), [-1, norm.ppf(1 - 1e-6)])
 
         with option_context({"small_prob": 1e-6}):
             rv_norm_left = Cont.from_rv(norm, supp=(None, 1))
-        assert_array_almost_equal(rv_norm_left.support(), [norm.ppf(1e-6), 1])
+            assert_array_almost_equal(rv_norm_left.support(), [norm.ppf(1e-6), 1])
 
         # Usage of `n_grid` option
         with option_context({"n_grid": 11}):
@@ -285,21 +303,6 @@ class TestCont:
             rv_norm_2 = Cont.from_rv(norm)
         ## Increasing tolerance should lead to decrease of density grid
         assert len(rv_norm_1.x) > len(rv_norm_2.x)
-
-    def test_from_rv_errors(self):
-        class Tmp:
-            def __init__(self):
-                pass
-
-        tmp1 = Tmp()
-        tmp1.cdf = lambda x: np.where((0 <= x) & (x <= 1), 1, 0)
-        with pytest.raises(ValueError, match="ppf"):
-            Cont.from_rv(tmp1)
-
-        tmp2 = Tmp()
-        tmp2.ppf = lambda x: np.where((0 <= x) & (x <= 1), 1, 0)
-        with pytest.raises(ValueError, match="cdf"):
-            Cont.from_rv(tmp2)
 
     def test_from_sample_basic(self):
         norm = distrs.norm()
@@ -343,7 +346,7 @@ class TestCont:
             rv = Cont.from_sample(np.asarray([0, 1, 2]))
             assert "aaa" in dir(rv)
 
-        ## `Continuous` should be forwarded to `Cont.from_rv()`
+        ## "Scipy" distribution should be forwarded to `Cont.from_rv()`
         rv_norm = distrs.norm()
         with option_context({"density_estimator": lambda x: rv_norm}):
             rv = Cont.from_sample(np.asarray([0, 1, 2]))
