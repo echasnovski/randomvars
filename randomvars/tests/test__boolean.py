@@ -1,0 +1,156 @@
+# pylint: disable=missing-function-docstring
+"""Tests for '_boolean.py' file"""
+import numpy as np
+from numpy.testing import assert_array_equal
+import pytest
+
+from randomvars._boolean import Bool
+from randomvars._discrete import Disc
+from randomvars._utils import _assert_equal_seq
+import randomvars.options as op
+
+
+def assert_equal_bool(rv_1, rv_2):
+    grid_1 = rv_1.x, rv_1.prob, rv_1.p, rv_1.prob_false, rv_1.prob_true
+    grid_2 = rv_2.x, rv_2.prob, rv_2.p, rv_2.prob_false, rv_2.prob_true
+    _assert_equal_seq(grid_1, grid_2)
+
+
+def assert_equal_bool_disc(rv_bool, rv_disc):
+    grid_1 = rv_bool.x, rv_bool.prob, rv_bool.p, rv_bool.prob_false, rv_bool.prob_true
+    grid_2 = rv_disc.x, rv_disc.prob, rv_disc.p, rv_disc.prob[0], rv_disc.prob[1]
+    _assert_equal_seq(grid_1, grid_2)
+
+
+class TestBool:
+    """Regression tests for `Bool` class"""
+
+    def test_init_errors(self):
+        with pytest.raises(ValueError, match="number"):
+            Bool("a")
+        with pytest.raises(ValueError, match="0"):
+            Bool(-0.1)
+        with pytest.raises(ValueError, match="1"):
+            Bool(1.1)
+
+    def test_init(self):
+        # Basic usage
+        rv_out = Bool(prob_true=0.75)
+        rv_ref = Disc(x=[0, 1], prob=[0.25, 0.75])
+        assert_equal_bool_disc(rv_out, rv_ref)
+
+        # Integer edge cases
+        rv_out = Bool(prob_true=0)
+        rv_ref = Disc(x=[0, 1], prob=[1, 0])
+        assert_equal_bool_disc(rv_out, rv_ref)
+
+        rv_out = Bool(prob_true=1)
+        rv_ref = Disc(x=[0, 1], prob=[0, 1])
+        assert_equal_bool_disc(rv_out, rv_ref)
+
+    def test_properties(self):
+        """Tests for properties"""
+        prob_true = 0.75
+        rv = Bool(prob_true)
+
+        assert_array_equal(rv.x, [0, 1])
+        assert_array_equal(rv.prob, [1 - prob_true, prob_true])
+        assert_array_equal(rv.p, [1 - prob_true, 1])
+        assert_array_equal(rv.prob_false, 1 - prob_true)
+        assert_array_equal(rv.prob_true, prob_true)
+
+    def test_pmf(self):
+        """Tests for `.pmf()` method"""
+        rtol, atol = op.get_option("tolerance")
+        rv = Bool(0.75)
+
+        # Regular checks
+        x = [-1, 0, 0.5, 1, 2]
+        assert_array_equal(rv.pmf(x), [0, 0.25, 0, 0.75, 0])
+
+        # Bad input
+        x = np.array([-np.inf, np.nan, np.inf])
+        assert_array_equal(rv.pmf(x), np.array([0, np.nan, 0]))
+
+        # Using tolerance option
+        with op.option_context({"tolerance": (0, 1e-10)}):
+            assert_array_equal(rv.pmf([0.9e-10, 1.01e-10]), [0.25, 0.0])
+
+        with op.option_context({"tolerance": (1e-2, 1e-10)}):
+            assert_array_equal(
+                rv.pmf([(1 + 1e-2) * 1 + 0.99e-10, (1 + 1e-2) * 1 + 1.01e-10]),
+                [0.75, 0.0],
+            )
+
+        # Broadcasting
+        x = np.array([[-1, 0], [0, 1]])
+        assert_array_equal(rv.pmf(x), np.array([[0.0, 0.25], [0.25, 0.75]]))
+
+    def test_cdf(self):
+        """Tests for `.cdf()` method"""
+        rv = Bool(0.75)
+        h = 1e-12
+
+        # Regular checks
+        x = np.array([-10, 0 - h, 0, 0 + h, 1 - h, 1, 1 + h, 10])
+        assert_array_equal(rv.cdf(x), np.array([0, 0, 0.25, 0.25, 0.25, 1, 1, 1]))
+
+        # Bad input
+        x = np.array([-np.inf, np.nan, np.inf])
+        assert_array_equal(rv.cdf(x), np.array([0, np.nan, 1]))
+
+        # Broadcasting
+        x = np.array([[-1, 0], [1, 2]])
+        assert_array_equal(rv.cdf(x), np.array([[0.0, 0.25], [1.0, 1.0]]))
+
+    def test_ppf(self):
+        """Tests for `.ppf()` method"""
+        rv = Bool(0.75)
+        h = 1e-12
+
+        # Regular checks
+        ## Output should be boolean
+        q = np.array([0, 0.25 - h, 0.25, 0.25 + h, 1 - h, 1])
+        out = rv.ppf(q)
+        assert_array_equal(out, np.array([False, False, False, True, True, True]))
+        assert out.dtype == np.dtype("bool")
+
+        # Bad input will result into `True` instead of `numpy.nan` as this is
+        # how Numpy converts to "bool" dtype
+        q = np.array([-np.inf, -h, np.nan, 1 + h, np.inf])
+        out = rv.ppf(q)
+        assert_array_equal(out, np.array([True, True, True, True, True]))
+        assert out.dtype == np.dtype("bool")
+
+        # Broadcasting
+        q = np.array([[0.0, 0.5], [0.0, 1.0]])
+        out = rv.ppf(q)
+        assert_array_equal(out, np.array([[False, True], [False, True]]))
+        assert out.dtype == np.dtype("bool")
+
+    def test_rvs(self):
+        """Tests for `.rvs()`"""
+        rv = Bool(0.75)
+
+        # Regular checks
+        ## Output should be boolean
+        smpl = rv.rvs(size=100, random_state=101)
+        assert_array_equal(np.unique(smpl), [False, True])
+        assert smpl.dtype == np.dtype("bool")
+
+        # Treats default `size` as 1
+        assert rv.rvs().shape == tuple()
+
+        # Broadcasting
+        smpl_array = rv.rvs(size=(10, 2))
+        assert smpl_array.shape == (10, 2)
+
+        # Usage of `random_state`
+        smpl_1 = rv.rvs(size=100, random_state=np.random.RandomState(101))
+        smpl_2 = rv.rvs(size=100, random_state=np.random.RandomState(101))
+        assert_array_equal(smpl_1, smpl_2)
+
+        # Usage of integer `random_state` as a seed
+        smpl_1 = rv.rvs(size=100, random_state=101)
+        smpl_2 = rv.rvs(size=100, random_state=101)
+        assert_array_equal(smpl_1, smpl_2)
