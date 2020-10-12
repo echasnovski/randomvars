@@ -16,11 +16,36 @@ class Disc(rv_discrete):
     `scipy.stats.distributions`, but works with float numbers as distribution
     values (opposite to only integers in `rv_sample`).
 
-    Main way to create instance of `Disc` is to directly supply values (`x`)
-    and probabilities (`prob`) of distribution:
+    There are three ways to create instance of `Disc` class:
+
+    1. Directly supply x-values (`x`) and their probabilities (`prob`):
     ```
         my_disc = Disc(x=[1.618, 2.718, 3.141], prob=[0.1, 0.2, 0.7])
         my_disc.pmf([1.618, 1.619])
+    ```
+    2. Use `Disc.from_rv()` to create approximation of some existing discrete
+    random variable (object with methods `cdf()` and `ppf()`):
+    ```
+        from scipy.stats import binom
+        rv_binom = binom(n=10, p=0.5)
+        my_binom = Disc.from_rv(rv_binom)
+        rv_binom.pmf([0, 5, 10])
+        my_binom.pmf([0, 5, 10])
+
+        # In general, `Disc` represents approximation to input random variable
+        # as it might not detect x-values with small probabilities (see
+        # documentation of `Disc.from_rv` for more information)
+        rv_binom_wide = binom(n=100, p=0.5)
+        my_binom_wide = Disc.from_rv(rv_binom_wide)
+        ## Values in tails are not detected as they have low probabilities
+        my_binom_wide.x
+    ```
+    3. Use `Disc.from_sample()` to create estimation based on some existing sample:
+    ```
+        from scipy.stats import binom
+        sample = binom(n=10, p=0.1).rvs(size=100, random_state=101)
+        my_rv = Disc.from_sample(sample)
+        my_rv.pmf([0, 1, 10])
     ```
     """
 
@@ -73,6 +98,63 @@ class Disc(rv_discrete):
 
     @classmethod
     def from_rv(cls, rv):
+        """Create discrete RV from general RV
+
+        Discrete RV with finite number of values is created by iteratively
+        searching for x-values with positive probability. This is done by
+        "stepping" procedure with step size equal to `small_prob` (package
+        option). It uses combination of `cdf()` (cumulative distribution
+        function) and `ppf()` (quantile function) methods to walk across [0, 1]
+        interval of cumulative probability.
+
+        Single step tracks current cumulative probability `tot_prob` and has
+        the following algorithm:
+        - **Find next x-value `new_x`** as value of `ppf()` at `tot_prob +
+          small_prob` ("make `small_prob` step"). **Note** that this means
+          possibly skipping x-values with small probability.
+        - **Find total probability `new_tot_prob` at x-value** as value of
+          `cdf(new_x)`. This will usually be bigger than `tot_prob +
+          small_prob`.
+        - **Compute probability at new x-value** as difference `new_tot_prob -
+          tot_prob`. If there are skipped x-values with small probabilities,
+          those are automatically "squashed" to new x-value.
+        - **Make `tot_prob` equal to `new_tot_prob`**.
+
+        Iterations start with total probability being zero and end when it
+        surpasses `1 - small_prob`.
+
+        **Notes**:
+        - If `rv` is already an object of class `Disc`, it is returned
+          untouched.
+        - By the nature of "stepping" procedure, output random variable will
+          automatically have "trimmed tails" if they consist from x-values
+          with small probabilities. This might result into fewer elements in
+          output than there is in input. For example, binomial distribution
+          with `n=100` and `p=0.5` by default will not have all elements from 0
+          to 100, but only the ones close enough to 50.
+        - It can take much time to complete if there are many points with
+          positive probability, because it will result into many calls of
+          `cdf()` and `ppf()` methods.
+
+        Relevant package options: `small_prob`. See documentation of
+        `randomvars.options.get_option()` for more information. To temporarily
+        set options use `randomvars.options.option_context()` context manager.
+
+        Parameters
+        ----------
+        rv : Object with methods `cdf()` and `ppf()`
+            Methods `cdf()` and `ppf()` should implement functions for
+            cumulative distribution and quantile functions respectively.
+            Recommended to be an object of class `rv_frozen` (`rv_discrete`
+            with all hyperparameters defined).
+
+        Returns
+        -------
+        rv_out : Disc
+            Discrete random variable with **finite number of (finite and
+            unique) values** which approximates probability distribution of
+            input `rv`.
+        """
         # Make early return
         if isinstance(rv, Disc):
             return rv
