@@ -370,6 +370,15 @@ class TestFromRVAccuracy:
             rv_2_ref = Disc([1, 3, 4], [0.5, 0.125, 0.375])
             assert_equal_disc(rv_2_out, rv_2_ref)
 
+    def test_last_value(self):
+        # If last (biggest) value has probability equal to `small_prob`, it
+        # should nevertheless be included
+        rv = distrs.rv_discrete(values=([0, 1], [0.875, 0.125]))
+        with op.option_context({"small_prob": 0.125}):
+            rv_out = Disc.from_rv(rv)
+            rv_ref = Disc([0, 1], [0.875, 0.125])
+            assert_equal_disc(rv_out, rv_ref)
+
     @staticmethod
     def is_from_rv_small_tails(rv):
         small_prob = op.get_option("small_prob")
