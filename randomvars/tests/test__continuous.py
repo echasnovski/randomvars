@@ -7,6 +7,7 @@ from scipy.integrate import quad
 import pytest
 
 from randomvars._continuous import Cont
+from randomvars._utils import _assert_equal_seq
 from randomvars.options import get_option, option_context
 
 
@@ -51,16 +52,10 @@ DISTRIBUTIONS = {
 }
 
 
-def assert_equal_seq(first, second, *args, **kwargs):
-    assert len(first) == len(second)
-    for el1, el2 in zip(first, second):
-        assert_array_equal(el1, el2, *args, **kwargs)
-
-
 def assert_equal_cont(rv_1, rv_2):
     grid_1 = rv_1.x, rv_1.y, rv_1.p
     grid_2 = rv_2.x, rv_2.y, rv_2.p
-    assert_equal_seq(grid_1, grid_2)
+    _assert_equal_seq(grid_1, grid_2)
 
 
 def assert_almost_equal_cont(rv_1, rv_2, decimal=10):
@@ -218,15 +213,15 @@ class TestCont:
         with pytest.raises(ValueError, match="one of"):
             rv.pdf_coeffs(x, side="a")
 
-        assert_equal_seq(
+        _assert_equal_seq(
             rv.pdf_coeffs(x),
             (np.array([0, 0, 0, 2, 2, 2, 0]), np.array([0, 1, 1, -1, -1, -1, 0])),
         )
-        assert_equal_seq(
+        _assert_equal_seq(
             rv.pdf_coeffs(x, side="left"),
             (np.array([0, 0, 0, 0, 2, 2, 0]), np.array([0, 1, 1, 1, -1, -1, 0])),
         )
-        assert_equal_seq(
+        _assert_equal_seq(
             rv.pdf_coeffs(np.array([-np.inf, np.nan, np.inf])),
             (np.array([0, np.nan, 0]), np.array([0, np.nan, 0])),
         )

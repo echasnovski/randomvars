@@ -40,6 +40,13 @@ def default_discrete_estimator(sample):
     return vals, counts / np.sum(counts)
 
 
+# %% Assertions
+def _assert_equal_seq(first, second, *args, **kwargs):
+    assert len(first) == len(second)
+    for el1, el2 in zip(first, second):
+        np.testing.assert_array_equal(el1, el2, *args, **kwargs)
+
+
 # %% Array manipulations
 def _as_1d_finite_float(x, x_name):
     """Convert input to numeric numpy array and check for 1 dimension"""

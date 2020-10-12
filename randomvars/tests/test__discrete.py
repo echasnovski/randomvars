@@ -6,6 +6,7 @@ import scipy.stats.distributions as distrs
 import pytest
 
 from randomvars._discrete import Disc
+from randomvars._utils import _assert_equal_seq
 import randomvars.options as op
 
 DISTRIBUTIONS_FINITE = {
@@ -33,16 +34,10 @@ DISTRIBUTIONS = {
 }
 
 
-def assert_equal_seq(first, second, *args, **kwargs):
-    assert len(first) == len(second)
-    for el1, el2 in zip(first, second):
-        assert_array_equal(el1, el2, *args, **kwargs)
-
-
 def assert_equal_disc(rv_1, rv_2):
     grid_1 = rv_1.x, rv_1.prob, rv_1.p
     grid_2 = rv_2.x, rv_2.prob, rv_2.p
-    assert_equal_seq(grid_1, grid_2)
+    _assert_equal_seq(grid_1, grid_2)
 
 
 class TestDisc:
