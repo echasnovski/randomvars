@@ -1,18 +1,20 @@
 from scipy.stats.kde import gaussian_kde
 
-from randomvars._utils import default_discrete_estimator
+from randomvars._utils import default_discrete_estimator, default_boolean_estimator
 
 
 __all__ = [
-    "get_option",
-    "set_option",
-    "reset_option",
-    "option_context",
     "OptionError",
+    "default_boolean_estimator",
     "default_discrete_estimator",
+    "get_option",
+    "option_context",
+    "reset_option",
+    "set_option",
 ]
 
 _default_options = {
+    "boolean_estimator": default_boolean_estimator,
     "density_estimator": gaussian_kde,
     "density_mincoverage": 0.9999,
     "discrete_estimator": default_discrete_estimator,
@@ -24,6 +26,12 @@ _default_options = {
 _options = _default_options.copy()
 
 _options_list = """
+- boolean_estimator : callable, default
+  randomvars.options.default_boolean_estimator. Function which takes sample as
+  input and returns one of:
+    - Number representing probability of `True` for boolean random variable.
+    - Object of class `Bool, `Disc`, or `rv_frozen` (`rv_discrete` with all
+      hyperparameters defined).
 - density_estimator : callable, default scipy.stats.kde.gaussian_kde. Function
   which takes sample as input and returns one of:
     - Callable object for density estimate (takes points as input and returns

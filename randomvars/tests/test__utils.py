@@ -19,6 +19,9 @@ from randomvars._utils import (
 # `default_discrete_estimator()` is tested in `options` module
 
 
+# `default_boolean_estimator()` is tested in `options` module
+
+
 def test__as_1d_finite_float():
     with pytest.raises(ValueError, match=f"`tmp_name`.*numpy array"):
         _as_1d_finite_float({"a": None}, "tmp_name")

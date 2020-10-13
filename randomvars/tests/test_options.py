@@ -26,6 +26,22 @@ def test_default_discrete_estimator():
         assert_array_equal(out[1], np.array([1]))
 
 
+def test_default_boolean_estimator():
+    # Normal usage
+    out = default_boolean_estimator([True, False, False, True, True])
+    assert out == 0.6
+
+    # Usage with other input types
+    out = default_boolean_estimator([0, 0, 0, 1, 1])
+    assert out == 0.4
+
+    out = default_boolean_estimator([0.0, 0.0, 0.0, 1.0, 0.0])
+    assert out == 0.2
+
+    out = default_boolean_estimator(["a", "b", "c"])
+    assert out == 1.0
+
+
 def test_get_option():
     # Normal usage
     assert isinstance(get_option("n_grid"), int)

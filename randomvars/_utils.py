@@ -40,6 +40,26 @@ def default_discrete_estimator(sample):
     return vals, counts / np.sum(counts)
 
 
+def default_boolean_estimator(sample):
+    """Default estimator of boolean distribution
+
+    This estimator returns proportion of `True` values after converting input
+    to boolean Numpy array.
+
+    Parameters
+    ----------
+    sample : array_like
+        This should be a valid input to `np.asarray()` so that its output is
+        boolean.
+
+    Returns
+    -------
+    prob_true : number
+    """
+    sample = np.asarray(sample, dtype="bool")
+    return np.mean(sample)
+
+
 # %% Assertions
 def _assert_equal_seq(first, second, *args, **kwargs):
     assert len(first) == len(second)
