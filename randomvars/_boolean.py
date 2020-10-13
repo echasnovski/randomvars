@@ -2,9 +2,11 @@
 """
 
 import numpy as np
+from scipy.stats.distributions import rv_frozen
 
 from randomvars._discrete import Disc
 import randomvars.options as op
+import randomvars._utils as utils
 
 
 class Bool(Disc):
@@ -75,6 +77,52 @@ class Bool(Disc):
         prob_false = rv.cdf(0) - rv.cdf(-atol)
 
         return cls(prob_true=1 - prob_false)
+
+    @classmethod
+    def from_sample(cls, sample):
+        """Create boolean RV from sample
+
+        Boolean RV is created by the following algorithm:
+        - **Estimate distribution** with boolean estimator (taken from package
+          option "boolean_estimator") in the form `estimate =
+          boolean_estimator(sample)`. If `estimator` is object of class `Bool`,
+          it is returned untouched. If it is object of `Disc` or `rv_frozen`
+          (`rv_discrete` with all hyperparameters defined), it is forwarded to
+          `Bool.from_rv()`.
+        - **Create random variable** with `Bool(prob_true=estimate)`.
+
+        Relevant package options: `boolean_estimator`. See documentation of
+        `randomvars.options.get_option()` for more information. To temporarily
+        set options use `randomvars.options.option_context()` context manager.
+
+        Parameters
+        ----------
+        sample : 1d array-like
+            This should be a valid input to `np.asarray()` so that its output
+            is boolean and has single dimension.
+
+        Returns
+        -------
+        rv_out : Bool
+            Boolean random variable which is an estimate based on input
+            `sample`.
+        """
+        # Check and prepare input
+        sample = utils._as_1d_numpy(sample, "sample", chkfinite=False, dtype="bool")
+
+        # Get options
+        boolean_estimator = op.get_option("boolean_estimator")
+
+        # Estimate distribution
+        estimate = boolean_estimator(sample)
+
+        # Make early return if `estimate` is random variable
+        if isinstance(estimate, Bool):
+            return estimate
+        if isinstance(estimate, (Disc, rv_frozen)):
+            return Bool.from_rv(estimate)
+
+        return cls(prob_true=estimate)
 
     # Because of integer nature of `False` and `True` in Python, these
     # attributes should work as expected when booleans are supplied:

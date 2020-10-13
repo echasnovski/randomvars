@@ -102,6 +102,58 @@ class TestBool:
         with op.option_context({"tolerance": (0, 5e-2)}):
             assert_equal_bool(Bool.from_rv(rv), Bool(prob_true=1 - 0.625))
 
+    def test_from_sample_basic(self):
+        # Normal usage
+        x = np.array([True, False, False, True, True])
+
+        rv = Bool.from_sample(x)
+        rv_ref = Bool(prob_true=0.6)
+        assert isinstance(rv, Bool)
+        assert_equal_bool(rv, rv_ref)
+
+        # Accepting other types
+        x = np.array([0, 1, 2, 1])
+        rv = Bool.from_sample(x)
+        rv_ref = Bool.from_sample(x.astype("bool"))
+        assert_equal_bool(rv, rv_ref)
+
+    def test_from_sample_errors(self):
+        # As everything is convertible to boolean array, no error can be thrown
+        # regarding input type
+
+        with pytest.raises(ValueError, match="1d"):
+            Disc.from_sample([[True], [False]])
+
+    def test_from_sample_options(self):
+        x = [True, False, False, True]
+
+        # "boolean_estimator"
+        with op.option_context({"boolean_estimator": lambda x: 0}):
+            rv = Bool.from_sample(x)
+            assert_equal_bool(rv, Bool(prob_true=0))
+
+        # "boolean_estimator" which returns allowed classes
+        ## `Bool` object should be returned untouched
+        rv_estimation = Bool(prob_true=1)
+        rv_estimation.aaa = "Extra method"
+        with op.option_context({"boolean_estimator": lambda x: rv_estimation}):
+            rv = Bool.from_sample(x)
+            assert "aaa" in dir(rv)
+
+        ## `Disc` and "scipy" distribution should be forwarded to
+        ## `Bool.from_rv()`
+        rv_disc = Disc(x=[0, 1], prob=[0.125, 0.875])
+        with op.option_context({"boolean_estimator": lambda x: rv_disc}):
+            rv = Bool.from_sample(x)
+            rv_ref = Bool.from_rv(rv_disc)
+            assert_equal_bool(rv, rv_ref)
+
+        rv_bernoulli = distrs.bernoulli(p=0.625)
+        with op.option_context({"boolean_estimator": lambda x: rv_bernoulli}):
+            rv = Bool.from_sample(x)
+            rv_ref = Bool.from_rv(rv_bernoulli)
+            assert_equal_bool(rv, rv_ref)
+
     def test_pmf(self):
         """Tests for `.pmf()` method"""
         rtol, atol = op.get_option("tolerance")
