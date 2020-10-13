@@ -2,6 +2,7 @@
 """Tests for '_boolean.py' file"""
 import numpy as np
 from numpy.testing import assert_array_equal
+import scipy.stats.distributions as distrs
 import pytest
 
 from randomvars._boolean import Bool
@@ -58,6 +59,48 @@ class TestBool:
         assert_array_equal(rv.p, [1 - prob_true, 1])
         assert_array_equal(rv.prob_false, 1 - prob_true)
         assert_array_equal(rv.prob_true, prob_true)
+
+    def test_from_rv_basic(self):
+        prob_true = 0.75
+        rv = distrs.rv_discrete(values=([0, 1], [1 - prob_true, prob_true]))
+        rv_out = Bool.from_rv(rv)
+        rv_ref = Bool(prob_true=prob_true)
+        assert_equal_bool(rv_out, rv_ref)
+
+        # Object of `Bool` class should be returned untouched
+        rv = Bool(prob_true)
+        rv.aaa = "Extra method"
+        rv2 = Bool.from_rv(rv)
+        assert_equal_bool(rv, rv2)
+        assert "aaa" in dir(rv2)
+
+        # Works with rv with not only 0 and 1 values
+        rv_many = distrs.rv_discrete(values=([-1, 0, 1], [0.5, 0.375, 0.125]))
+        rv_out = Bool.from_rv(rv_many)
+        ## Only probability of 0 should matter
+        rv_ref = Bool(prob_true=1 - 0.375)
+        assert_equal_bool(rv_out, rv_ref)
+
+    def test_from_rv_errors(self):
+        # Absence of `cdf` method should result intro error
+        tmp = object()
+        with pytest.raises(ValueError, match="cdf"):
+            Bool.from_rv(tmp)
+
+    def test_from_rv_options(self):
+        # Usage of `tolerance` option
+        x = [-1e-2, 0, 1e-3]
+        prob = [0.125, 0.5, 0.375]
+        rv = distrs.rv_discrete(values=(x, prob))
+
+        with op.option_context({"tolerance": (0, 1e-4)}):
+            assert_equal_bool(Bool.from_rv(rv), Bool(prob_true=1 - 0.5))
+        with op.option_context({"tolerance": (0, 5e-3)}):
+            # Close positive values shouldn't affect output, because it is
+            # computed using `cdf(0) - cdf(-atol)`
+            assert_equal_bool(Bool.from_rv(rv), Bool(prob_true=1 - 0.5))
+        with op.option_context({"tolerance": (0, 5e-2)}):
+            assert_equal_bool(Bool.from_rv(rv), Bool(prob_true=1 - 0.625))
 
     def test_pmf(self):
         """Tests for `.pmf()` method"""

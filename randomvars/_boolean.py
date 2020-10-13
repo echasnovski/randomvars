@@ -24,6 +24,58 @@ class Bool(Disc):
         self.prob_true = prob_true
         self.prob_false = 1 - prob_true
 
+    @classmethod
+    def from_rv(cls, rv):
+        """Create boolean RV from general RV
+
+        Boolean random variable is created by inferring probability of `True`
+        value from input random variable. Following general Python agreement,
+        probability of `True` is computed as probability of all non-zero
+        elements, which in turn is one minus probability of zero. Probability
+        of zero is computed using `tolerance` package option by calculating
+        difference between values of cumulative distribution function at zero
+        and `-atol` (minus second element of `tolerance` option).
+
+        **Notes**:
+        - If `rv` is already an object of class `Bool`, it is returned
+          untouched.
+        - If `rv` represents continuous random variable, output might have a
+          very small probability of `False`, which doesn't quite align with
+          expected theoretical result of 0.
+
+        Relevant package options: `tolerance`. See documentation of
+        `randomvars.options.get_option()` for more information. To temporarily
+        set options use `randomvars.options.option_context()` context manager.
+
+        Parameters
+        ----------
+        rv : Object with `cdf()` method
+            Method `cdf()` should implement cumulative distribution function.
+            Recommended to be an object of class `rv_frozen` (`rv_discrete`
+            with all hyperparameters defined).
+
+        Returns
+        -------
+        rv_out : Bool
+            Boolean random variable which approximates probability distribution
+            of input `rv`.
+        """
+        # Make early return
+        if isinstance(rv, Bool):
+            return rv
+
+        # Check input
+        if not ("cdf" in dir(rv)):
+            raise ValueError("`rv` should have method `cdf()`.")
+
+        # Get options
+        _, atol = op.get_option("tolerance")
+
+        # Compute probability of `False`
+        prob_false = rv.cdf(0) - rv.cdf(-atol)
+
+        return cls(prob_true=1 - prob_false)
+
     # Because of integer nature of `False` and `True` in Python, these
     # attributes should work as expected when booleans are supplied:
     # - Properties `x`, `prob`, and `p`.
