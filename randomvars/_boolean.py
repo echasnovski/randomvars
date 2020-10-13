@@ -9,22 +9,57 @@ import randomvars.options as op
 import randomvars._utils as utils
 
 
-class Bool(Disc):
-    def __new__(cls, prob_true, *args, **kwargs):
+class Bool:
+    """Boolean random variable
+
+    Class for boolean random variable which is equivalent to a discrete random
+    variable with only two values: `False` and `True`.
+
+    There are three ways to create instance of `Bool` class:
+
+    1. Directly supply probability of `True` (`prob_true`):
+    ```
+        my_bool = Bool(prob_true=0.75)
+        my_bool.pmf([False, True])
+        # Also works with values convertible to boolean
+        my_bool.pmf([0, 1])
+        my_bool.pmf([lambda x: x, {"a": 1}, {}])
+    ```
+    2. Use `Bool.from_rv()` to create approximation of some existing random
+    variable (object with method `cdf()`):
+    ```
+        from scipy.stats import bernoulli, binom
+        rv_bernoulli = bernoulli(p=0.75)
+        my_bernoulli = Bool.from_rv(rv_bernoulli)
+        rv_bernoulli.pmf([0, 1])
+        my_bernoulli.pmf([False, True])
+
+        # In general, `Bool` takes into account Python notion of "being true"
+        # (see documentation of `Bool.from_rv` for more information)
+        rv_binom = binom(n=3, p=0.5)
+        my_binom = Bool.from_rv(rv_binom)
+        ## Probability of `True` is equal to one minus probability of zero
+        my_binom.prob_true
+        1 - rv_binom.pmf(0)
+    ```
+    3. Use `Bool.from_sample()` to create estimation based on some existing sample:
+    ```
+        from scipy.stats import bernoulli
+        sample = bernoulli(p=0.1).rvs(size=100, random_state=101).astype("bool")
+        my_rv = Bool.from_sample(sample)
+        my_rv.prob_true
+    ```
+    """
+
+    def __init__(self, prob_true):
         try:
             if (prob_true < 0) or (prob_true > 1):
                 raise ValueError("`prob_true` should be between 0 and 1 (inclusively).")
         except TypeError:
             raise ValueError("`prob_true` should be a number.")
 
-        return super().__new__(
-            cls, x=[0, 1], prob=[1 - prob_true, prob_true], *args, **kwargs
-        )
-
-    def __init__(self, prob_true):
-        super().__init__(x=[0, 1], prob=[1 - prob_true, prob_true])
-        self.prob_true = prob_true
-        self.prob_false = 1 - prob_true
+        self.prob_true = float(prob_true)
+        self.prob_false = 1.0 - prob_true
 
     @classmethod
     def from_rv(cls, rv):
@@ -181,8 +216,10 @@ class Bool(Disc):
         -------
         ppf_vals : ndarray with "bool" dtype and shape inferred from `q`
         """
-        res = super().ppf(q)
-        return res.astype("bool")
+        q = np.asarray(q, dtype="float64")
+        res = np.full(shape=q.shape, fill_value=True)
+        res[(0 <= q) & (q <= self.prob_false)] = False
+        return res
 
     def rvs(self, size=None, random_state=None):
         """Random boolean generation
@@ -198,5 +235,11 @@ class Bool(Disc):
             initiated as `numpy.random.RandomState()`. If integer,
             `numpy.random.RandomState(seed=random_state)` is used.
         """
-        res = super().rvs(size=size, random_state=random_state)
-        return res.astype("bool")
+        if random_state is None:
+            random_state = np.random.RandomState()
+        elif isinstance(random_state, int):
+            random_state = np.random.RandomState(seed=random_state)
+
+        U = random_state.uniform(size=size)
+
+        return self.ppf(U)

@@ -12,14 +12,8 @@ import randomvars.options as op
 
 
 def assert_equal_bool(rv_1, rv_2):
-    grid_1 = rv_1.x, rv_1.prob, rv_1.p, rv_1.prob_false, rv_1.prob_true
-    grid_2 = rv_2.x, rv_2.prob, rv_2.p, rv_2.prob_false, rv_2.prob_true
-    _assert_equal_seq(grid_1, grid_2)
-
-
-def assert_equal_bool_disc(rv_bool, rv_disc):
-    grid_1 = rv_bool.x, rv_bool.prob, rv_bool.p, rv_bool.prob_false, rv_bool.prob_true
-    grid_2 = rv_disc.x, rv_disc.prob, rv_disc.p, rv_disc.prob[0], rv_disc.prob[1]
+    grid_1 = rv_1.prob_false, rv_1.prob_true
+    grid_2 = rv_2.prob_false, rv_2.prob_true
     _assert_equal_seq(grid_1, grid_2)
 
 
@@ -37,26 +31,23 @@ class TestBool:
     def test_init(self):
         # Basic usage
         rv_out = Bool(prob_true=0.75)
-        rv_ref = Disc(x=[0, 1], prob=[0.25, 0.75])
-        assert_equal_bool_disc(rv_out, rv_ref)
+        assert rv_out.prob_true == 0.75
+        assert rv_out.prob_false == 0.25
 
         # Integer edge cases
         rv_out = Bool(prob_true=0)
-        rv_ref = Disc(x=[0, 1], prob=[1, 0])
-        assert_equal_bool_disc(rv_out, rv_ref)
+        assert rv_out.prob_true == 0.0
+        assert rv_out.prob_false == 1.0
 
         rv_out = Bool(prob_true=1)
-        rv_ref = Disc(x=[0, 1], prob=[0, 1])
-        assert_equal_bool_disc(rv_out, rv_ref)
+        assert rv_out.prob_true == 1.0
+        assert rv_out.prob_false == 0.0
 
     def test_properties(self):
         """Tests for properties"""
         prob_true = 0.75
         rv = Bool(prob_true)
 
-        assert_array_equal(rv.x, [0, 1])
-        assert_array_equal(rv.prob, [1 - prob_true, prob_true])
-        assert_array_equal(rv.p, [1 - prob_true, 1])
         assert_array_equal(rv.prob_false, 1 - prob_true)
         assert_array_equal(rv.prob_true, prob_true)
 
@@ -122,7 +113,7 @@ class TestBool:
         # regarding input type
 
         with pytest.raises(ValueError, match="1d"):
-            Disc.from_sample([[True], [False]])
+            Bool.from_sample([[True], [False]])
 
     def test_from_sample_options(self):
         x = [True, False, False, True]
