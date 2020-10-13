@@ -67,8 +67,8 @@ class Disc(rv_discrete):
 
     @staticmethod
     def _impute_xprob(x, prob):
-        x = utils._as_1d_finite_float(x, "x")
-        prob = utils._as_1d_finite_float(prob, "prob")
+        x = utils._as_1d_numpy(x, "x", chkfinite=True, dtype="float64")
+        prob = utils._as_1d_numpy(prob, "prob", chkfinite=True, dtype="float64")
 
         x, prob = utils._sort_parallel(x, prob, y_name="prob", warn=True)
 
@@ -227,13 +227,7 @@ class Disc(rv_discrete):
             which is an estimate based on input `sample`.
         """
         # Check and prepare input
-        try:
-            sample = np.asarray(sample, dtype=np.float64)
-        except ValueError:
-            raise ValueError("`sample` is not convertible to numeric numpy array.")
-
-        if len(sample.shape) != 1:
-            raise ValueError("`sample` is not a 1d array.")
+        sample = utils._as_1d_numpy(sample, "sample", chkfinite=False, dtype="float64")
 
         # Get options
         discrete_estimator = op.get_option("discrete_estimator")

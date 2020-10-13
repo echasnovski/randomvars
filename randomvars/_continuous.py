@@ -61,8 +61,8 @@ class Cont(rv_continuous):
 
     @staticmethod
     def _impute_xy(x, y):
-        x = utils._as_1d_finite_float(x, "x")
-        y = utils._as_1d_finite_float(y, "y")
+        x = utils._as_1d_numpy(x, "x", chkfinite=True, dtype="float64")
+        y = utils._as_1d_numpy(y, "y", chkfinite=True, dtype="float64")
 
         x, y = utils._sort_parallel(x, y, warn=True)
 
@@ -394,13 +394,7 @@ class Cont(rv_continuous):
             which approximates density estimate of input `sample`.
         """
         # Check and prepare input
-        try:
-            sample = np.asarray(sample, dtype=np.float64)
-        except ValueError:
-            raise ValueError("`sample` is not convertible to numeric numpy array.")
-
-        if len(sample.shape) != 1:
-            raise ValueError("`sample` is not a 1d array.")
+        sample = utils._as_1d_numpy(sample, "sample", chkfinite=False, dtype="float64")
 
         # Get options
         density_estimator = get_option("density_estimator")

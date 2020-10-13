@@ -3,7 +3,7 @@ from numpy.testing import assert_array_equal
 import pytest
 
 from randomvars._utils import (
-    _as_1d_finite_float,
+    _as_1d_numpy,
     _sort_parallel,
     _unique_parallel,
     _assert_positive,
@@ -22,19 +22,39 @@ from randomvars._utils import (
 # `default_boolean_estimator()` is tested in `options` module
 
 
-def test__as_1d_finite_float():
+def test__as_1d_array():
+    # Check for array-like
     with pytest.raises(ValueError, match=f"`tmp_name`.*numpy array"):
-        _as_1d_finite_float({"a": None}, "tmp_name")
-    with pytest.raises(ValueError, match=f"`tmp_name`.*numpy array"):
-        _as_1d_finite_float({"a": None}, "tmp_name")
+        _as_1d_numpy({"a": None}, "tmp_name")
+
+    # Usage of `chkfinite` argument
+    ## Should be `True` by default
+    with pytest.raises(ValueError, match=f"`tmp_name`.*finite values"):
+        _as_1d_numpy([0, np.nan], "tmp_name")
+    with pytest.raises(ValueError, match=f"`tmp_name`.*finite values"):
+        _as_1d_numpy([0, np.inf], "tmp_name")
+
+    ## Shouldn't give errors if `False`
+    _as_1d_numpy([0, np.nan], "tmp_name", chkfinite=False)
+    _as_1d_numpy([0, np.inf], "tmp_name", chkfinite=False)
+
+    ## Shouldn't mention finite values in error message if `False`
+    with pytest.raises(ValueError, match=f"numeric numpy array.$"):
+        _as_1d_numpy(["a"], "tmp_name", chkfinite=False)
+
+    # Usage of `dtype` argument
+    ## Should be "numeric" by default
     with pytest.raises(ValueError, match=f"`tmp_name`.*numeric"):
-        _as_1d_finite_float(["a", "a"], "tmp_name")
-    with pytest.raises(ValueError, match=f"`tmp_name`.*finite values"):
-        _as_1d_finite_float([0, np.nan], "tmp_name")
-    with pytest.raises(ValueError, match=f"`tmp_name`.*finite values"):
-        _as_1d_finite_float([0, np.inf], "tmp_name")
+        _as_1d_numpy(["a", "a"], "tmp_name")
+        _as_1d_numpy(["a", "a"], "tmp_name", dtype="float64")
+    ## Also boolean dtype is accepted, but as every object in Python can be tested
+    ## for being "truthy", it can't fail
+    _as_1d_numpy([lambda x: x, {"a": 0}, np.inf], "tmp_name", dtype=np.bool)
+    _as_1d_numpy(["a", "a"], "tmp_name", dtype="bool")
+
+    # Check for 1d
     with pytest.raises(ValueError, match=f"`tmp_name`.*1d array"):
-        _as_1d_finite_float([[0, 1]], "tmp_name")
+        _as_1d_numpy([[0, 1]], "tmp_name")
 
 
 def test__sort_parallel():

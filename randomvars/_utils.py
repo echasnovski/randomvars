@@ -56,7 +56,7 @@ def default_boolean_estimator(sample):
     -------
     prob_true : number
     """
-    sample = np.asarray(sample, dtype="bool")
+    sample = np.asarray(sample, dtype=np.bool)
     return np.mean(sample)
 
 
@@ -68,13 +68,37 @@ def _assert_equal_seq(first, second, *args, **kwargs):
 
 
 # %% Array manipulations
-def _as_1d_finite_float(x, x_name):
-    """Convert input to numeric numpy array and check for 1 dimension"""
+def _as_1d_numpy(x, x_name, chkfinite=True, dtype=np.float64):
+    """Convert input to one-dimensional numpy array
+
+    Parameters
+    ----------
+    x : array_like
+    x_name : string
+        Name of input to be used in possible errors.
+    chkfinite : bool
+        Whether to check for finite values.
+    dtype : dtype
+        Type of values in output array.
+    """
+    dtype_chr_dict = {
+        np.float64: "numeric",
+        "float64": "numeric",
+        np.bool: "boolean",
+        "bool": "boolean",
+    }
+    dtype_chr = dtype_chr_dict[dtype]
+
     try:
-        res = np.asarray_chkfinite(x, dtype=np.float64)
+        if chkfinite:
+            extra_chr = " with finite values"
+            res = np.asarray_chkfinite(x, dtype=dtype)
+        else:
+            extra_chr = ""
+            res = np.asarray(x, dtype=dtype)
     except:
         raise ValueError(
-            f"`{x_name}` is not convertible to numeric numpy array with finite values."
+            f"`{x_name}` is not convertible to {dtype_chr} numpy array{extra_chr}."
         )
 
     if len(res.shape) > 1:
