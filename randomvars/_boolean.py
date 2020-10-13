@@ -124,10 +124,45 @@ class Bool(Disc):
 
         return cls(prob_true=estimate)
 
-    # Because of integer nature of `False` and `True` in Python, these
-    # attributes should work as expected when booleans are supplied:
-    # - Properties `x`, `prob`, and `p`.
-    # - Methods `pmf()` and `cdf()`.
+    def pmf(self, x):
+        """Probability mass function
+
+        Return values of probability mass function at **boolean** points `x`.
+
+        Parameters
+        ----------
+        x : array_like with boolean values
+            It is first converted to boolean numpy array.
+
+        Returns
+        -------
+        pmf_vals : ndarray with shape inferred from `x`
+        """
+        x = np.asarray(x, dtype="bool")
+        res = np.full(shape=x.shape, fill_value=self.prob_false)
+        res[x] = self.prob_true
+        return res
+
+    def cdf(self, x):
+        """Cumulative distribution function
+
+        Return values of cumulative distribution function at **boolean** points
+        `x`. **Note** that, following Python agreement, `False` is less than
+        `True`. So `cdf(False)` is probability of `False` and `cdf(True)` is 1.
+
+        Parameters
+        ----------
+        x : array_like with boolean values
+            It is first converted to boolean numpy array.
+
+        Returns
+        -------
+        cdf_vals : ndarray with shape inferred from `x`
+        """
+        x = np.asarray(x, dtype="bool")
+        res = np.full(shape=x.shape, fill_value=self.prob_false)
+        res[x] = 1.0
+        return res
 
     def ppf(self, q):
         """Percent point (quantile, inverse of cdf) function

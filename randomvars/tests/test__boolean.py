@@ -156,62 +156,63 @@ class TestBool:
 
     def test_pmf(self):
         """Tests for `.pmf()` method"""
-        rtol, atol = op.get_option("tolerance")
         rv = Bool(0.75)
 
-        # Regular checks
-        x = [-1, 0, 0.5, 1, 2]
-        assert_array_equal(rv.pmf(x), [0, 0.25, 0, 0.75, 0])
+        # Normal usage
+        x = [False, False, True, True]
+        assert_array_equal(rv.pmf(x), [0.25, 0.25, 0.75, 0.75])
+
+        # Other types
+        x = np.asarray([-1, -1e-12, 0, 0.5, 1, 2])
+        assert_array_equal(rv.pmf(x), rv.pmf(x.astype("bool")))
+
+        x = np.asarray([lambda x: x, {"a": 1}, {}])
+        assert_array_equal(rv.pmf(x), rv.pmf(x.astype("bool")))
 
         # Bad input
         x = np.array([-np.inf, np.nan, np.inf])
-        assert_array_equal(rv.pmf(x), np.array([0, np.nan, 0]))
-
-        # Using tolerance option
-        with op.option_context({"tolerance": (0, 1e-10)}):
-            assert_array_equal(rv.pmf([0.9e-10, 1.01e-10]), [0.25, 0.0])
-
-        with op.option_context({"tolerance": (1e-2, 1e-10)}):
-            assert_array_equal(
-                rv.pmf([(1 + 1e-2) * 1 + 0.99e-10, (1 + 1e-2) * 1 + 1.01e-10]),
-                [0.75, 0.0],
-            )
+        assert_array_equal(rv.pmf(x), rv.pmf(x.astype("bool")))
 
         # Broadcasting
-        x = np.array([[-1, 0], [0, 1]])
-        assert_array_equal(rv.pmf(x), np.array([[0.0, 0.25], [0.25, 0.75]]))
+        x = np.array([[False, True], [True, False]])
+        assert_array_equal(rv.pmf(x), np.array([[0.25, 0.75], [0.75, 0.25]]))
 
     def test_cdf(self):
         """Tests for `.cdf()` method"""
         rv = Bool(0.75)
-        h = 1e-12
 
-        # Regular checks
-        x = np.array([-10, 0 - h, 0, 0 + h, 1 - h, 1, 1 + h, 10])
-        assert_array_equal(rv.cdf(x), np.array([0, 0, 0.25, 0.25, 0.25, 1, 1, 1]))
+        # Normal usage
+        x = [False, False, True, True]
+        assert_array_equal(rv.cdf(x), [0.25, 0.25, 1.0, 1.0])
+
+        # Other types
+        x = np.array([-1, -1e-12, 0, 0.5, 1, 2])
+        assert_array_equal(rv.cdf(x), rv.cdf(x.astype("bool")))
+
+        x = np.asarray([lambda x: x, {"a": 1}, {}])
+        assert_array_equal(rv.cdf(x), rv.cdf(x.astype("bool")))
 
         # Bad input
         x = np.array([-np.inf, np.nan, np.inf])
-        assert_array_equal(rv.cdf(x), np.array([0, np.nan, 1]))
+        assert_array_equal(rv.cdf(x), rv.cdf(x.astype("bool")))
 
         # Broadcasting
-        x = np.array([[-1, 0], [1, 2]])
-        assert_array_equal(rv.cdf(x), np.array([[0.0, 0.25], [1.0, 1.0]]))
+        x = np.array([[False, True], [True, False]])
+        assert_array_equal(rv.cdf(x), np.array([[0.25, 1.0], [1.0, 0.25]]))
 
     def test_ppf(self):
         """Tests for `.ppf()` method"""
         rv = Bool(0.75)
         h = 1e-12
 
-        # Regular checks
-        ## Output should be boolean
+        # Normal usage
         q = np.array([0, 0.25 - h, 0.25, 0.25 + h, 1 - h, 1])
         out = rv.ppf(q)
         assert_array_equal(out, np.array([False, False, False, True, True, True]))
         assert out.dtype == np.dtype("bool")
 
         # Bad input will result into `True` instead of `numpy.nan` as this is
-        # how Numpy converts to "bool" dtype
+        # how Numpy converts `numpy.nan` to "bool" dtype
         q = np.array([-np.inf, -h, np.nan, 1 + h, np.inf])
         out = rv.ppf(q)
         assert_array_equal(out, np.array([True, True, True, True, True]))
