@@ -3,14 +3,14 @@
 import warnings
 
 import numpy as np
-from scipy.stats.distributions import rv_continuous, rv_frozen
+from scipy.stats.distributions import rv_frozen
 
 import randomvars._utils as utils
 from randomvars.downgrid_maxtol import downgrid_maxtol
 from randomvars.options import get_option
 
 
-class Cont(rv_continuous):
+class Cont:
     """Continuous random variable
 
     Class for continuous random variable **defined by piecewise-linear
@@ -46,18 +46,14 @@ class Cont(rv_continuous):
     ```
     """
 
-    def __init__(self, x, y, *args, **kwargs):
+    def __init__(self, x, y):
         x, y = self._impute_xy(x, y)
 
         self._x = x
         self._y = y
         self._p = utils._trapez_integral_cum(self._x, self._y)
-
-        # Set support
-        kwargs["a"] = self.a = self._x[0]
-        kwargs["b"] = self.b = self._x[-1]
-
-        super(Cont, self).__init__(*args, **kwargs)
+        self._a = x[0]
+        self._b = x[-1]
 
     @staticmethod
     def _impute_xy(x, y):
@@ -92,6 +88,20 @@ class Cont(rv_continuous):
     def p(self):
         """Return cumulative probability grid of piecewise-linear density"""
         return self._p
+
+    @property
+    def a(self):
+        """Return left edge of support"""
+        return self._a
+
+    @property
+    def b(self):
+        """Return right edge of support"""
+        return self._b
+
+    def support(self):
+        """Return support of random variable"""
+        return (self.a, self.b)
 
     def _coeffs_by_ind(self, ind=None):
         """Compute density linear coefficients based on index of interval.
@@ -285,8 +295,9 @@ class Cont(rv_continuous):
         rv : Object with methods `cdf()` and `ppf()`
             Methods `cdf()` and `ppf()` should implement functions for
             cumulative distribution and quantile functions respectively.
-            Recommended to be an object of class `rv_frozen` (`rv_continuous`
-            with all hyperparameters defined).
+            Recommended to be an object of class
+            `scipy.stats.distributions.rv_frozen` (`rv_continuous` with all
+            hyperparameters defined).
         supp : Tuple with two numbers or `None`, optional
             Forced support edges. Elements should be either finite numbers
             (returned untouched) or `None` (finite support edge is detected).
@@ -350,9 +361,9 @@ class Cont(rv_continuous):
         - **Estimate density** with density estimator (taken from package
           option "density_estimator") in the form `density =
           density_estimator(sample)`. If `density` is object of class `Cont`,
-          it is returned untouched. If it is object of `rv_frozen`
-          (`rv_continuous` with all hyperparameters defined), it is forwarded
-          to `Cont.from_rv()`.
+          it is returned untouched. If it is object of
+          `scipy.stats.distributions.rv_frozen` (`rv_continuous` with all
+          hyperparameters defined), it is forwarded to `Cont.from_rv()`.
         - **Estimate effective range of density**: interval inside which total
           integral of density is not less than `density_mincoverage` (package
           option). Specific algorithm how it is done is subject to change.
@@ -433,7 +444,7 @@ class Cont(rv_continuous):
 
         return cls(x_grid, y_grid)
 
-    def _pdf(self, x):
+    def pdf(self, x):
         """Probability density function
 
         Return values of probability density function at points `x`.
@@ -448,11 +459,7 @@ class Cont(rv_continuous):
         """
         return np.interp(x, self._x, self._y, left=0, right=0)
 
-    # Override default `rv_continuous`'s `_pdf` to `pdf` transition to make
-    # custom arguments and docstring.
-    pdf = _pdf
-
-    def _cdf(self, x):
+    def cdf(self, x):
         """Cumulative distribution function
 
         Return values of cumulative distribution function at points `x`.
@@ -492,11 +499,7 @@ class Cont(rv_continuous):
 
         return utils._copy_nan(fr=x, to=res)
 
-    # Override default `rv_continuous`'s `_cdf` to `cdf` transition to make
-    # custom arguments and docstring.
-    cdf = _cdf
-
-    def _ppf(self, q):
+    def ppf(self, q):
         """Percent point (quantile, inverse of cdf) function
 
         Return values of percent point (quantile, inverse of cdf) function at
@@ -540,11 +543,7 @@ class Cont(rv_continuous):
 
         return res
 
-    # Override default `rv_continuous`'s `_ppf` to `ppf` transition to make
-    # custom arguments and docstring.
-    ppf = _ppf
-
-    def _rvs(self, size=None, random_state=None):
+    def rvs(self, size=None, random_state=None):
         """Random number generation
 
         Generate random numbers into array of desired size.
@@ -565,11 +564,7 @@ class Cont(rv_continuous):
 
         U = random_state.uniform(size=size)
 
-        return self._ppf(U)
-
-    # Override default `rv_continuous`'s `_rvs` to `rvs` transition to make
-    # custom arguments and docstring.
-    rvs = _rvs
+        return self.ppf(U)
 
     def _find_quant(self, q, grid, coeffs):
         """Compute quantiles with data from linearity intervals

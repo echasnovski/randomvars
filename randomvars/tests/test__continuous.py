@@ -180,8 +180,8 @@ class TestCont:
             rv_4 = Cont(x=x_ref[[0, 1, 1, 2]], y=y_ref[[0, 1, 2, 2]])
             assert_equal_cont(rv_4, rv_ref)
 
-    def test_xyp(self):
-        """Tests for `x`, `y`, and `p` properties"""
+    def test_properties(self):
+        """Tests for properties"""
         x = np.arange(11)
         y = np.repeat(0.1, 11)
         rv = Cont(x, y)
@@ -189,6 +189,12 @@ class TestCont:
         assert_array_equal(rv.x, x)
         assert_array_equal(rv.y, y)
         assert_array_almost_equal(rv.p, np.arange(11) / 10, decimal=15)
+        assert rv.a == 0.0
+        assert rv.b == 10.0
+
+    def test_support(self):
+        rv = Cont([0.5, 1.5, 4.5], [0, 0.5, 0])
+        assert rv.support() == (0.5, 4.5)
 
     def test__coeffs_by_ind(self):
         # All coefficients are returned if no `ind` is specified
