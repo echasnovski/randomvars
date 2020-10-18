@@ -108,8 +108,8 @@ class TestDisc:
             rv_5 = Disc(x=x_ref[[0, 1, 1, 2]], prob=prob_ref[[0, 1, 2, 2]])
             assert_equal_disc(rv_5, rv_ref)
 
-    def test_xprobp(self):
-        """Tests for `x`, `prob`, and `p` properties"""
+    def test_properties(self):
+        """Tests for properties"""
         x = np.arange(10)
         prob = np.repeat(0.1, 10)
         rv = Disc(x, prob)
@@ -117,6 +117,12 @@ class TestDisc:
         assert_array_equal(rv.x, x)
         assert_array_equal(rv.prob, prob)
         assert_array_equal(rv.p, np.cumsum(prob))
+        assert rv.a == 0
+        assert rv.b == 9
+
+    def test_support(self):
+        rv = Disc([0.5, 1.5, 4.5], [0.25, 0.375, 0.375])
+        assert rv.support() == (0.5, 4.5)
 
     def test_from_rv_basic(self):
         x = [0, 1, 5]

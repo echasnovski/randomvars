@@ -2,19 +2,19 @@
 """
 
 import numpy as np
-from scipy.stats.distributions import rv_discrete, rv_frozen
+from scipy.stats.distributions import rv_frozen
 
 import randomvars.options as op
 import randomvars._utils as utils
 
 
-class Disc(rv_discrete):
+class Disc:
     """Discrete random variable
 
     Class for discrete random variable with **finite number of (finite and
-    unique) values**.  It is similar to `rv_sample` class from
+    unique) values**. It is similar to (unexported) `rv_sample` class from
     `scipy.stats.distributions`, but works with float numbers as distribution
-    values (opposite to only integers in `rv_sample`).
+    values (opposite to focusing on integers in `rv_sample`).
 
     There are three ways to create instance of `Disc` class:
 
@@ -49,21 +49,14 @@ class Disc(rv_discrete):
     ```
     """
 
-    def __new__(cls, x, prob, *args, **kwargs):
-        return super().__new__(cls, *args, **kwargs)
-
-    def __init__(self, x, prob, *args, **kwargs):
+    def __init__(self, x, prob):
         x, prob = self._impute_xprob(x, prob)
 
         self._x = x
         self._prob = prob
         self._p = np.cumsum(prob)
-
-        # Not using `values` argument, as currently it doesn't seem to be supported
-        # in `__init__`. As usage of `values` results into object of class
-        # `rv_sample` (which is not publicaly exported), core functionality is
-        # explicitly taken from it.
-        super(Disc, self).__init__(a=x[0], b=x[-1], *args, **kwargs)
+        self._a = x[0]
+        self._b = x[-1]
 
     @staticmethod
     def _impute_xprob(x, prob):
@@ -95,6 +88,20 @@ class Disc(rv_discrete):
     def p(self):
         """Return cumulative probabilities of discrete distribution"""
         return self._p
+
+    @property
+    def a(self):
+        """Return left edge of support"""
+        return self._a
+
+    @property
+    def b(self):
+        """Return right edge of support"""
+        return self._b
+
+    def support(self):
+        """Return support of random variable"""
+        return (self.a, self.b)
 
     @classmethod
     def from_rv(cls, rv):
@@ -145,8 +152,9 @@ class Disc(rv_discrete):
         rv : Object with methods `cdf()` and `ppf()`
             Methods `cdf()` and `ppf()` should implement functions for
             cumulative distribution and quantile functions respectively.
-            Recommended to be an object of class `rv_frozen` (`rv_discrete`
-            with all hyperparameters defined).
+            Recommended to be an object of class
+            `scipy.stats.distributions.rv_frozen` (`rv_discrete` with all
+            hyperparameters defined).
 
         Returns
         -------
@@ -204,9 +212,9 @@ class Disc(rv_discrete):
         - **Estimate distribution** with discrete estimator (taken from package
           option "discrete_estimator") in the form `estimate =
           discrete_estimator(sample)`. If `estimator` is object of class
-          `Disc`, it is returned untouched. If it is object of `rv_frozen`
-          (`rv_discrete` with all hyperparameters defined), it is forwarded to
-          `Disc.from_rv()`.
+          `Disc`, it is returned untouched. If it is an object of
+          `scipy.stats.distributions.rv_frozen` (`rv_discrete` with all
+          hyperparameters defined), it is forwarded to `Disc.from_rv()`.
         - **Create random variable** with `Disc(x=x, prob=prob)`, where `x` and `prob`
           are first and second values of `estimate`.
 
@@ -243,7 +251,7 @@ class Disc(rv_discrete):
 
         return cls(x=estimate[0], prob=estimate[1])
 
-    def _pmf(self, x):
+    def pmf(self, x):
         """Probability mass function
 
         Return values of probability mass function at points `x`.
@@ -272,11 +280,7 @@ class Disc(rv_discrete):
         res = np.where(x_is_matched, self.prob[inds], 0)
         return utils._copy_nan(fr=x, to=res)
 
-    # Override default `rv_discrete`'s `_pmf` to `pmf` transition to properly
-    # work with "tolerance matching"
-    pmf = _pmf
-
-    def _cdf(self, x):
+    def cdf(self, x):
         """Cumulative distribution function
 
         Return values of cumulative distribution function at points `x`.
@@ -299,10 +303,7 @@ class Disc(rv_discrete):
 
         return utils._copy_nan(fr=x, to=res)
 
-    # Override default `rv_discrete`'s `_cdf` to `cdf` transition for speed reasons
-    cdf = _cdf
-
-    def _ppf(self, q):
+    def ppf(self, q):
         """Percent point (quantile, inverse of cdf) function
 
         Return values of percent point (quantile, inverse of cdf) function at
@@ -326,12 +327,7 @@ class Disc(rv_discrete):
 
         return utils._copy_nan(fr=q, to=res)
 
-    # Override default `rv_discrete`'s `_ppf` to `ppf` transition to change behavior
-    # of `ppf(0)` (which should return minimum element of distribution `x_min` and not
-    # `x_min - 1`)
-    ppf = _ppf
-
-    def _rvs(self, size=None, random_state=None):
+    def rvs(self, size=None, random_state=None):
         """Random number generation
 
         Generate random numbers into array of desired size.
@@ -352,8 +348,4 @@ class Disc(rv_discrete):
 
         U = random_state.uniform(size=size)
 
-        return self._ppf(U)
-
-    # Override default `rv_discrete`'s `_rvs` to `rvs` transition to make it possible to
-    # work with non-integers. `scipy`'s version produces only integer output.
-    rvs = _rvs
+        return self.ppf(U)
