@@ -53,13 +53,23 @@ class Bool:
 
     def __init__(self, prob_true):
         try:
-            if (prob_true < 0) or (prob_true > 1):
-                raise ValueError("`prob_true` should be between 0 and 1 (inclusively).")
-        except TypeError:
+            prob_true = float(prob_true)
+        except ValueError:
             raise ValueError("`prob_true` should be a number.")
 
-        self.prob_true = float(prob_true)
-        self.prob_false = 1.0 - prob_true
+        if (prob_true < 0) or (prob_true > 1):
+            raise ValueError("`prob_true` should be between 0 and 1 (inclusively).")
+
+        self._prob_true = prob_true
+        self._prob_false = 1.0 - prob_true
+
+    @property
+    def prob_true(self):
+        return self._prob_true
+
+    @property
+    def prob_false(self):
+        return self._prob_false
 
     @classmethod
     def from_rv(cls, rv):
