@@ -180,6 +180,14 @@ class TestCont:
             rv_4 = Cont(x=x_ref[[0, 1, 1, 2]], y=y_ref[[0, 1, 2, 2]])
             assert_equal_cont(rv_4, rv_ref)
 
+    def test_str(self):
+        rv = Cont([0, 2, 4], [0, 1, 0])
+        assert str(rv) == "Continuous RV with 2 intervals (support: [0.0, 4.0])"
+
+        # Uses singular noun with one interval
+        rv = Cont([0, 1], [1, 1])
+        assert str(rv) == "Continuous RV with 1 interval (support: [0.0, 1.0])"
+
     def test_properties(self):
         """Tests for properties"""
         x = np.arange(11)

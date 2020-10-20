@@ -43,6 +43,10 @@ class TestBool:
         assert rv_out.prob_true == 1.0
         assert rv_out.prob_false == 0.0
 
+    def test_str(self):
+        rv = Bool(0.75)
+        assert str(rv) == "Boolean RV with 0.75 probability of True"
+
     def test_properties(self):
         """Tests for properties"""
         prob_true = 0.75

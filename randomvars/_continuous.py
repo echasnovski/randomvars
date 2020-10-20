@@ -55,6 +55,13 @@ class Cont:
         self._a = x[0]
         self._b = x[-1]
 
+    def __str__(self):
+        x_len = len(self.x)
+        s = "s" if x_len > 2 else ""
+        return (
+            f"Continuous RV with {x_len-1} interval{s} (support: [{self.a}, {self.b}])"
+        )
+
     @staticmethod
     def _impute_xy(x, y):
         x = utils._as_1d_numpy(x, "x", chkfinite=True, dtype="float64")

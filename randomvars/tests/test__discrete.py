@@ -108,6 +108,14 @@ class TestDisc:
             rv_5 = Disc(x=x_ref[[0, 1, 1, 2]], prob=prob_ref[[0, 1, 2, 2]])
             assert_equal_disc(rv_5, rv_ref)
 
+    def test_str(self):
+        rv = Disc([0, 2, 4], [0.125, 0, 0.875])
+        assert str(rv) == "Discrete RV with 3 values (support: [0.0, 4.0])"
+
+        # Uses singular noun with one value
+        rv = Disc([1], [1])
+        assert str(rv) == "Discrete RV with 1 value (support: [1.0, 1.0])"
+
     def test_properties(self):
         """Tests for properties"""
         x = np.arange(10)

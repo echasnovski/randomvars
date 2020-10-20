@@ -63,6 +63,9 @@ class Bool:
         self._prob_true = prob_true
         self._prob_false = 1.0 - prob_true
 
+    def __str__(self):
+        return f"Boolean RV with {self.prob_true} probability of True"
+
     @property
     def prob_true(self):
         return self._prob_true
