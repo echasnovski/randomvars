@@ -13,7 +13,8 @@ class Bool:
     """Boolean random variable
 
     Class for boolean random variable which is equivalent to a discrete random
-    variable with only two values: `False` and `True`.
+    variable with only two values: `False` (with probability `prob_false`) and
+    `True` (with probability `prob_true`.
 
     There are three ways to create instance of `Bool` class:
 
