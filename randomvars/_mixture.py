@@ -1,6 +1,5 @@
 """ Code for mixture random variable
 """
-
 import warnings
 
 import numpy as np
@@ -106,3 +105,19 @@ class Mixt:
     @property
     def weight_disc(self):
         return self._weight_disc
+
+    def cdf(self, x):
+        """Cumulative distribution function
+
+        Return values of cumulative distribution function at points `x`.
+
+        Parameters
+        ----------
+        x : array_like with numeric values
+
+        Returns
+        -------
+        cdf_vals : ndarray with shape inferred from `x`
+        """
+        x = np.asarray(x, dtype="float64")
+        return self.weight_cont * self.cont.cdf(x) + self.weight_disc * self.disc.cdf(x)

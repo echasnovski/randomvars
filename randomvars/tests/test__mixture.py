@@ -46,7 +46,7 @@ class TestMixt:
 
     def test_init_errors(self):
         cont = Cont([0, 1], [1, 1])
-        disc = Disc([-1, 1], [0.25, 0.75])
+        disc = Disc([-1, 0.5], [0.25, 0.75])
 
         # Checking `cont`
         ## `cont` can be None but only with `weight_cont` equal to 0
@@ -80,13 +80,13 @@ class TestMixt:
 
     def test_init(self):
         cont = Cont([0, 1], [1, 1])
-        disc = Disc([-1, 1], [0.25, 0.75])
+        disc = Disc([-1, 0.5], [0.25, 0.75])
 
         # Basic usage
         rv_out = Mixt(cont=cont, disc=disc, weight_cont=0.875)
         assert_array_equal(rv_out.cont.x, [0, 1])
         assert_array_equal(rv_out.cont.y, [1, 1])
-        assert_array_equal(rv_out.disc.x, [-1, 1])
+        assert_array_equal(rv_out.disc.x, [-1, 0.5])
         assert_array_equal(rv_out.disc.prob, [0.25, 0.75])
         assert rv_out.weight_cont == 0.875
         assert rv_out.weight_disc == 0.125
@@ -103,7 +103,7 @@ class TestMixt:
 
     def test_str(self):
         cont = Cont([0, 1], [1, 1])
-        disc = Disc([-1, 1], [0.25, 0.75])
+        disc = Disc([-1, 0.5], [0.25, 0.75])
 
         rv = Mixt(cont=cont, disc=disc, weight_cont=0.75)
 
@@ -117,7 +117,7 @@ class TestMixt:
     def test_properties(self):
         """Tests for properties"""
         cont = Cont([0, 1], [1, 1])
-        disc = Disc([-1, 1], [0.25, 0.75])
+        disc = Disc([-1, 0.5], [0.25, 0.75])
         weight_cont = 0.75
         rv = Mixt(cont=cont, disc=disc, weight_cont=weight_cont)
 
@@ -125,3 +125,43 @@ class TestMixt:
         assert isinstance(rv.disc, Disc)
         assert_array_equal(rv.weight_disc, 1 - weight_cont)
         assert_array_equal(rv.weight_cont, weight_cont)
+
+    def test_cdf(self):
+        """Tests for `.cdf()` method"""
+        cont = Cont([0, 1], [1, 1])
+        disc = Disc([-1, 0.5], [0.25, 0.75])
+        weight_cont = 0.75
+        rv = Mixt(cont=cont, disc=disc, weight_cont=weight_cont)
+        h = 1e-12
+
+        # Regular checks
+        x = np.array([-1.1, -1 - h, -1, 0, 0.25, 0.5 - h, 0.5, 0.75, 1, 1.1])
+        assert_array_equal(
+            rv.cdf(x), rv.weight_cont * rv.cont.cdf(x) + rv.weight_disc * rv.disc.cdf(x)
+        )
+
+        # Bad input
+        x = np.array([-np.inf, np.nan, np.inf])
+        assert_array_equal(rv.cdf(x), np.array([0, np.nan, 1]))
+
+        # Broadcasting
+        x = np.array([[-1, 0.5], [-1.1, 0.75]])
+        assert_array_equal(
+            rv.cdf(x),
+            np.array(
+                [
+                    [0.75 * 0 + 0.25 * 0.25, 0.75 * 0.5 + 0.25 * 1],
+                    [0.75 * 0 + 0.25 * 0, 0.75 * 0.75 + 0.25 * 1],
+                ]
+            ),
+        )
+
+        # Dirac-like continuous random variable
+        cont_dirac = Cont([10 - 1e-8, 10, 10 + 1e-8], [0, 1, 0])
+        rv_dirac = Mixt(cont=cont_dirac, disc=disc, weight_cont=0.75)
+        x = np.array([10 - 1e-8, 10 - 0.5e-8, 10, 10 + 0.5e-8, 10 + 1e-8])
+        assert_array_equal(
+            rv_dirac.cdf(x),
+            rv_dirac.weight_cont * rv_dirac.cont.cdf(x)
+            + rv_dirac.weight_disc * rv_dirac.disc.cdf(x),
+        )
