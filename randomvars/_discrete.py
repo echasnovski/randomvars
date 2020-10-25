@@ -50,7 +50,7 @@ class Disc:
     """
 
     def __init__(self, x, prob):
-        x, prob = self._impute_xprob(x, prob)
+        x, prob = self._impute_init_args(x, prob)
 
         self._x = x
         self._prob = prob
@@ -64,7 +64,7 @@ class Disc:
         return f"Discrete RV with {x_len} value{s} (support: [{self.a}, {self.b}])"
 
     @staticmethod
-    def _impute_xprob(x, prob):
+    def _impute_init_args(x, prob):
         x = utils._as_1d_numpy(x, "x", chkfinite=True, dtype="float64")
         prob = utils._as_1d_numpy(prob, "prob", chkfinite=True, dtype="float64")
 

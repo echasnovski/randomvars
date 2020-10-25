@@ -52,6 +52,11 @@ class Bool:
     """
 
     def __init__(self, prob_true):
+        self._prob_true = self._impute_init_args(prob_true)
+        self._prob_false = 1.0 - self._prob_true
+
+    @staticmethod
+    def _impute_init_args(prob_true):
         try:
             prob_true = float(prob_true)
         except ValueError:
@@ -60,8 +65,7 @@ class Bool:
         if (prob_true < 0) or (prob_true > 1):
             raise ValueError("`prob_true` should be between 0 and 1 (inclusively).")
 
-        self._prob_true = prob_true
-        self._prob_false = 1.0 - prob_true
+        return prob_true
 
     def __str__(self):
         return f"Boolean RV with {self.prob_true} probability of True"

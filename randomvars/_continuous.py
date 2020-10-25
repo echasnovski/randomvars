@@ -47,7 +47,7 @@ class Cont:
     """
 
     def __init__(self, x, y):
-        x, y = self._impute_xy(x, y)
+        x, y = self._impute_init_args(x, y)
 
         self._x = x
         self._y = y
@@ -63,7 +63,7 @@ class Cont:
         )
 
     @staticmethod
-    def _impute_xy(x, y):
+    def _impute_init_args(x, y):
         x = utils._as_1d_numpy(x, "x", chkfinite=True, dtype="float64")
         y = utils._as_1d_numpy(y, "y", chkfinite=True, dtype="float64")
 
