@@ -133,11 +133,12 @@ class TestMixt:
         weight_cont = 0.75
         rv = Mixt(cont=cont, disc=disc, weight_cont=weight_cont)
         h = 1e-12
+        ref_x = np.array([-1.1, -1 - h, -1, 0, 0.25, 0.5 - h, 0.5, 0.75, 1, 1.1])
 
         # Regular checks
-        x = np.array([-1.1, -1 - h, -1, 0, 0.25, 0.5 - h, 0.5, 0.75, 1, 1.1])
         assert_array_equal(
-            rv.cdf(x), rv.weight_cont * rv.cont.cdf(x) + rv.weight_disc * rv.disc.cdf(x)
+            rv.cdf(ref_x),
+            rv.weight_cont * rv.cont.cdf(ref_x) + rv.weight_disc * rv.disc.cdf(ref_x),
         )
 
         # Bad input
@@ -165,3 +166,18 @@ class TestMixt:
             rv_dirac.weight_cont * rv_dirac.cont.cdf(x)
             + rv_dirac.weight_disc * rv_dirac.disc.cdf(x),
         )
+
+        # Degenerate cases
+        ## `None` parts
+        rv_none_cont = Mixt(cont=None, disc=disc, weight_cont=0)
+        assert_array_equal(rv_none_cont.cdf(ref_x), disc.cdf(ref_x))
+
+        rv_none_disc = Mixt(cont=cont, disc=None, weight_cont=1)
+        assert_array_equal(rv_none_disc.cdf(ref_x), cont.cdf(ref_x))
+
+        ## Extreme weight
+        rv_weight_0 = Mixt(cont=cont, disc=disc, weight_cont=0)
+        assert_array_equal(rv_weight_0.cdf(ref_x), disc.cdf(ref_x))
+
+        rv_weight_1 = Mixt(cont=cont, disc=disc, weight_cont=1)
+        assert_array_equal(rv_weight_1.cdf(ref_x), cont.cdf(ref_x))

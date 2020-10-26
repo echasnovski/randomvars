@@ -120,4 +120,10 @@ class Mixt:
         cdf_vals : ndarray with shape inferred from `x`
         """
         x = np.asarray(x, dtype="float64")
+
+        if (self.cont is None) or (self.weight_cont == 0.0):
+            return self.disc.cdf(x)
+        if (self.disc is None) or (self.weight_disc == 0.0):
+            return self.cont.cdf(x)
+
         return self.weight_cont * self.cont.cdf(x) + self.weight_disc * self.disc.cdf(x)
