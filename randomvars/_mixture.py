@@ -56,6 +56,14 @@ class Mixt:
         )
         self._weight_disc = 1.0 - self._weight_cont
 
+        if (self._cont is None) or (self._weight_cont == 0):
+            self._a, self._b = self._disc.a, self._disc.b
+        elif (self.disc is None) or (self._weight_disc == 0):
+            self._a, self._b = self._cont.a, self._cont.b
+        else:
+            self._a = min(self._cont.a, self._disc.a)
+            self._b = max(self._cont.b, self._disc.b)
+
     @staticmethod
     def _impute_init_args(cont, disc, weight_cont):
         # Impute `weight_cont`
@@ -105,6 +113,20 @@ class Mixt:
     @property
     def weight_disc(self):
         return self._weight_disc
+
+    @property
+    def a(self):
+        """Return left edge of support"""
+        return self._a
+
+    @property
+    def b(self):
+        """Return right edge of support"""
+        return self._b
+
+    def support(self):
+        """Return support of random variable"""
+        return (self.a, self.b)
 
     def cdf(self, x):
         """Cumulative distribution function

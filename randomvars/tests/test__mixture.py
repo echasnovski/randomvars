@@ -125,6 +125,51 @@ class TestMixt:
         assert isinstance(rv.disc, Disc)
         assert_array_equal(rv.weight_disc, 1 - weight_cont)
         assert_array_equal(rv.weight_cont, weight_cont)
+        assert rv.a == -1.0
+        assert rv.b == 1.0
+
+        # Degenerate cases
+        ## `None` parts
+        rv_none_cont = Mixt(cont=None, disc=disc, weight_cont=0)
+        assert rv_none_cont.cont is None
+        assert rv_none_cont.a == disc.a
+        assert rv_none_cont.b == disc.b
+
+        rv_none_disc = Mixt(cont=cont, disc=None, weight_cont=1)
+        assert rv_none_disc.disc is None
+        assert rv_none_disc.a == cont.a
+        assert rv_none_disc.b == cont.b
+
+        ## Extreme weight
+        rv_weight_0 = Mixt(cont=cont, disc=disc, weight_cont=0)
+        assert rv_weight_0.a == disc.a
+        assert rv_weight_0.b == disc.b
+
+        rv_weight_1 = Mixt(cont=cont, disc=disc, weight_cont=1)
+        assert rv_weight_1.a == cont.a
+        assert rv_weight_1.b == cont.b
+
+    def test_support(self):
+        cont = Cont([0, 1], [1, 1])
+        disc = Disc([-1, 0.5], [0.25, 0.75])
+        weight_cont = 0.75
+        rv = Mixt(cont=cont, disc=disc, weight_cont=weight_cont)
+        assert rv.support() == (-1.0, 1.0)
+
+        # Degenerate cases
+        ## `None` parts
+        rv_none_cont = Mixt(cont=None, disc=disc, weight_cont=0)
+        assert rv_none_cont.support() == disc.support()
+
+        rv_none_disc = Mixt(cont=cont, disc=None, weight_cont=1)
+        assert rv_none_disc.support() == cont.support()
+
+        ## Extreme weight
+        rv_weight_0 = Mixt(cont=cont, disc=disc, weight_cont=0)
+        assert rv_weight_0.support() == disc.support()
+
+        rv_weight_1 = Mixt(cont=cont, disc=disc, weight_cont=1)
+        assert rv_weight_1.support() == cont.support()
 
     def test_cdf(self):
         """Tests for `.cdf()` method"""
