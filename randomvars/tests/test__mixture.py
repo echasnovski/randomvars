@@ -70,7 +70,7 @@ class TestMixt:
         with pytest.raises(ValueError):
             Mixt(cont=None, disc=None, weight_cont=0.5)
 
-        # Checkint `weight_cont`
+        # Checking `weight_cont`
         with pytest.raises(ValueError, match="number"):
             Mixt(cont=cont, disc=disc, weight_cont="a")
         with pytest.raises(ValueError, match="0"):
@@ -91,15 +91,20 @@ class TestMixt:
         assert rv_out.weight_cont == 0.875
         assert rv_out.weight_disc == 0.125
 
-        # Checks for special input for continuous part
-        ## `cont` can be `None` with `weight_cont` equal to 0
-        rv_out = Mixt(cont=None, disc=disc, weight_cont=0)
-        assert rv_out.cont is None
+        # Degenerate cases
+        ## `None` part. This is allowed when opposite weight is full.
+        rv_none_cont = Mixt(cont=None, disc=disc, weight_cont=0)
+        assert rv_none_cont.cont is None
 
-        # Checks for special input for discrete part
-        ## `disc` can be `None` with `weight_cont` equal to 1
-        rv_out = Mixt(cont=cont, disc=None, weight_cont=1)
-        assert rv_out.disc is None
+        rv_none_disc = Mixt(cont=cont, disc=None, weight_cont=1)
+        assert rv_none_disc.disc is None
+
+        ## Extreme weight. Part with zero weight should still be present
+        rv_weight_0 = Mixt(cont=cont, disc=disc, weight_cont=0)
+        assert rv_weight_0.cont is cont
+
+        rv_weight_1 = Mixt(cont=cont, disc=disc, weight_cont=1)
+        assert rv_weight_1.disc is disc
 
     def test_str(self):
         cont = Cont([0, 1], [1, 1])
@@ -113,6 +118,21 @@ class TestMixt:
             f"Disc (weight = {rv.weight_disc}): {rv.disc}"
         )
         assert str(rv) == out
+
+        # Degenerate cases
+        ## `None` part
+        rv_none_cont = Mixt(cont=None, disc=disc, weight_cont=0)
+        assert str(rv_none_cont).find("Cont (weight = 0.0): None") > -1
+
+        rv_none_disc = Mixt(cont=cont, disc=None, weight_cont=1)
+        assert str(rv_none_disc).find("Disc (weight = 0.0): None") > -1
+
+        ## Extreme weight
+        rv_weight_0 = Mixt(cont=cont, disc=disc, weight_cont=0)
+        assert str(rv_weight_0).find(f"Cont (weight = 0.0): {cont}") > -1
+
+        rv_weight_1 = Mixt(cont=cont, disc=disc, weight_cont=1)
+        assert str(rv_weight_1).find(f"Disc (weight = 0.0): {disc}") > -1
 
     def test_properties(self):
         """Tests for properties"""
@@ -129,14 +149,12 @@ class TestMixt:
         assert rv.b == 1.0
 
         # Degenerate cases
-        ## `None` parts
+        ## `None` part
         rv_none_cont = Mixt(cont=None, disc=disc, weight_cont=0)
-        assert rv_none_cont.cont is None
         assert rv_none_cont.a == disc.a
         assert rv_none_cont.b == disc.b
 
         rv_none_disc = Mixt(cont=cont, disc=None, weight_cont=1)
-        assert rv_none_disc.disc is None
         assert rv_none_disc.a == cont.a
         assert rv_none_disc.b == cont.b
 
@@ -157,7 +175,7 @@ class TestMixt:
         assert rv.support() == (-1.0, 1.0)
 
         # Degenerate cases
-        ## `None` parts
+        ## `None` part
         rv_none_cont = Mixt(cont=None, disc=disc, weight_cont=0)
         assert rv_none_cont.support() == disc.support()
 
@@ -213,7 +231,7 @@ class TestMixt:
         )
 
         # Degenerate cases
-        ## `None` parts
+        ## `None` part
         rv_none_cont = Mixt(cont=None, disc=disc, weight_cont=0)
         assert_array_equal(rv_none_cont.cdf(ref_x), disc.cdf(ref_x))
 
