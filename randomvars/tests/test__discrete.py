@@ -252,7 +252,7 @@ class TestDisc:
             assert_equal_disc(rv, rv_ref)
 
     def test_pmf(self):
-        """Tests for `.pmf()` method, which logic is implemented in `._pmf()`"""
+        """Tests for `.pmf()` method"""
         rv = Disc([0.5, 1, 3], [0.1, 0.2, 0.7])
         rtol, atol = op.get_option("tolerance")
 
@@ -279,7 +279,7 @@ class TestDisc:
         assert_array_equal(rv.pmf(x), np.array([[0.0, 0.1], [0.0, 0.0]]))
 
     def test_cdf(self):
-        """Tests for `.cdf()` method, which logic is implemented in `._cdf()`"""
+        """Tests for `.cdf()` method"""
         rv = Disc([0.5, 1, 3], [0.1, 0.2, 0.7])
         h = 1e-12
 
@@ -302,7 +302,7 @@ class TestDisc:
         )
 
     def test_ppf(self):
-        """Tests for `.ppf()` method, which logic is implemented in `._ppf()`"""
+        """Tests for `.ppf()` method"""
         rv = Disc([0.5, 1, 3], [0.1, 0.2, 0.7])
         h = 1e-12
 

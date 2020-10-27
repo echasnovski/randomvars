@@ -403,7 +403,7 @@ class TestCont:
             assert from_sample_max_error(zero_vec) <= 1e-4
 
     def test_pdf(self):
-        """Tests for `.pdf()` method, which logic is implemented in `._pdf()`"""
+        """Tests for `.pdf()` method"""
         rv = Cont([0, 1, 3], [0.5, 0.5, 0])
 
         # Regular checks
@@ -433,7 +433,7 @@ class TestCont:
         assert_array_equal(rv.pdf(x), np.array([[0.0, 0.5], [0.25, 0.0]]))
 
     def test_cdf(self):
-        """Tests for `.cdf()` method, which logic is implemented in `._cdf()`"""
+        """Tests for `.cdf()` method"""
         rv_1 = Cont([0, 1, 2], [0, 1, 0])
 
         # Regular checks
@@ -456,7 +456,7 @@ class TestCont:
         assert_array_equal(rv_1.cdf(x), np.array([[0.0, 0.125], [1.0, 1.0]]))
 
     def test_ppf(self):
-        """Tests for `.ppf()` method, which logic is implemented in `._ppf()`"""
+        """Tests for `.ppf()` method"""
         # `ppf()` method should be inverse to `cdf()` for every sensible input
         rv_1 = Cont([0, 1, 2], [0, 1, 0])
 
