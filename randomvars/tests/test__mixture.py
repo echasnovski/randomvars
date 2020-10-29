@@ -31,8 +31,8 @@ def assert_equal_mixt(rv_1, rv_2):
     # Check discrete parts
     if rv_1.disc is not None:
         if rv_2.disc is not None:
-            grid_1 = rv_1.disc.x, rv_1.disc.prob, rv_1.disc.cum_p
-            grid_2 = rv_2.disc.x, rv_2.disc.prob, rv_2.disc.cum_p
+            grid_1 = rv_1.disc.x, rv_1.disc.p, rv_1.disc.cum_p
+            grid_2 = rv_2.disc.x, rv_2.disc.p, rv_2.disc.cum_p
             _assert_equal_seq(grid_1, grid_2)
         else:
             raise ValueError("`rv_2.disc` is `None` while `rv_1.disc` is not.")
@@ -87,7 +87,7 @@ class TestMixt:
         assert_array_equal(rv_out.cont.x, [0, 1])
         assert_array_equal(rv_out.cont.y, [1, 1])
         assert_array_equal(rv_out.disc.x, [-1, 0.5])
-        assert_array_equal(rv_out.disc.prob, [0.25, 0.75])
+        assert_array_equal(rv_out.disc.p, [0.25, 0.75])
         assert rv_out.weight_cont == 0.875
         assert rv_out.weight_disc == 0.125
 

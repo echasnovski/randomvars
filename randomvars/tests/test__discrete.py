@@ -35,8 +35,8 @@ DISTRIBUTIONS = {
 
 
 def assert_equal_disc(rv_1, rv_2):
-    grid_1 = rv_1.x, rv_1.prob, rv_1.cum_p
-    grid_2 = rv_2.x, rv_2.prob, rv_2.cum_p
+    grid_1 = rv_1.x, rv_1.p, rv_1.cum_p
+    grid_2 = rv_2.x, rv_2.p, rv_2.cum_p
     _assert_equal_seq(grid_1, grid_2)
 
 
@@ -61,51 +61,51 @@ class TestDisc:
                 def_args[var] = [[0, 1]]
                 Disc(**def_args)
 
-        check_one_input({"prob": [0.2, 0.8]}, "x")
-        check_one_input({"x": [0, 1]}, "prob")
+        check_one_input({"p": [0.2, 0.8]}, "x")
+        check_one_input({"x": [0, 1]}, "p")
 
         with pytest.raises(ValueError, match="[Ll]engths.*match"):
             Disc([0, 1], [1, 1, 1])
 
-        with pytest.warns(UserWarning, match="`x`.*not sorted.*`x` and `prob`"):
+        with pytest.warns(UserWarning, match="`x`.*not sorted.*`x` and `p`"):
             rv = Disc([1, 0], [0.2, 0.8])
             rv_ref = Disc([0, 1], [0.8, 0.2])
             assert_equal_disc(rv, rv_ref)
 
-        with pytest.raises(ValueError, match="`prob`.*negative"):
+        with pytest.raises(ValueError, match="`p`.*negative"):
             Disc([0, 1], [0.8, -1])
 
-        with pytest.raises(ValueError, match="`prob`.*no positive"):
+        with pytest.raises(ValueError, match="`p`.*no positive"):
             Disc([0, 1], [0, 0])
 
     def test_init(self):
         x_ref = np.array([0.1, 1, 2])
-        prob_ref = np.array([0.1, 0.2, 0.7])
-        rv_ref = Disc(x_ref, prob_ref)
+        p_ref = np.array([0.1, 0.2, 0.7])
+        rv_ref = Disc(x_ref, p_ref)
 
         # Simple case with non-numpy input
-        rv_1 = Disc(x=x_ref.tolist(), prob=prob_ref.tolist())
+        rv_1 = Disc(x=x_ref.tolist(), p=p_ref.tolist())
         assert_equal_disc(rv_1, rv_ref)
 
-        # Check if `prob` is normalized
-        rv_2 = Disc(x=x_ref, prob=10 * prob_ref)
+        # Check if `p` is normalized
+        rv_2 = Disc(x=x_ref, p=10 * p_ref)
         assert_equal_disc(rv_2, rv_ref)
 
         # Check that zero probability is allowed
-        rv_3 = Disc(x=[0, 1, 3], prob=[0, 0.5, 0.5])
+        rv_3 = Disc(x=[0, 1, 3], p=[0, 0.5, 0.5])
         assert_array_equal(rv_3.x, np.array([0, 1, 3]))
-        assert_array_equal(rv_3.prob, np.array([0, 0.5, 0.5]))
+        assert_array_equal(rv_3.p, np.array([0, 0.5, 0.5]))
         assert_array_equal(rv_3.cum_p, np.array([0.0, 0.5, 1.0]))
 
-        # Check if `x` and `prob` are rearranged if not sorted
+        # Check if `x` and `p` are rearranged if not sorted
         with pytest.warns(UserWarning, match="`x`.*not sorted"):
-            rv_4 = Disc(x=x_ref[[1, 0, 2]], prob=prob_ref[[1, 0, 2]])
+            rv_4 = Disc(x=x_ref[[1, 0, 2]], p=p_ref[[1, 0, 2]])
             assert_equal_disc(rv_4, rv_ref)
 
         # Check if duplicated values are removed from `x`
         with pytest.warns(UserWarning, match="duplicated"):
             # First pair of xy-grid is taken among duplicates
-            rv_5 = Disc(x=x_ref[[0, 1, 1, 2]], prob=prob_ref[[0, 1, 2, 2]])
+            rv_5 = Disc(x=x_ref[[0, 1, 1, 2]], p=p_ref[[0, 1, 2, 2]])
             assert_equal_disc(rv_5, rv_ref)
 
     def test_str(self):
@@ -119,12 +119,12 @@ class TestDisc:
     def test_properties(self):
         """Tests for properties"""
         x = np.arange(10)
-        prob = np.repeat(0.1, 10)
-        rv = Disc(x, prob)
+        p = np.repeat(0.1, 10)
+        rv = Disc(x, p)
 
         assert_array_equal(rv.x, x)
-        assert_array_equal(rv.prob, prob)
-        assert_array_equal(rv.cum_p, np.cumsum(prob))
+        assert_array_equal(rv.p, p)
+        assert_array_equal(rv.cum_p, np.cumsum(p))
         assert rv.a == 0
         assert rv.b == 9
 
@@ -134,10 +134,10 @@ class TestDisc:
 
     def test_from_rv_basic(self):
         x = [0, 1, 5]
-        prob = [0.1, 0.4, 0.5]
-        rv = distrs.rv_discrete(values=(x, prob))
+        p = [0.1, 0.4, 0.5]
+        rv = distrs.rv_discrete(values=(x, p))
         rv_out = Disc.from_rv(rv)
-        rv_ref = Disc(x=x, prob=prob)
+        rv_ref = Disc(x=x, p=p)
         assert_equal_disc(rv_out, rv_ref)
 
         # Object of `Disc` class should be returned untouched
@@ -184,8 +184,8 @@ class TestDisc:
     def test_from_rv_options(self):
         # Usage of `small_prob` option
         x = [1, 2, 3]
-        prob = [0.5, 0.125, 0.375]
-        rv = distrs.rv_discrete(values=(x, prob))
+        p = [0.5, 0.125, 0.375]
+        rv = distrs.rv_discrete(values=(x, p))
 
         with op.option_context({"small_prob": 0.125 + 1e-8}):
             rv_out = Disc.from_rv(rv)
@@ -198,7 +198,7 @@ class TestDisc:
         rv = Disc.from_sample(x)
         rv_ref = Disc(
             x=[-100, 0.1, 1, 3, np.pi],
-            prob=[0.125, 0.25, 0.25, 0.125, 0.25],
+            p=[0.125, 0.25, 0.25, 0.125, 0.25],
         )
         assert isinstance(rv, Disc)
         assert_equal_disc(rv, rv_ref)
@@ -214,7 +214,7 @@ class TestDisc:
         # are finite
         with pytest.warns(UserWarning, match="has non-finite"):
             rv = Disc.from_sample([1, 2, np.nan])
-            rv_ref = Disc(x=[1, 2], prob=[0.5, 0.5])
+            rv_ref = Disc(x=[1, 2], p=[0.5, 0.5])
             assert_equal_disc(rv, rv_ref)
 
         # Error is given with default discrete estimator if there is no finite
@@ -234,11 +234,11 @@ class TestDisc:
 
         with op.option_context({"discrete_estimator": single_value_estimator}):
             rv = Disc.from_sample(x)
-            assert_equal_disc(rv, Disc(x=[1.0], prob=[1.0]))
+            assert_equal_disc(rv, Disc(x=[1.0], p=[1.0]))
 
         # "discrete_estimator" which returns allowed classes
         ## `Disc` object should be returned untouched
-        rv_estimation = Disc(x=[0, 1], prob=[0.5, 0.5])
+        rv_estimation = Disc(x=[0, 1], p=[0.5, 0.5])
         rv_estimation.aaa = "Extra method"
         with op.option_context({"discrete_estimator": lambda x: rv_estimation}):
             rv = Disc.from_sample(np.asarray([0, 1, 2]))

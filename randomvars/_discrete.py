@@ -18,9 +18,9 @@ class Disc:
 
     There are three ways to create instance of `Disc` class:
 
-    1. Directly supply x-values (`x`) and their probabilities (`prob`):
+    1. Directly supply x-values (`x`) and their probabilities (`p`):
     ```
-        my_disc = Disc(x=[1.618, 2.718, 3.141], prob=[0.1, 0.2, 0.7])
+        my_disc = Disc(x=[1.618, 2.718, 3.141], p=[0.1, 0.2, 0.7])
         my_disc.pmf([1.618, 1.619])
     ```
     2. Use `Disc.from_rv()` to create approximation of some existing discrete
@@ -49,30 +49,30 @@ class Disc:
     ```
     """
 
-    def __init__(self, x, prob):
-        x, prob = self._impute_init_args(x, prob)
+    def __init__(self, x, p):
+        x, p = self._impute_init_args(x, p)
 
         self._x = x
-        self._prob = prob
-        self._cum_p = np.cumsum(prob)
+        self._p = p
+        self._cum_p = np.cumsum(p)
         self._a = x[0]
         self._b = x[-1]
 
     @staticmethod
-    def _impute_init_args(x, prob):
+    def _impute_init_args(x, p):
         x = utils._as_1d_numpy(x, "x", chkfinite=True, dtype="float64")
-        prob = utils._as_1d_numpy(prob, "prob", chkfinite=True, dtype="float64")
+        p = utils._as_1d_numpy(p, "p", chkfinite=True, dtype="float64")
 
-        x, prob = utils._sort_parallel(x, prob, y_name="prob", warn=True)
+        x, p = utils._sort_parallel(x, p, y_name="p", warn=True)
 
         if not np.all(np.diff(x) > 0):
-            x, prob = utils._unique_parallel(x, prob, warn=True)
+            x, p = utils._unique_parallel(x, p, warn=True)
 
-        utils._assert_positive(prob, "prob")
+        utils._assert_positive(p, "p")
 
-        prob = prob / np.sum(prob)
+        p = p / np.sum(p)
 
-        return x, prob
+        return x, p
 
     def __str__(self):
         x_len = len(self.x)
@@ -85,9 +85,9 @@ class Disc:
         return self._x
 
     @property
-    def prob(self):
+    def p(self):
         """Return probabilities of discrete distribution"""
-        return self._prob
+        return self._p
 
     @property
     def cum_p(self):
@@ -188,7 +188,7 @@ class Disc:
 
         # Find values with non-zero probability mass
         x = []
-        prob = []
+        p = []
         tot_prob = 0.0
 
         while tot_prob <= 1 - small_prob:
@@ -203,11 +203,11 @@ class Disc:
                 )
 
             x.append(cur_x)
-            prob.append(cur_tot_prob - tot_prob)
+            p.append(cur_tot_prob - tot_prob)
 
             tot_prob = cur_tot_prob
 
-        return cls(x=x, prob=prob)
+        return cls(x=x, p=p)
 
     @classmethod
     def from_sample(cls, sample):
@@ -220,7 +220,7 @@ class Disc:
           `Disc`, it is returned untouched. If it is an object of
           `scipy.stats.distributions.rv_frozen` (`rv_discrete` with all
           hyperparameters defined), it is forwarded to `Disc.from_rv()`.
-        - **Create random variable** with `Disc(x=x, prob=prob)`, where `x` and `prob`
+        - **Create random variable** with `Disc(x=x, p=p)`, where `x` and `p`
           are first and second values of `estimate`.
 
         Relevant package options: `discrete_estimator`. See documentation of
@@ -254,7 +254,7 @@ class Disc:
         if isinstance(estimate, rv_frozen):
             return Disc.from_rv(estimate)
 
-        return cls(x=estimate[0], prob=estimate[1])
+        return cls(x=estimate[0], p=estimate[1])
 
     def pmf(self, x):
         """Probability mass function
@@ -282,7 +282,7 @@ class Disc:
 
         x_is_matched = np.isclose(x, self.x[inds], rtol=rtol, atol=atol)
 
-        res = np.where(x_is_matched, self.prob[inds], 0)
+        res = np.where(x_is_matched, self.p[inds], 0)
         return utils._copy_nan(fr=x, to=res)
 
     def cdf(self, x):

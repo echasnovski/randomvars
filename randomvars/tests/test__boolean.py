@@ -137,7 +137,7 @@ class TestBool:
 
         ## `Disc` and "scipy" distribution should be forwarded to
         ## `Bool.from_rv()`
-        rv_disc = Disc(x=[0, 1], prob=[0.125, 0.875])
+        rv_disc = Disc(x=[0, 1], p=[0.125, 0.875])
         with op.option_context({"boolean_estimator": lambda x: rv_disc}):
             rv = Bool.from_sample(x)
             rv_ref = Bool.from_rv(rv_disc)
