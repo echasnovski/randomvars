@@ -51,7 +51,7 @@ class Cont:
 
         self._x = x
         self._y = y
-        self._p = utils._trapez_integral_cum(self._x, self._y)
+        self._cum_p = utils._trapez_integral_cum(self._x, self._y)
         self._a = x[0]
         self._b = x[-1]
 
@@ -92,9 +92,9 @@ class Cont:
         return self._y
 
     @property
-    def p(self):
+    def cum_p(self):
         """Return cumulative probability grid of piecewise-linear density"""
-        return self._p
+        return self._cum_p
 
     @property
     def a(self):
@@ -195,7 +195,7 @@ class Cont:
         array([0. , 0.5, 1. ])
         """
         if ind is None:
-            return (self._x, self._y, self._p)
+            return (self._x, self._y, self._cum_p)
 
         x = np.empty_like(ind, dtype=np.float64)
         y = np.empty_like(ind, dtype=np.float64)
@@ -212,7 +212,7 @@ class Cont:
         ind_in = ind[out_isnt_nan] - 1
         x[out_isnt_nan] = self._x[ind_in]
         y[out_isnt_nan] = self._y[ind_in]
-        p[out_isnt_nan] = self._p[ind_in]
+        p[out_isnt_nan] = self._cum_p[ind_in]
 
         return (x, y, p)
 
@@ -523,7 +523,7 @@ class Cont:
         q = np.asarray(q, dtype=np.float64)
         res = np.zeros_like(q, dtype=np.float64)
 
-        q_ind = utils._searchsorted_wrap(self._p, q, side="right", edge_inside=True)
+        q_ind = utils._searchsorted_wrap(self._cum_p, q, side="right", edge_inside=True)
         ind_is_good = (q_ind > 0) & (q_ind < len(self._x)) & (q != 0.0) & (q != 1.0)
 
         if np.any(ind_is_good):

@@ -19,8 +19,8 @@ def assert_equal_mixt(rv_1, rv_2):
     # Check continuous parts
     if rv_1.cont is not None:
         if rv_2.cont is not None:
-            grid_1 = rv_1.cont.x, rv_1.cont.y, rv_1.cont.p
-            grid_2 = rv_2.cont.x, rv_2.cont.y, rv_2.cont.p
+            grid_1 = rv_1.cont.x, rv_1.cont.y, rv_1.cont.cum_p
+            grid_2 = rv_2.cont.x, rv_2.cont.y, rv_2.cont.cum_p
             _assert_equal_seq(grid_1, grid_2)
         else:
             raise ValueError("`rv_2.cont` is `None` while `rv_1.cont` is not.")
@@ -31,8 +31,8 @@ def assert_equal_mixt(rv_1, rv_2):
     # Check discrete parts
     if rv_1.disc is not None:
         if rv_2.disc is not None:
-            grid_1 = rv_1.disc.x, rv_1.disc.prob, rv_1.disc.p
-            grid_2 = rv_2.disc.x, rv_2.disc.prob, rv_2.disc.p
+            grid_1 = rv_1.disc.x, rv_1.disc.prob, rv_1.disc.cum_p
+            grid_2 = rv_2.disc.x, rv_2.disc.prob, rv_2.disc.cum_p
             _assert_equal_seq(grid_1, grid_2)
         else:
             raise ValueError("`rv_2.disc` is `None` while `rv_1.disc` is not.")

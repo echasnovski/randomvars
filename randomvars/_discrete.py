@@ -54,7 +54,7 @@ class Disc:
 
         self._x = x
         self._prob = prob
-        self._p = np.cumsum(prob)
+        self._cum_p = np.cumsum(prob)
         self._a = x[0]
         self._b = x[-1]
 
@@ -90,9 +90,9 @@ class Disc:
         return self._prob
 
     @property
-    def p(self):
+    def cum_p(self):
         """Return cumulative probabilities of discrete distribution"""
-        return self._p
+        return self._cum_p
 
     @property
     def a(self):
@@ -300,11 +300,11 @@ class Disc:
         """
         inds = np.searchsorted(self.x, x, side="right")
         # This is needed to avoid possible confusion at index 0 when subsetting
-        # `self.p`
+        # `self.cum_p`
         inds_clipped = np.maximum(inds, 1)
 
         res = np.ones_like(x, dtype=np.float64)
-        res = np.where(inds == 0, 0.0, self.p[inds_clipped - 1])
+        res = np.where(inds == 0, 0.0, self.cum_p[inds_clipped - 1])
 
         return utils._copy_nan(fr=x, to=res)
 
@@ -322,12 +322,12 @@ class Disc:
         -------
         ppf_vals : ndarray with shape inferred from `q`
         """
-        q_inds = np.searchsorted(self.p, q, side="left")
+        q_inds = np.searchsorted(self.cum_p, q, side="left")
         # This is needed to avoid `IndexError` in later `np.where()` call
-        q_inds_clipped = np.minimum(q_inds, len(self.p) - 1)
+        q_inds_clipped = np.minimum(q_inds, len(self.cum_p) - 1)
 
         res = np.empty_like(q, dtype=np.float64)
-        res = np.where(q_inds != len(self.p), self.x[q_inds_clipped], res)
+        res = np.where(q_inds != len(self.cum_p), self.x[q_inds_clipped], res)
         res[(q < 0) | (q > 1)] = np.nan
 
         return utils._copy_nan(fr=q, to=res)
