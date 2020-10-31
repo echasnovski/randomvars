@@ -12,13 +12,15 @@ class Disc:
     """Discrete random variable
 
     Class for discrete random variable with **finite number of (finite and
-    unique) values**. It is similar to (unexported) `rv_sample` class from
-    `scipy.stats.distributions`, but works with float numbers as distribution
-    values (opposite to focusing on integers in `rv_sample`).
+    unique) values**. Defined by xp-grid of probability mass function: values
+    in x-grid and their probabilities in p-grid. It is similar to (unexported)
+    `rv_sample` class from `scipy.stats.distributions`, but works with float
+    numbers as distribution values (opposite to focusing on integers in
+    `rv_sample`).
 
     There are three ways to create instance of `Disc` class:
 
-    1. Directly supply x-values (`x`) and their probabilities (`p`):
+    1. Directly supply parts of xp-grid (`x` for x-grid and `p` for p-grid):
     ```
         my_disc = Disc(x=[1.618, 2.718, 3.141], p=[0.1, 0.2, 0.7])
         my_disc.pmf([1.618, 1.619])
@@ -81,12 +83,12 @@ class Disc:
 
     @property
     def x(self):
-        """Return values of discrete distribution"""
+        """Return x-grid (values of discrete distribution)"""
         return self._x
 
     @property
     def p(self):
-        """Return probabilities of discrete distribution"""
+        """Return p-grid (probabilities of discrete distribution)"""
         return self._p
 
     @property

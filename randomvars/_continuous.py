@@ -15,11 +15,14 @@ class Cont:
 
     Class for continuous random variable **defined by piecewise-linear
     density**. It has **finite support**, **on which it is continuous**, and
-    **finite density values**.
+    has **finite density values**. Defined by xy-grid of density: values in
+    x-grid and their density in y-grid. In points inside support (segment from
+    minimum to maximum values of x-grid) density is a linear interpolation of
+    xy-grid. Outside of support density is equal to 0.
 
     There are three ways to create instance of `Cont` class:
 
-    1. Directly supply x-grid (`x`) and y-grid (`prob`) of piecewise-linear density:
+    1. Directly supply parts of xy-grid (`x` for x-grid and `y` for y-grid):
     ```
         # "Triangular" distribution
         my_cont = Cont(x=[0, 1, 2], y=[0, 1, 0])
@@ -83,12 +86,12 @@ class Cont:
 
     @property
     def x(self):
-        """Return `x` component of piecewise-linear density"""
+        """Return x-grid (`x` component of piecewise-linear density)"""
         return self._x
 
     @property
     def y(self):
-        """Return `y` component of piecewise-linear density"""
+        """Return y-grid (`y` component of piecewise-linear density)"""
         return self._y
 
     @property
