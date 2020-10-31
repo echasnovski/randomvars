@@ -53,15 +53,14 @@ DISTRIBUTIONS = {
 
 
 def assert_equal_cont(rv_1, rv_2):
-    grid_1 = rv_1.x, rv_1.y, rv_1.cum_p
-    grid_2 = rv_2.x, rv_2.y, rv_2.cum_p
+    grid_1 = rv_1.x, rv_1.y
+    grid_2 = rv_2.x, rv_2.y
     _assert_equal_seq(grid_1, grid_2)
 
 
 def assert_almost_equal_cont(rv_1, rv_2, decimal=10):
     assert_array_almost_equal(rv_1.x, rv_2.x, decimal=decimal)
     assert_array_almost_equal(rv_1.y, rv_2.y, decimal=decimal)
-    assert_array_almost_equal(rv_1.cum_p, rv_2.cum_p, decimal=decimal)
 
 
 def from_sample_max_error(x):
@@ -196,7 +195,6 @@ class TestCont:
 
         assert_array_equal(rv.x, x)
         assert_array_equal(rv.y, y)
-        assert_array_almost_equal(rv.cum_p, np.arange(11) / 10, decimal=15)
         assert rv.a == 0.0
         assert rv.b == 10.0
 
@@ -215,10 +213,9 @@ class TestCont:
         # All grid elements are returned if no `ind` is specified
         rv = Cont([0, 1, 2], [0, 1, 0])
         x_out, y_out, p_out = rv._grid_by_ind()
-        x_ref, y_ref, p_ref = rv.x, rv.y, rv.cum_p
+        x_ref, y_ref = rv.x, rv.y
         assert_array_equal(x_out, x_ref)
         assert_array_equal(y_out, y_ref)
-        assert_array_equal(p_out, p_ref)
 
     def test_pdf_coeffs(self):
         rv = Cont([0, 1, 2], [0, 1, 0])

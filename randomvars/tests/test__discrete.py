@@ -35,8 +35,8 @@ DISTRIBUTIONS = {
 
 
 def assert_equal_disc(rv_1, rv_2):
-    grid_1 = rv_1.x, rv_1.p, rv_1.cum_p
-    grid_2 = rv_2.x, rv_2.p, rv_2.cum_p
+    grid_1 = rv_1.x, rv_1.p
+    grid_2 = rv_2.x, rv_2.p
     _assert_equal_seq(grid_1, grid_2)
 
 
@@ -95,7 +95,6 @@ class TestDisc:
         rv_3 = Disc(x=[0, 1, 3], p=[0, 0.5, 0.5])
         assert_array_equal(rv_3.x, np.array([0, 1, 3]))
         assert_array_equal(rv_3.p, np.array([0, 0.5, 0.5]))
-        assert_array_equal(rv_3.cum_p, np.array([0.0, 0.5, 1.0]))
 
         # Check if `x` and `p` are rearranged if not sorted
         with pytest.warns(UserWarning, match="`x`.*not sorted"):
@@ -124,7 +123,6 @@ class TestDisc:
 
         assert_array_equal(rv.x, x)
         assert_array_equal(rv.p, p)
-        assert_array_equal(rv.cum_p, np.cumsum(p))
         assert rv.a == 0
         assert rv.b == 9
 

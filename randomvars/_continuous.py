@@ -52,11 +52,14 @@ class Cont:
     def __init__(self, x, y):
         x, y = self._impute_init_args(x, y)
 
+        # User-facing attributes
         self._x = x
         self._y = y
-        self._cum_p = utils._trapez_integral_cum(self._x, self._y)
         self._a = x[0]
         self._b = x[-1]
+
+        # Private attributes
+        self._cum_p = utils._trapez_integral_cum(self._x, self._y)
 
     @staticmethod
     def _impute_init_args(x, y):
@@ -93,11 +96,6 @@ class Cont:
     def y(self):
         """Return y-grid (`y` component of piecewise-linear density)"""
         return self._y
-
-    @property
-    def cum_p(self):
-        """Return cumulative probability grid of piecewise-linear density"""
-        return self._cum_p
 
     @property
     def a(self):
@@ -185,16 +183,17 @@ class Cont:
         Returns
         -------
         grid: tuple with 3 numpy arrays
-            Elements represent `x`, `y`, and `p` *left* values of intervals.
+            Elements represent `x`, `y`, and `_cum_p` *left* values of
+            intervals.
 
         Examples
         --------
         >>> rv = Cont([0, 1, 2], [0, 1, 0])
-        >>> x, y, p = rv._grid_by_ind(np.array([-1, 0, 1, 2, 3, 4]))
+        >>> x, y, cum_p = rv._grid_by_ind(np.array([-1, 0, 1, 2, 3, 4]))
         >>> x
         array([nan, nan,  0.,  1.,  2., nan])
-        >>> x, y, p = rv._grid_by_ind()
-        >>> p
+        >>> x, y, cum_p = rv._grid_by_ind()
+        >>> cum_p
         array([0. , 0.5, 1. ])
         """
         if ind is None:
@@ -202,22 +201,22 @@ class Cont:
 
         x = np.empty_like(ind, dtype=np.float64)
         y = np.empty_like(ind, dtype=np.float64)
-        p = np.empty_like(ind, dtype=np.float64)
+        cum_p = np.empty_like(ind, dtype=np.float64)
 
         # There is no grid elements to the left of interval 0, so outputs are
         # `np.nan` for it
         out_is_nan = (ind <= 0) | (ind > len(self._x))
         x[out_is_nan] = np.nan
         y[out_is_nan] = np.nan
-        p[out_is_nan] = np.nan
+        cum_p[out_is_nan] = np.nan
 
         out_isnt_nan = ~out_is_nan
         ind_in = ind[out_isnt_nan] - 1
         x[out_isnt_nan] = self._x[ind_in]
         y[out_isnt_nan] = self._y[ind_in]
-        p[out_isnt_nan] = self._cum_p[ind_in]
+        cum_p[out_isnt_nan] = self._cum_p[ind_in]
 
-        return (x, y, p)
+        return (x, y, cum_p)
 
     def pdf_coeffs(self, x, side="right"):
         """Compute density linear coefficients based on `x`.

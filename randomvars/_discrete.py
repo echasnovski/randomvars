@@ -54,11 +54,14 @@ class Disc:
     def __init__(self, x, p):
         x, p = self._impute_init_args(x, p)
 
+        # User-facing attributes
         self._x = x
         self._p = p
-        self._cum_p = np.cumsum(p)
         self._a = x[0]
         self._b = x[-1]
+
+        # Private attributes
+        self._cum_p = np.cumsum(p)
 
     @staticmethod
     def _impute_init_args(x, p):
@@ -90,11 +93,6 @@ class Disc:
     def p(self):
         """Return p-grid (probabilities of discrete distribution)"""
         return self._p
-
-    @property
-    def cum_p(self):
-        """Return cumulative probabilities of discrete distribution"""
-        return self._cum_p
 
     @property
     def a(self):
@@ -302,11 +300,11 @@ class Disc:
         """
         inds = np.searchsorted(self.x, x, side="right")
         # This is needed to avoid possible confusion at index 0 when subsetting
-        # `self.cum_p`
+        # `self._cum_p`
         inds_clipped = np.maximum(inds, 1)
 
         res = np.ones_like(x, dtype=np.float64)
-        res = np.where(inds == 0, 0.0, self.cum_p[inds_clipped - 1])
+        res = np.where(inds == 0, 0.0, self._cum_p[inds_clipped - 1])
 
         return utils._copy_nan(fr=x, to=res)
 
@@ -324,12 +322,12 @@ class Disc:
         -------
         ppf_vals : ndarray with shape inferred from `q`
         """
-        q_inds = np.searchsorted(self.cum_p, q, side="left")
+        q_inds = np.searchsorted(self._cum_p, q, side="left")
         # This is needed to avoid `IndexError` in later `np.where()` call
-        q_inds_clipped = np.minimum(q_inds, len(self.cum_p) - 1)
+        q_inds_clipped = np.minimum(q_inds, len(self._cum_p) - 1)
 
         res = np.empty_like(q, dtype=np.float64)
-        res = np.where(q_inds != len(self.cum_p), self.x[q_inds_clipped], res)
+        res = np.where(q_inds != len(self._cum_p), self.x[q_inds_clipped], res)
         res[(q < 0) | (q > 1)] = np.nan
 
         return utils._copy_nan(fr=q, to=res)
