@@ -57,9 +57,9 @@ class Mixt:
         )
         self._weight_disc = 1.0 - self._weight_cont
 
-        if (self._cont is None) or (self._weight_cont == 0):
+        if self._missing_cont():
             self._a, self._b = self._disc.a, self._disc.b
-        elif (self._disc is None) or (self._weight_disc == 0):
+        elif self._missing_disc():
             self._a, self._b = self._cont.a, self._cont.b
         else:
             self._a = min(self._cont.a, self._disc.a)
@@ -133,6 +133,12 @@ class Mixt:
         """Return support of random variable"""
         return (self._a, self._b)
 
+    def _missing_cont(self):
+        return (self._cont is None) or (self._weight_cont == 0)
+
+    def _missing_disc(self):
+        return (self._disc is None) or (self._weight_disc == 0)
+
     def cdf(self, x):
         """Cumulative distribution function
 
@@ -148,9 +154,9 @@ class Mixt:
         """
         x = np.asarray(x, dtype="float64")
 
-        if (self._cont is None) or (self._weight_cont == 0.0):
+        if self._missing_cont():
             return self._disc.cdf(x)
-        if (self._disc is None) or (self._weight_disc == 0.0):
+        if self._missing_disc():
             return self._cont.cdf(x)
 
         return self._weight_cont * self._cont.cdf(
