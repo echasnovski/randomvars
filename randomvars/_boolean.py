@@ -74,10 +74,12 @@ class Bool:
 
     @property
     def prob_true(self):
+        """Return the probability of `True`"""
         return self._prob_true
 
     @property
     def prob_false(self):
+        """Return the probability of `False`"""
         return self._prob_false
 
     @classmethod

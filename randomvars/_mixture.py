@@ -101,18 +101,22 @@ class Mixt:
 
     @property
     def cont(self):
+        """Return continuous part of mixture"""
         return self._cont
 
     @property
     def disc(self):
+        """Return discrete part of mixture"""
         return self._disc
 
     @property
     def weight_cont(self):
+        """Return weight of continuous part in mixture"""
         return self._weight_cont
 
     @property
     def weight_disc(self):
+        """Return weight of discrete part in mixture"""
         return self._weight_disc
 
     @property
