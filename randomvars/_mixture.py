@@ -51,6 +51,7 @@ class Mixt:
     """
 
     def __init__(self, cont, disc, weight_cont):
+        # User-facing attributes
         self._cont, self._disc, self._weight_cont = self._impute_init_args(
             cont, disc, weight_cont
         )
@@ -58,7 +59,7 @@ class Mixt:
 
         if (self._cont is None) or (self._weight_cont == 0):
             self._a, self._b = self._disc.a, self._disc.b
-        elif (self.disc is None) or (self._weight_disc == 0):
+        elif (self._disc is None) or (self._weight_disc == 0):
             self._a, self._b = self._cont.a, self._cont.b
         else:
             self._a = min(self._cont.a, self._disc.a)
@@ -94,8 +95,8 @@ class Mixt:
     def __str__(self):
         return (
             "Mixture RV:\n"
-            f"Cont (weight = {self.weight_cont}): {self.cont}\n"
-            f"Disc (weight = {self.weight_disc}): {self.disc}"
+            f"Cont (weight = {self._weight_cont}): {self._cont}\n"
+            f"Disc (weight = {self._weight_disc}): {self._disc}"
         )
 
     @property
@@ -126,7 +127,7 @@ class Mixt:
 
     def support(self):
         """Return support of random variable"""
-        return (self.a, self.b)
+        return (self._a, self._b)
 
     def cdf(self, x):
         """Cumulative distribution function
@@ -143,9 +144,11 @@ class Mixt:
         """
         x = np.asarray(x, dtype="float64")
 
-        if (self.cont is None) or (self.weight_cont == 0.0):
-            return self.disc.cdf(x)
-        if (self.disc is None) or (self.weight_disc == 0.0):
-            return self.cont.cdf(x)
+        if (self._cont is None) or (self._weight_cont == 0.0):
+            return self._disc.cdf(x)
+        if (self._disc is None) or (self._weight_disc == 0.0):
+            return self._cont.cdf(x)
 
-        return self.weight_cont * self.cont.cdf(x) + self.weight_disc * self.disc.cdf(x)
+        return self._weight_cont * self._cont.cdf(
+            x
+        ) + self._weight_disc * self._disc.cdf(x)

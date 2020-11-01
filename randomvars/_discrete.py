@@ -80,9 +80,9 @@ class Disc:
         return x, p
 
     def __str__(self):
-        x_len = len(self.x)
+        x_len = len(self._x)
         s = "s" if x_len > 1 else ""
-        return f"Discrete RV with {x_len} value{s} (support: [{self.a}, {self.b}])"
+        return f"Discrete RV with {x_len} value{s} (support: [{self._a}, {self._b}])"
 
     @property
     def x(self):
@@ -106,7 +106,7 @@ class Disc:
 
     def support(self):
         """Return support of random variable"""
-        return (self.a, self.b)
+        return (self._a, self._b)
 
     @classmethod
     def from_rv(cls, rv):
@@ -278,11 +278,11 @@ class Disc:
         """
         rtol, atol = op.get_option("tolerance")
 
-        inds = utils._find_nearest_ind(x, self.x)
+        inds = utils._find_nearest_ind(x, self._x)
 
-        x_is_matched = np.isclose(x, self.x[inds], rtol=rtol, atol=atol)
+        x_is_matched = np.isclose(x, self._x[inds], rtol=rtol, atol=atol)
 
-        res = np.where(x_is_matched, self.p[inds], 0)
+        res = np.where(x_is_matched, self._p[inds], 0)
         return utils._copy_nan(fr=x, to=res)
 
     def cdf(self, x):
@@ -298,7 +298,7 @@ class Disc:
         -------
         cdf_vals : ndarray with shape inferred from `x`
         """
-        inds = np.searchsorted(self.x, x, side="right")
+        inds = np.searchsorted(self._x, x, side="right")
         # This is needed to avoid possible confusion at index 0 when subsetting
         # `self._cum_p`
         inds_clipped = np.maximum(inds, 1)
@@ -327,7 +327,7 @@ class Disc:
         q_inds_clipped = np.minimum(q_inds, len(self._cum_p) - 1)
 
         res = np.empty_like(q, dtype=np.float64)
-        res = np.where(q_inds != len(self._cum_p), self.x[q_inds_clipped], res)
+        res = np.where(q_inds != len(self._cum_p), self._x[q_inds_clipped], res)
         res[(q < 0) | (q > 1)] = np.nan
 
         return utils._copy_nan(fr=q, to=res)

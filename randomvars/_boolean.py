@@ -53,6 +53,7 @@ class Bool:
     """
 
     def __init__(self, prob_true):
+        # User-facing attributes
         self._prob_true = self._impute_init_args(prob_true)
         self._prob_false = 1.0 - self._prob_true
 
@@ -69,7 +70,7 @@ class Bool:
         return prob_true
 
     def __str__(self):
-        return f"Boolean RV with {self.prob_true} probability of True"
+        return f"Boolean RV with {self._prob_true} probability of True"
 
     @property
     def prob_true(self):
@@ -192,8 +193,8 @@ class Bool:
         pmf_vals : ndarray with shape inferred from `x`
         """
         x = np.asarray(x, dtype="bool")
-        res = np.full(shape=x.shape, fill_value=self.prob_false)
-        res[x] = self.prob_true
+        res = np.full(shape=x.shape, fill_value=self._prob_false)
+        res[x] = self._prob_true
         return res
 
     def cdf(self, x):
@@ -213,7 +214,7 @@ class Bool:
         cdf_vals : ndarray with shape inferred from `x`
         """
         x = np.asarray(x, dtype="bool")
-        res = np.full(shape=x.shape, fill_value=self.prob_false)
+        res = np.full(shape=x.shape, fill_value=self._prob_false)
         res[x] = 1.0
         return res
 
@@ -236,7 +237,7 @@ class Bool:
         """
         q = np.asarray(q, dtype="float64")
         res = np.full(shape=q.shape, fill_value=True)
-        res[(0 <= q) & (q <= self.prob_false)] = False
+        res[(0 <= q) & (q <= self._prob_false)] = False
         return res
 
     def rvs(self, size=None, random_state=None):

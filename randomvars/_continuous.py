@@ -81,10 +81,11 @@ class Cont:
         return x, y
 
     def __str__(self):
-        x_len = len(self.x)
+        x_len = len(self._x)
         s = "s" if x_len > 2 else ""
         return (
-            f"Continuous RV with {x_len-1} interval{s} (support: [{self.a}, {self.b}])"
+            f"Continuous RV with {x_len-1} interval{s} "
+            f"(support: [{self._a}, {self._b}])"
         )
 
     @property
@@ -109,7 +110,7 @@ class Cont:
 
     def support(self):
         """Return support of random variable"""
-        return (self.a, self.b)
+        return (self._a, self._b)
 
     def _coeffs_by_ind(self, ind=None):
         """Compute density linear coefficients based on index of interval.
@@ -504,7 +505,7 @@ class Cont:
 
         # `res` is already initialized with zeros, so taking care of `x` to the
         # left of support is not necessary
-        res[x_ind == len(self.x)] = 1.0
+        res[x_ind == len(self._x)] = 1.0
 
         return utils._copy_nan(fr=x, to=res)
 
