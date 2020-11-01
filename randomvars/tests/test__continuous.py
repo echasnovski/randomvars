@@ -480,6 +480,10 @@ class TestCont:
         q = np.array([[0, 0.5], [0.0, 1.0]])
         assert_array_equal(rv_1.ppf(q), np.array([[0.0, 1.0], [0.0, 2.0]]))
 
+        # Should return the smallest x-value in case of zero-density interval(s)
+        rv_zero_density = Cont([0, 1, 2, 3, 4, 5, 6], [0, 0.5, 0, 0, 0, 0.5, 0])
+        assert rv_zero_density.ppf(0.5) == 2
+
     def test_rvs(self):
         """Tests for `.rvs()`"""
         rv_1 = Cont([0, 1, 2], [0, 1, 0])

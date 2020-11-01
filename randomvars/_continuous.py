@@ -526,8 +526,14 @@ class Cont:
         q = np.asarray(q, dtype=np.float64)
         res = np.zeros_like(q, dtype=np.float64)
 
-        q_ind = utils._searchsorted_wrap(self._cum_p, q, side="right", edge_inside=True)
-        ind_is_good = (q_ind > 0) & (q_ind < len(self._x)) & (q != 0.0) & (q != 1.0)
+        # Using `side="left"` is crucial to return the smallest value in case
+        # there are more than one. For example, when there are zero-density
+        # intervals (which will result into consecutive duplicated values of
+        # `_cum_p`).
+        # Using `edge_inside=True` is crucial in order to treat the left edge
+        # of support as part of support.
+        q_ind = utils._searchsorted_wrap(self._cum_p, q, side="left", edge_inside=True)
+        ind_is_good = (q_ind > 0) & (q_ind < len(self._cum_p)) & (q != 0.0) & (q != 1.0)
 
         if np.any(ind_is_good):
             q_good = q[ind_is_good]
@@ -544,12 +550,12 @@ class Cont:
 
         # Values 0.0 and 1.0 should be treated separately due to floating point
         # representation issues during `utils._searchsorted_wrap()`
-        # application. In some extreme cases last `_p` can be smaller than 1 by
-        # value of 10**(-16) magnitude, which will result into "bad" value of
-        # `q_ind` (that is why this should also be done after assigning `nan`
-        # to "bad" values)
-        res[q == 0.0] = self._x[0]
-        res[q == 1.0] = self._x[-1]
+        # application. In some extreme cases last `_cum_p` can be smaller than
+        # 1 by value of 10**(-16) magnitude, which will result into "bad" value
+        # of `q_ind` (that is why this should also be done after assigning
+        # `nan` to "bad" values)
+        res[q == 0.0] = self._a
+        res[q == 1.0] = self._b
 
         return res
 
