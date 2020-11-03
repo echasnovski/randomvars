@@ -1,7 +1,7 @@
 # pylint: disable=missing-function-docstring
 """Tests for '_mixture.py' file"""
 import numpy as np
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_equal, assert_array_almost_equal
 import scipy.stats.distributions as distrs
 import pytest
 
@@ -39,6 +39,47 @@ def assert_equal_mixt(rv_1, rv_2):
     else:
         if rv_2.disc is not None:
             raise ValueError("`rv_1.disc` is `None` while `rv_2.disc` is not.")
+
+
+def assert_ppf(cont, disc, weight_cont):
+    rv = Mixt(cont=cont, disc=disc, weight_cont=weight_cont)
+    h = 1e-12
+    q = np.linspace(0, 1, 1001)[1:-1]
+    x = np.linspace(rv.a, rv.b, 1001)[1:-1]
+
+    # Check general inequalities for quantile function. Used form accounts for
+    # floating point representation.
+    ppf_q = rv.ppf(q)
+    cdf_x = rv.cdf(x)
+
+    ## `F(Q(q)-) <= q` (`F(Q(q)-)` - limit from left to `Q(q)` of `F`)
+    assert np.all(rv.cdf(ppf_q - h) - q <= h)
+
+    ## `q <= F(Q(q))`
+    assert np.all(q - rv.cdf(ppf_q) <= h)
+
+    ## `Q(F(x)) <= x`
+    assert np.all(rv.ppf(cdf_x) - x <= h)
+
+    ## `x <= Q(F(x)+)`
+    assert np.all(x - rv.ppf(cdf_x + h) <= h)
+
+    # Check values of cumulative probability "after jumps"
+    assert_array_equal(rv.ppf(rv.cdf(disc.x)), disc.x)
+
+    # Check values of cumulative probability "before" jumps
+    ## Here ` + h` is added to ensure that input of `rv.ppf()` stays "inside jump".
+    ## This accounts for possible case of two consecutive jumps inside
+    ## zero-density interval of continuous part
+    assert_array_equal(rv.ppf(rv.cdf(disc.x) - rv.weight_disc * disc.p + h), disc.x)
+
+    # Check equality at cumulative probability intervals coming from continuous
+    # part
+    x_cont = np.setdiff1d(np.linspace(cont.a, cont.b, 1001), disc.x)[1:-1]
+    assert_array_almost_equal(rv.ppf(rv.cdf(x_cont)), x_cont, decimal=12)
+
+    # Check extreme cumulative probabilities
+    assert_array_equal(rv.ppf([0, 1]), list(rv.support()))
 
 
 class TestMixt:
@@ -244,3 +285,84 @@ class TestMixt:
 
         rv_weight_1 = Mixt(cont=cont, disc=disc, weight_cont=1)
         assert_array_equal(rv_weight_1.cdf(ref_x), cont.cdf(ref_x))
+
+    def test_ppf(self):
+        """Tests for `.ppf()` method"""
+        # `ppf()` method should be inverse to `cdf()` for every sensible input
+        cont = Cont([0, 1], [1, 1])
+        disc = Disc([-1, 0.5], [0.25, 0.75])
+        weight_cont = 0.75
+        rv = Mixt(cont=cont, disc=disc, weight_cont=weight_cont)
+        h = 1e-12
+        ref_x = np.array([-1.1, -1 - h, -1, 0, 0.25, 0.5 - h, 0.5, 0.75, 1, 1.1])
+        ref_q = rv.cdf(ref_x)
+        prob = [0.25, 0.75]
+
+        # Regular checks
+        # Due to nature of quantile function it is safer to check every
+        # combination of overlapping between supports of continuous and
+        # discrete parts. Probably an overkill, but this on a safer side.
+        # Here: `a_cont` and `b_cont` - edges of continuous part, `a_disc` and
+        # `b_disc` - edges of discrete part
+        ## a_disc < b_disc < a_cont < b_cont
+        assert_ppf(cont, Disc([-1, -0.5], prob), weight_cont)
+        ## a_disc < b_disc = a_cont < b_cont
+        assert_ppf(cont, Disc([-1, 0], prob), weight_cont)
+        ## a_disc < a_cont < b_disc < b_cont
+        assert_ppf(cont, Disc([-1, 0.5], prob), weight_cont)
+        ## a_disc < a_cont < b_disc = b_cont
+        assert_ppf(cont, Disc([-1, 1], prob), weight_cont)
+        ## a_disc < a_cont < b_cont < b_disc
+        assert_ppf(cont, Disc([-1, 1.5], prob), weight_cont)
+        ## a_disc = a_cont < b_disc < b_cont
+        assert_ppf(cont, Disc([0, 0.5], prob), weight_cont)
+        ## a_disc = a_cont < b_disc = b_cont
+        assert_ppf(cont, Disc([0, 1], prob), weight_cont)
+        ## a_disc = a_cont < b_cont < b_disc
+        assert_ppf(cont, Disc([0, 1.5], prob), weight_cont)
+        ## a_cont < a_disc < b_disc < b_cont
+        assert_ppf(cont, Disc([0.25, 0.5], prob), weight_cont)
+        ## a_cont < a_disc < b_disc = b_cont
+        assert_ppf(cont, Disc([0.5, 1], prob), weight_cont)
+        ## a_cont < a_disc < b_cont < b_disc
+        assert_ppf(cont, Disc([0.5, 1.5], prob), weight_cont)
+        ## a_cont < a_disc = b_cont < b_disc
+        assert_ppf(cont, Disc([1, 1.5], prob), weight_cont)
+        ## a_cont < b_cont < a_disc < b_disc
+        assert_ppf(cont, Disc([1.5, 2], prob), weight_cont)
+
+        ## Checks with one value in discrete part
+        assert_ppf(cont, Disc([-1], [1]), weight_cont)
+        assert_ppf(cont, Disc([0.5], [1]), weight_cont)
+        assert_ppf(cont, Disc([1.5], [1]), weight_cont)
+
+        # Bad input
+        q = np.array([-np.inf, -h, np.nan, 1 + h, np.inf])
+        assert_array_equal(
+            rv.ppf(q), np.array([np.nan, np.nan, np.nan, np.nan, np.nan])
+        )
+
+        # Broadcasting
+        q = np.array([[0, 0.5], [0.0, 1.0]])
+        assert_array_equal(rv.ppf(q), np.array([[-1, 0.5], [-1, 1]]))
+
+        # Should return the smallest x-value in case of zero-density interval
+        # in continuous part
+        cont_zero_density = Cont([0, 1, 2, 3, 4, 5], [0, 0.5, 0, 0, 0.5, 0])
+        rv_dens_zero = Mixt(cont_zero_density, Disc([2.5], [1]), 0.5)
+        assert rv_dens_zero.ppf(0.25) == 2
+
+        # Degenerate cases
+        ## `None` part
+        rv_none_cont = Mixt(cont=None, disc=disc, weight_cont=0)
+        assert_array_equal(rv_none_cont.ppf(ref_q), disc.ppf(ref_q))
+
+        rv_none_disc = Mixt(cont=cont, disc=None, weight_cont=1)
+        assert_array_equal(rv_none_disc.ppf(ref_q), cont.ppf(ref_q))
+
+        ## Extreme weight
+        rv_weight_0 = Mixt(cont=cont, disc=disc, weight_cont=0)
+        assert_array_equal(rv_weight_0.ppf(ref_q), disc.ppf(ref_q))
+
+        rv_weight_1 = Mixt(cont=cont, disc=disc, weight_cont=1)
+        assert_array_equal(rv_weight_1.ppf(ref_q), cont.ppf(ref_q))
