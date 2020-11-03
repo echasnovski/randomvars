@@ -60,13 +60,6 @@ def default_boolean_estimator(sample):
     return np.mean(sample)
 
 
-# %% Assertions
-def _assert_equal_seq(first, second, *args, **kwargs):
-    assert len(first) == len(second)
-    for el1, el2 in zip(first, second):
-        np.testing.assert_array_equal(el1, el2, *args, **kwargs)
-
-
 # %% Array manipulations
 def _as_1d_numpy(x, x_name, chkfinite=True, dtype=np.float64):
     """Convert input to one-dimensional numpy array
@@ -138,13 +131,6 @@ def _unique_parallel(x, y, warn=True):
     y = y[ind]
 
     return x, y
-
-
-def _assert_positive(x, x_name):
-    if np.any(x < 0):
-        raise ValueError(f"`{x_name}` has negative values.")
-    if not np.any(x > 0):
-        raise ValueError(f"`{x_name}` has no positive values.")
 
 
 def _searchsorted_wrap(a, v, side="left", edge_inside=True):
@@ -260,3 +246,18 @@ def _quad_silent(f, a, b):
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore")
         return quad(f, a, b, limit=100)[0]
+
+
+# %% Package assertions
+def _assert_positive(x, x_name):
+    if np.any(x < 0):
+        raise ValueError(f"`{x_name}` has negative values.")
+    if not np.any(x > 0):
+        raise ValueError(f"`{x_name}` has no positive values.")
+
+
+# %% Test assertions
+def _assert_equal_seq(first, second, *args, **kwargs):
+    assert len(first) == len(second)
+    for el1, el2 in zip(first, second):
+        np.testing.assert_array_equal(el1, el2, *args, **kwargs)

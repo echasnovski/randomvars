@@ -6,13 +6,13 @@ from randomvars._utils import (
     _as_1d_numpy,
     _sort_parallel,
     _unique_parallel,
-    _assert_positive,
     _searchsorted_wrap,
     _find_nearest_ind,
     _copy_nan,
     _trapez_integral,
     _trapez_integral_cum,
     _quad_silent,
+    _assert_positive,
 )
 
 
@@ -104,13 +104,6 @@ def test__unique_parallel():
         assert_array_equal(x_out, x_unique)
         assert_array_equal(y_out, y_unique)
     assert len(record) == 0
-
-
-def test__assert_positive():
-    with pytest.raises(ValueError, match="`tmp_name`.*negative"):
-        _assert_positive(np.array([-1, 0, 1]), x_name="tmp_name")
-    with pytest.raises(ValueError, match="`tmp_name`.*no positive"):
-        _assert_positive(np.array([0, 0, 0]), x_name="tmp_name")
 
 
 def test__searchsorted_wrap():
@@ -222,3 +215,10 @@ def test__quad_silent():
     with pytest.warns(None) as record:
         _quad_silent(np.tan, 0, np.pi / 2.0 + 0.0001)
     assert len(record) == 0
+
+
+def test__assert_positive():
+    with pytest.raises(ValueError, match="`tmp_name`.*negative"):
+        _assert_positive(np.array([-1, 0, 1]), x_name="tmp_name")
+    with pytest.raises(ValueError, match="`tmp_name`.*no positive"):
+        _assert_positive(np.array([0, 0, 0]), x_name="tmp_name")
