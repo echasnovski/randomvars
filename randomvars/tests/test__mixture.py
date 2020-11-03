@@ -8,7 +8,11 @@ import pytest
 from randomvars._continuous import Cont
 from randomvars._discrete import Disc
 from randomvars._mixture import Mixt
-from randomvars._utils import _assert_equal_seq, _assert_input_coercion
+from randomvars._utils import (
+    _assert_equal_seq,
+    _assert_input_coercion,
+    _assert_one_value_input,
+)
 
 
 def assert_equal_mixt(rv_1, rv_2):
@@ -264,6 +268,11 @@ class TestMixt:
             ),
         )
 
+        # One value input
+        _assert_one_value_input(rv.cdf, 0.5)
+        _assert_one_value_input(rv.cdf, -1)
+        _assert_one_value_input(rv.cdf, np.nan)
+
         # Dirac-like continuous random variable
         cont_dirac = Cont([10 - 1e-8, 10, 10 + 1e-8], [0, 1, 0])
         rv_dirac = Mixt(cont=cont_dirac, disc=disc, weight_cont=0.75)
@@ -351,6 +360,11 @@ class TestMixt:
         # Broadcasting
         q = np.array([[0, 0.5], [0.0, 1.0]])
         assert_array_equal(rv.ppf(q), np.array([[-1, 0.5], [-1, 1]]))
+
+        # One value input
+        _assert_one_value_input(rv.ppf, 0.25)
+        _assert_one_value_input(rv.ppf, -1)
+        _assert_one_value_input(rv.ppf, np.nan)
 
         # Should return the smallest x-value in case of zero-density interval
         # in continuous part

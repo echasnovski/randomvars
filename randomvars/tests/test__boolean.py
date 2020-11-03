@@ -7,7 +7,11 @@ import pytest
 
 from randomvars._boolean import Bool
 from randomvars._discrete import Disc
-from randomvars._utils import _assert_equal_seq, _assert_input_coercion
+from randomvars._utils import (
+    _assert_equal_seq,
+    _assert_input_coercion,
+    _assert_one_value_input,
+)
 import randomvars.options as op
 
 
@@ -175,6 +179,10 @@ class TestBool:
         x = np.array([[False, True], [True, False]])
         assert_array_equal(rv.pmf(x), np.array([[0.25, 0.75], [0.75, 0.25]]))
 
+        # One value input
+        _assert_one_value_input(rv.pmf, True)
+        _assert_one_value_input(rv.pmf, np.nan)
+
     def test_cdf(self):
         """Tests for `.cdf()` method"""
         rv = Bool(0.75)
@@ -200,6 +208,10 @@ class TestBool:
         # Broadcasting
         x = np.array([[False, True], [True, False]])
         assert_array_equal(rv.cdf(x), np.array([[0.25, 1.0], [1.0, 0.25]]))
+
+        # One value input
+        _assert_one_value_input(rv.cdf, True)
+        _assert_one_value_input(rv.cdf, np.nan)
 
     def test_ppf(self):
         """Tests for `.ppf()` method"""
@@ -227,6 +239,11 @@ class TestBool:
         out = rv.ppf(q)
         assert_array_equal(out, np.array([[False, True], [False, True]]))
         assert out.dtype == np.dtype("bool")
+
+        # One value input
+        _assert_one_value_input(rv.ppf, 0.25)
+        _assert_one_value_input(rv.ppf, -1)
+        _assert_one_value_input(rv.ppf, np.nan)
 
     def test_rvs(self):
         """Tests for `.rvs()`"""

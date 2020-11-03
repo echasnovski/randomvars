@@ -468,7 +468,12 @@ class Cont:
         pdf_vals : ndarray with shape inferred from `x`
         """
         x = np.asarray(x, dtype="float64")
-        return np.interp(x, self._x, self._y, left=0, right=0)
+
+        # Using `np.asarray()` to ensure ndarray output in case of `x`
+        # originally was scalar
+        return np.asarray(
+            np.interp(x, self._x, self._y, left=0, right=0), dtype="float64"
+        )
 
     def cdf(self, x):
         """Cumulative distribution function
@@ -508,7 +513,7 @@ class Cont:
         # left of support is not necessary
         res[x_ind == len(self._x)] = 1.0
 
-        return utils._copy_nan(fr=x, to=res)
+        return np.asarray(utils._copy_nan(fr=x, to=res), dtype="float64")
 
     def ppf(self, q):
         """Percent point (quantile, inverse of cdf) function
@@ -558,7 +563,7 @@ class Cont:
         res[q == 0.0] = self._a
         res[q == 1.0] = self._b
 
-        return res
+        return np.asarray(res, dtype="float64")
 
     def rvs(self, size=None, random_state=None):
         """Random number generation

@@ -286,7 +286,7 @@ class Disc:
 
         res = np.where(x_is_matched, self._p[inds], 0)
 
-        return utils._copy_nan(fr=x, to=res)
+        return np.asarray(utils._copy_nan(fr=x, to=res), dtype="float64")
 
     def cdf(self, x):
         """Cumulative distribution function
@@ -311,7 +311,7 @@ class Disc:
         res = np.ones_like(x, dtype=np.float64)
         res = np.where(inds == 0, 0.0, self._cum_p[inds_clipped - 1])
 
-        return utils._copy_nan(fr=x, to=res)
+        return np.asarray(utils._copy_nan(fr=x, to=res), dtype="float64")
 
     def ppf(self, q):
         """Percent point (quantile, inverse of cdf) function
@@ -337,7 +337,7 @@ class Disc:
         res = np.where(q_inds != len(self._cum_p), self._x[q_inds_clipped], res)
         res[(q < 0) | (q > 1)] = np.nan
 
-        return utils._copy_nan(fr=q, to=res)
+        return np.asarray(utils._copy_nan(fr=q, to=res), dtype="float64")
 
     def rvs(self, size=None, random_state=None):
         """Random number generation

@@ -7,7 +7,11 @@ from scipy.integrate import quad
 import pytest
 
 from randomvars._continuous import Cont
-from randomvars._utils import _assert_equal_seq, _assert_input_coercion
+from randomvars._utils import (
+    _assert_equal_seq,
+    _assert_input_coercion,
+    _assert_one_value_input,
+)
 from randomvars.options import get_option, option_context
 
 
@@ -432,6 +436,11 @@ class TestCont:
         x = np.array([[-1, 0.5], [2, 4]])
         assert_array_equal(rv.pdf(x), np.array([[0.0, 0.5], [0.25, 0.0]]))
 
+        # One value input
+        _assert_one_value_input(rv.pdf, 0.5)
+        _assert_one_value_input(rv.pdf, -1)
+        _assert_one_value_input(rv.pdf, np.nan)
+
     def test_cdf(self):
         """Tests for `.cdf()` method"""
         rv_1 = Cont([0, 1, 2], [0, 1, 0])
@@ -457,6 +466,11 @@ class TestCont:
         # Broadcasting
         x = np.array([[-1, 0.5], [2, 4]])
         assert_array_equal(rv_1.cdf(x), np.array([[0.0, 0.125], [1.0, 1.0]]))
+
+        # One value input
+        _assert_one_value_input(rv_1.cdf, 0.5)
+        _assert_one_value_input(rv_1.cdf, -1)
+        _assert_one_value_input(rv_1.cdf, np.nan)
 
     def test_ppf(self):
         """Tests for `.ppf()` method"""
@@ -488,6 +502,11 @@ class TestCont:
         # Broadcasting
         q = np.array([[0, 0.5], [0.0, 1.0]])
         assert_array_equal(rv_1.ppf(q), np.array([[0.0, 1.0], [0.0, 2.0]]))
+
+        # One value input
+        _assert_one_value_input(rv_1.ppf, 0.25)
+        _assert_one_value_input(rv_1.ppf, -1)
+        _assert_one_value_input(rv_1.ppf, np.nan)
 
         # Should return the smallest x-value in case of zero-density interval(s)
         rv_zero_density = Cont([0, 1, 2, 3, 4, 5, 6], [0, 0.5, 0, 0, 0, 0.5, 0])

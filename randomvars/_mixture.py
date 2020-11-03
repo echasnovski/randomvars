@@ -241,9 +241,13 @@ class Mixt:
         if self._missing_disc():
             return self._cont.cdf(x)
 
-        return self._weight_cont * self._cont.cdf(
+        res = self._weight_cont * self._cont.cdf(
             x
         ) + self._weight_disc * self._disc.cdf(x)
+
+        # Using `np.asarray()` to ensure ndarray output in case of `x`
+        # originally was scalar
+        return np.asarray(res, dtype="float64")
 
     def ppf(self, q):
         """Percent point (quantile, inverse of cdf) function
@@ -265,9 +269,7 @@ class Mixt:
         if self._missing_disc():
             return self._cont.ppf(q)
 
-        ## Ensure that `q` has at least 1 dimension. This can be not true in case
-        ## `q` is originally a scalar.
-        q = np.atleast_1d(np.asarray(q, dtype="float64"))
+        q = np.asarray(q, dtype="float64")
         res = np.zeros_like(q, dtype=np.float64)
         cum_p, x, ids = self._cum_p_tuple
 
@@ -323,7 +325,7 @@ class Mixt:
         res[q == 0.0] = self._a
         res[q == 1.0] = self._b
 
-        return res
+        return np.asarray(res, dtype="float64")
 
     # def rvs(self, size=None, random_state=None):
     #     """Random number generation

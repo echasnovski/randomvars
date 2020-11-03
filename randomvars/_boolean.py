@@ -197,7 +197,7 @@ class Bool:
         x = np.asarray(x, dtype="bool")
         res = np.full(shape=x.shape, fill_value=self._prob_false)
         res[x] = self._prob_true
-        return res
+        return np.asarray(res, dtype="float64")
 
     def cdf(self, x):
         """Cumulative distribution function
@@ -218,7 +218,7 @@ class Bool:
         x = np.asarray(x, dtype="bool")
         res = np.full(shape=x.shape, fill_value=self._prob_false)
         res[x] = 1.0
-        return res
+        return np.asarray(res, dtype="float64")
 
     def ppf(self, q):
         """Percent point (quantile, inverse of cdf) function
@@ -240,7 +240,7 @@ class Bool:
         q = np.asarray(q, dtype="float64")
         res = np.full(shape=q.shape, fill_value=True)
         res[(0 <= q) & (q <= self._prob_false)] = False
-        return res
+        return np.asarray(res, dtype="bool")
 
     def rvs(self, size=None, random_state=None):
         """Random boolean generation

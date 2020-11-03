@@ -269,3 +269,15 @@ def _assert_input_coercion(func, arr):
     out_ref = func(arr)
     assert_array_equal(out, out_ref)
     assert type(out) == type(out_ref)
+
+
+def _assert_one_value_input(func, value):
+    # Scalar
+    out = func(value)
+    assert out.ndim == 0
+    assert type(out) == np.ndarray
+
+    # One-value array
+    out = func([value])
+    assert out.ndim == 1
+    assert type(out) == np.ndarray
