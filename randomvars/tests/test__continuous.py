@@ -7,7 +7,7 @@ from scipy.integrate import quad
 import pytest
 
 from randomvars._continuous import Cont
-from randomvars._utils import _assert_equal_seq
+from randomvars._utils import _assert_equal_seq, _assert_input_coercion
 from randomvars.options import get_option, option_context
 
 
@@ -407,6 +407,9 @@ class TestCont:
         x = np.array([-1, 0, 0.5, 1, 2, 3, 4])
         assert_array_equal(rv.pdf(x), np.array([0, 0.5, 0.5, 0.5, 0.25, 0, 0]))
 
+        # Coercion of not ndarray input
+        _assert_input_coercion(rv.pdf, x)
+
         # Input around edges
         x = np.array([0 - 1e-10, 0 + 1e-10, 3 - 1e-10, 3 + 1e-10])
         assert_array_almost_equal(
@@ -437,6 +440,9 @@ class TestCont:
         x = np.array([-1, 0, 0.5, 1, 1.5, 2, 3])
         assert_array_equal(rv_1.cdf(x), np.array([0, 0, 0.125, 0.5, 0.875, 1, 1]))
 
+        # Coercion of not ndarray input
+        _assert_input_coercion(rv_1.cdf, x)
+
         # Bad input
         x = np.array([-np.inf, np.nan, np.inf])
         assert_array_equal(rv_1.cdf(x), np.array([0, np.nan, 1]))
@@ -460,6 +466,9 @@ class TestCont:
         # Regular checks
         q = np.array([0, 0.125, 0.5, 0.875, 1])
         assert_array_equal(rv_1.ppf(q), np.array([0, 0.5, 1, 1.5, 2]))
+
+        # Coercion of not ndarray input
+        _assert_input_coercion(rv_1.ppf, q)
 
         # Bad input
         q = np.array([-np.inf, -1e-8, np.nan, 1 + 1e-8, np.inf])

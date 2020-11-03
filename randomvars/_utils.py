@@ -1,6 +1,7 @@
 import warnings
 
 import numpy as np
+from numpy.testing import assert_array_equal
 from scipy.integrate import quad
 
 
@@ -261,3 +262,10 @@ def _assert_equal_seq(first, second, *args, **kwargs):
     assert len(first) == len(second)
     for el1, el2 in zip(first, second):
         np.testing.assert_array_equal(el1, el2, *args, **kwargs)
+
+
+def _assert_input_coercion(func, arr):
+    out = func(list(arr))
+    out_ref = func(arr)
+    assert_array_equal(out, out_ref)
+    assert type(out) == type(out_ref)

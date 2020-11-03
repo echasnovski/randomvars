@@ -276,6 +276,8 @@ class Disc:
         -------
         pmf_vals : ndarray with shape inferred from `x`
         """
+        x = np.asarray(x, "float64")
+
         rtol, atol = op.get_option("tolerance")
 
         inds = utils._find_nearest_ind(x, self._x)
@@ -283,6 +285,7 @@ class Disc:
         x_is_matched = np.isclose(x, self._x[inds], rtol=rtol, atol=atol)
 
         res = np.where(x_is_matched, self._p[inds], 0)
+
         return utils._copy_nan(fr=x, to=res)
 
     def cdf(self, x):
@@ -298,6 +301,8 @@ class Disc:
         -------
         cdf_vals : ndarray with shape inferred from `x`
         """
+        x = np.asarray(x, dtype="float64")
+
         inds = np.searchsorted(self._x, x, side="right")
         # This is needed to avoid possible confusion at index 0 when subsetting
         # `self._cum_p`
@@ -322,6 +327,8 @@ class Disc:
         -------
         ppf_vals : ndarray with shape inferred from `q`
         """
+        q = np.asarray(q, dtype="float64")
+
         q_inds = np.searchsorted(self._cum_p, q, side="left")
         # This is needed to avoid `IndexError` in later `np.where()` call
         q_inds_clipped = np.minimum(q_inds, len(self._cum_p) - 1)

@@ -6,7 +6,7 @@ import scipy.stats.distributions as distrs
 import pytest
 
 from randomvars._discrete import Disc
-from randomvars._utils import _assert_equal_seq
+from randomvars._utils import _assert_equal_seq, _assert_input_coercion
 import randomvars.options as op
 
 DISTRIBUTIONS_FINITE = {
@@ -258,6 +258,9 @@ class TestDisc:
         x = np.array([0, 0.5, 1, 3, (1 + rtol) * 3 + 0.5 * atol])
         assert_array_equal(rv.pmf(x), np.array([0, 0.1, 0.2, 0.7, 0.7]))
 
+        # Coercion of not ndarray input
+        _assert_input_coercion(rv.pmf, x)
+
         # Bad input
         x = np.array([-np.inf, np.nan, np.inf])
         assert_array_equal(rv.pmf(x), np.array([0, np.nan, 0]))
@@ -289,6 +292,9 @@ class TestDisc:
             decimal=12,
         )
 
+        # Coercion of not ndarray input
+        _assert_input_coercion(rv.cdf, x)
+
         # Bad input
         x = np.array([-np.inf, np.nan, np.inf])
         assert_array_equal(rv.cdf(x), np.array([0, np.nan, 1]))
@@ -308,6 +314,9 @@ class TestDisc:
         ## Outputs for q=0 and q=1 should be equal to minimum and maximum elements
         q = np.array([0, 0.1 - h, 0.1, 0.1 + h, 0.3 - h, 0.3, 0.3 + h, 1 - h, 1])
         assert_array_equal(rv.ppf(q), np.array([0.5, 0.5, 0.5, 1, 1, 1, 3, 3, 3]))
+
+        # Coercion of not ndarray input
+        _assert_input_coercion(rv.ppf, q)
 
         # Bad input
         q = np.array([-np.inf, -h, np.nan, 1 + h, np.inf])

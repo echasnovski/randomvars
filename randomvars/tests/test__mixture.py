@@ -8,7 +8,7 @@ import pytest
 from randomvars._continuous import Cont
 from randomvars._discrete import Disc
 from randomvars._mixture import Mixt
-from randomvars._utils import _assert_equal_seq
+from randomvars._utils import _assert_equal_seq, _assert_input_coercion
 
 
 def assert_equal_mixt(rv_1, rv_2):
@@ -245,6 +245,9 @@ class TestMixt:
             rv.weight_cont * rv.cont.cdf(ref_x) + rv.weight_disc * rv.disc.cdf(ref_x),
         )
 
+        # Coercion of not ndarray input
+        _assert_input_coercion(rv.cdf, ref_x)
+
         # Bad input
         x = np.array([-np.inf, np.nan, np.inf])
         assert_array_equal(rv.cdf(x), np.array([0, np.nan, 1]))
@@ -335,6 +338,9 @@ class TestMixt:
         assert_ppf(cont, Disc([-1], [1]), weight_cont)
         assert_ppf(cont, Disc([0.5], [1]), weight_cont)
         assert_ppf(cont, Disc([1.5], [1]), weight_cont)
+
+        # Coercion of not ndarray input
+        _assert_input_coercion(rv.ppf, ref_q)
 
         # Bad input
         q = np.array([-np.inf, -h, np.nan, 1 + h, np.inf])

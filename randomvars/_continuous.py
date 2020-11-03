@@ -467,6 +467,7 @@ class Cont:
         -------
         pdf_vals : ndarray with shape inferred from `x`
         """
+        x = np.asarray(x, dtype="float64")
         return np.interp(x, self._x, self._y, left=0, right=0)
 
     def cdf(self, x):
@@ -482,7 +483,7 @@ class Cont:
         -------
         cdf_vals : ndarray with shape inferred from `x`
         """
-        x = np.asarray(x, dtype=np.float64)
+        x = np.asarray(x, dtype="float64")
         res = np.zeros_like(x, dtype=np.float64)
 
         x_ind = utils._searchsorted_wrap(self._x, x, side="right", edge_inside=True)
@@ -523,7 +524,7 @@ class Cont:
         -------
         ppf_vals : ndarray with shape inferred from `q`
         """
-        q = np.asarray(q, dtype=np.float64)
+        q = np.asarray(q, dtype="float64")
         res = np.zeros_like(q, dtype=np.float64)
 
         # Using `side="left"` is crucial to return the smallest value in case

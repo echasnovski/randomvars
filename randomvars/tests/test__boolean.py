@@ -7,7 +7,7 @@ import pytest
 
 from randomvars._boolean import Bool
 from randomvars._discrete import Disc
-from randomvars._utils import _assert_equal_seq
+from randomvars._utils import _assert_equal_seq, _assert_input_coercion
 import randomvars.options as op
 
 
@@ -157,6 +157,9 @@ class TestBool:
         x = [False, False, True, True]
         assert_array_equal(rv.pmf(x), [0.25, 0.25, 0.75, 0.75])
 
+        # Coercion of not ndarray input
+        _assert_input_coercion(rv.pmf, x)
+
         # Other types
         x = np.asarray([-1, -1e-12, 0, 0.5, 1, 2])
         assert_array_equal(rv.pmf(x), rv.pmf(x.astype("bool")))
@@ -179,6 +182,9 @@ class TestBool:
         # Normal usage
         x = [False, False, True, True]
         assert_array_equal(rv.cdf(x), [0.25, 0.25, 1.0, 1.0])
+
+        # Coercion of not ndarray input
+        _assert_input_coercion(rv.cdf, x)
 
         # Other types
         x = np.array([-1, -1e-12, 0, 0.5, 1, 2])
@@ -205,6 +211,9 @@ class TestBool:
         out = rv.ppf(q)
         assert_array_equal(out, np.array([False, False, False, True, True, True]))
         assert out.dtype == np.dtype("bool")
+
+        # Coercion of not ndarray input
+        _assert_input_coercion(rv.ppf, q)
 
         # Bad input will result into `True` instead of `numpy.nan` as this is
         # how Numpy converts `numpy.nan` to "bool" dtype
