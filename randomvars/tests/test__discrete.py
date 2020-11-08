@@ -7,9 +7,9 @@ import pytest
 
 from randomvars._discrete import Disc
 from randomvars._utils import (
-    _assert_equal_seq,
-    _assert_input_coercion,
-    _assert_one_value_input,
+    _test_equal_seq,
+    _test_input_coercion,
+    _test_one_value_input,
 )
 import randomvars.options as op
 
@@ -41,7 +41,7 @@ DISTRIBUTIONS = {
 def assert_equal_disc(rv_1, rv_2):
     grid_1 = rv_1.x, rv_1.p
     grid_2 = rv_2.x, rv_2.p
-    _assert_equal_seq(grid_1, grid_2)
+    _test_equal_seq(grid_1, grid_2)
 
 
 class TestDisc:
@@ -263,7 +263,7 @@ class TestDisc:
         assert_array_equal(rv.pmf(x), np.array([0, 0.1, 0.2, 0.7, 0.7]))
 
         # Coercion of not ndarray input
-        _assert_input_coercion(rv.pmf, x)
+        _test_input_coercion(rv.pmf, x)
 
         # Bad input
         x = np.array([-np.inf, np.nan, np.inf])
@@ -284,9 +284,9 @@ class TestDisc:
         assert_array_equal(rv.pmf(x), np.array([[0.0, 0.1], [0.0, 0.0]]))
 
         # One value input
-        _assert_one_value_input(rv.pmf, 0.5)
-        _assert_one_value_input(rv.pmf, -1)
-        _assert_one_value_input(rv.pmf, np.nan)
+        _test_one_value_input(rv.pmf, 0.5)
+        _test_one_value_input(rv.pmf, -1)
+        _test_one_value_input(rv.pmf, np.nan)
 
     def test_cdf(self):
         """Tests for `.cdf()` method"""
@@ -302,7 +302,7 @@ class TestDisc:
         )
 
         # Coercion of not ndarray input
-        _assert_input_coercion(rv.cdf, x)
+        _test_input_coercion(rv.cdf, x)
 
         # Bad input
         x = np.array([-np.inf, np.nan, np.inf])
@@ -315,9 +315,9 @@ class TestDisc:
         )
 
         # One value input
-        _assert_one_value_input(rv.cdf, 0.5)
-        _assert_one_value_input(rv.cdf, -1)
-        _assert_one_value_input(rv.cdf, np.nan)
+        _test_one_value_input(rv.cdf, 0.5)
+        _test_one_value_input(rv.cdf, -1)
+        _test_one_value_input(rv.cdf, np.nan)
 
     def test_ppf(self):
         """Tests for `.ppf()` method"""
@@ -330,7 +330,7 @@ class TestDisc:
         assert_array_equal(rv.ppf(q), np.array([0.5, 0.5, 0.5, 1, 1, 1, 3, 3, 3]))
 
         # Coercion of not ndarray input
-        _assert_input_coercion(rv.ppf, q)
+        _test_input_coercion(rv.ppf, q)
 
         # Bad input
         q = np.array([-np.inf, -h, np.nan, 1 + h, np.inf])
@@ -343,9 +343,9 @@ class TestDisc:
         assert_array_equal(rv.ppf(q), np.array([[0.5, 3], [0.5, 3]]))
 
         # One value input
-        _assert_one_value_input(rv.ppf, 0.25)
-        _assert_one_value_input(rv.ppf, -1)
-        _assert_one_value_input(rv.ppf, np.nan)
+        _test_one_value_input(rv.ppf, 0.25)
+        _test_one_value_input(rv.ppf, -1)
+        _test_one_value_input(rv.ppf, np.nan)
 
     def test_rvs(self):
         """Tests for `.rvs()`"""

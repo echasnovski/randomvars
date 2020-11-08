@@ -8,9 +8,9 @@ import pytest
 
 from randomvars._continuous import Cont
 from randomvars._utils import (
-    _assert_equal_seq,
-    _assert_input_coercion,
-    _assert_one_value_input,
+    _test_equal_seq,
+    _test_input_coercion,
+    _test_one_value_input,
 )
 from randomvars.options import get_option, option_context
 
@@ -59,7 +59,7 @@ DISTRIBUTIONS = {
 def assert_equal_cont(rv_1, rv_2):
     grid_1 = rv_1.x, rv_1.y
     grid_2 = rv_2.x, rv_2.y
-    _assert_equal_seq(grid_1, grid_2)
+    _test_equal_seq(grid_1, grid_2)
 
 
 def assert_almost_equal_cont(rv_1, rv_2, decimal=10):
@@ -228,15 +228,15 @@ class TestCont:
         with pytest.raises(ValueError, match="one of"):
             rv.pdf_coeffs(x, side="a")
 
-        _assert_equal_seq(
+        _test_equal_seq(
             rv.pdf_coeffs(x),
             (np.array([0, 0, 0, 2, 2, 2, 0]), np.array([0, 1, 1, -1, -1, -1, 0])),
         )
-        _assert_equal_seq(
+        _test_equal_seq(
             rv.pdf_coeffs(x, side="left"),
             (np.array([0, 0, 0, 0, 2, 2, 0]), np.array([0, 1, 1, 1, -1, -1, 0])),
         )
-        _assert_equal_seq(
+        _test_equal_seq(
             rv.pdf_coeffs(np.array([-np.inf, np.nan, np.inf])),
             (np.array([0, np.nan, 0]), np.array([0, np.nan, 0])),
         )
@@ -412,7 +412,7 @@ class TestCont:
         assert_array_equal(rv.pdf(x), np.array([0, 0.5, 0.5, 0.5, 0.25, 0, 0]))
 
         # Coercion of not ndarray input
-        _assert_input_coercion(rv.pdf, x)
+        _test_input_coercion(rv.pdf, x)
 
         # Input around edges
         x = np.array([0 - 1e-10, 0 + 1e-10, 3 - 1e-10, 3 + 1e-10])
@@ -437,9 +437,9 @@ class TestCont:
         assert_array_equal(rv.pdf(x), np.array([[0.0, 0.5], [0.25, 0.0]]))
 
         # One value input
-        _assert_one_value_input(rv.pdf, 0.5)
-        _assert_one_value_input(rv.pdf, -1)
-        _assert_one_value_input(rv.pdf, np.nan)
+        _test_one_value_input(rv.pdf, 0.5)
+        _test_one_value_input(rv.pdf, -1)
+        _test_one_value_input(rv.pdf, np.nan)
 
     def test_cdf(self):
         """Tests for `.cdf()` method"""
@@ -450,7 +450,7 @@ class TestCont:
         assert_array_equal(rv_1.cdf(x), np.array([0, 0, 0.125, 0.5, 0.875, 1, 1]))
 
         # Coercion of not ndarray input
-        _assert_input_coercion(rv_1.cdf, x)
+        _test_input_coercion(rv_1.cdf, x)
 
         # Bad input
         x = np.array([-np.inf, np.nan, np.inf])
@@ -468,9 +468,9 @@ class TestCont:
         assert_array_equal(rv_1.cdf(x), np.array([[0.0, 0.125], [1.0, 1.0]]))
 
         # One value input
-        _assert_one_value_input(rv_1.cdf, 0.5)
-        _assert_one_value_input(rv_1.cdf, -1)
-        _assert_one_value_input(rv_1.cdf, np.nan)
+        _test_one_value_input(rv_1.cdf, 0.5)
+        _test_one_value_input(rv_1.cdf, -1)
+        _test_one_value_input(rv_1.cdf, np.nan)
 
     def test_ppf(self):
         """Tests for `.ppf()` method"""
@@ -482,7 +482,7 @@ class TestCont:
         assert_array_equal(rv_1.ppf(q), np.array([0, 0.5, 1, 1.5, 2]))
 
         # Coercion of not ndarray input
-        _assert_input_coercion(rv_1.ppf, q)
+        _test_input_coercion(rv_1.ppf, q)
 
         # Bad input
         q = np.array([-np.inf, -1e-8, np.nan, 1 + 1e-8, np.inf])
@@ -504,9 +504,9 @@ class TestCont:
         assert_array_equal(rv_1.ppf(q), np.array([[0.0, 1.0], [0.0, 2.0]]))
 
         # One value input
-        _assert_one_value_input(rv_1.ppf, 0.25)
-        _assert_one_value_input(rv_1.ppf, -1)
-        _assert_one_value_input(rv_1.ppf, np.nan)
+        _test_one_value_input(rv_1.ppf, 0.25)
+        _test_one_value_input(rv_1.ppf, -1)
+        _test_one_value_input(rv_1.ppf, np.nan)
 
         # Should return the smallest x-value in case of zero-density interval(s)
         rv_zero_density = Cont([0, 1, 2, 3, 4, 5, 6], [0, 0.5, 0, 0, 0, 0.5, 0])

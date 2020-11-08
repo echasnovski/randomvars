@@ -9,9 +9,9 @@ from randomvars._continuous import Cont
 from randomvars._discrete import Disc
 from randomvars._mixture import Mixt
 from randomvars._utils import (
-    _assert_equal_seq,
-    _assert_input_coercion,
-    _assert_one_value_input,
+    _test_equal_seq,
+    _test_input_coercion,
+    _test_one_value_input,
 )
 
 
@@ -25,7 +25,7 @@ def assert_equal_mixt(rv_1, rv_2):
         if rv_2.cont is not None:
             grid_1 = rv_1.cont.x, rv_1.cont.y
             grid_2 = rv_2.cont.x, rv_2.cont.y
-            _assert_equal_seq(grid_1, grid_2)
+            _test_equal_seq(grid_1, grid_2)
         else:
             raise ValueError("`rv_2.cont` is `None` while `rv_1.cont` is not.")
     else:
@@ -37,7 +37,7 @@ def assert_equal_mixt(rv_1, rv_2):
         if rv_2.disc is not None:
             grid_1 = rv_1.disc.x, rv_1.disc.p
             grid_2 = rv_2.disc.x, rv_2.disc.p
-            _assert_equal_seq(grid_1, grid_2)
+            _test_equal_seq(grid_1, grid_2)
         else:
             raise ValueError("`rv_2.disc` is `None` while `rv_1.disc` is not.")
     else:
@@ -250,7 +250,7 @@ class TestMixt:
         )
 
         # Coercion of not ndarray input
-        _assert_input_coercion(rv.cdf, ref_x)
+        _test_input_coercion(rv.cdf, ref_x)
 
         # Bad input
         x = np.array([-np.inf, np.nan, np.inf])
@@ -269,9 +269,9 @@ class TestMixt:
         )
 
         # One value input
-        _assert_one_value_input(rv.cdf, 0.5)
-        _assert_one_value_input(rv.cdf, -1)
-        _assert_one_value_input(rv.cdf, np.nan)
+        _test_one_value_input(rv.cdf, 0.5)
+        _test_one_value_input(rv.cdf, -1)
+        _test_one_value_input(rv.cdf, np.nan)
 
         # Dirac-like continuous random variable
         cont_dirac = Cont([10 - 1e-8, 10, 10 + 1e-8], [0, 1, 0])
@@ -349,7 +349,7 @@ class TestMixt:
         assert_ppf(cont, Disc([1.5], [1]), weight_cont)
 
         # Coercion of not ndarray input
-        _assert_input_coercion(rv.ppf, ref_q)
+        _test_input_coercion(rv.ppf, ref_q)
 
         # Bad input
         q = np.array([-np.inf, -h, np.nan, 1 + h, np.inf])
@@ -362,9 +362,9 @@ class TestMixt:
         assert_array_equal(rv.ppf(q), np.array([[-1, 0.5], [-1, 1]]))
 
         # One value input
-        _assert_one_value_input(rv.ppf, 0.25)
-        _assert_one_value_input(rv.ppf, -1)
-        _assert_one_value_input(rv.ppf, np.nan)
+        _test_one_value_input(rv.ppf, 0.25)
+        _test_one_value_input(rv.ppf, -1)
+        _test_one_value_input(rv.ppf, np.nan)
 
         # Should return the smallest x-value in case of zero-density interval
         # in continuous part

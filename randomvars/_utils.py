@@ -257,21 +257,21 @@ def _assert_positive(x, x_name):
         raise ValueError(f"`{x_name}` has no positive values.")
 
 
-# %% Test assertions
-def _assert_equal_seq(first, second, *args, **kwargs):
+# %% Custom tests
+def _test_equal_seq(first, second, *args, **kwargs):
     assert len(first) == len(second)
     for el1, el2 in zip(first, second):
         np.testing.assert_array_equal(el1, el2, *args, **kwargs)
 
 
-def _assert_input_coercion(func, arr):
+def _test_input_coercion(func, arr):
     out = func(list(arr))
     out_ref = func(arr)
     assert_array_equal(out, out_ref)
     assert type(out) == type(out_ref)
 
 
-def _assert_one_value_input(func, value):
+def _test_one_value_input(func, value):
     # Scalar
     out = func(value)
     assert out.ndim == 0

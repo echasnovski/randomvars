@@ -8,9 +8,9 @@ import pytest
 from randomvars._boolean import Bool
 from randomvars._discrete import Disc
 from randomvars._utils import (
-    _assert_equal_seq,
-    _assert_input_coercion,
-    _assert_one_value_input,
+    _test_equal_seq,
+    _test_input_coercion,
+    _test_one_value_input,
 )
 import randomvars.options as op
 
@@ -18,7 +18,7 @@ import randomvars.options as op
 def assert_equal_bool(rv_1, rv_2):
     grid_1 = rv_1.prob_false, rv_1.prob_true
     grid_2 = rv_2.prob_false, rv_2.prob_true
-    _assert_equal_seq(grid_1, grid_2)
+    _test_equal_seq(grid_1, grid_2)
 
 
 class TestBool:
@@ -162,7 +162,7 @@ class TestBool:
         assert_array_equal(rv.pmf(x), [0.25, 0.25, 0.75, 0.75])
 
         # Coercion of not ndarray input
-        _assert_input_coercion(rv.pmf, x)
+        _test_input_coercion(rv.pmf, x)
 
         # Other types
         x = np.asarray([-1, -1e-12, 0, 0.5, 1, 2])
@@ -180,8 +180,8 @@ class TestBool:
         assert_array_equal(rv.pmf(x), np.array([[0.25, 0.75], [0.75, 0.25]]))
 
         # One value input
-        _assert_one_value_input(rv.pmf, True)
-        _assert_one_value_input(rv.pmf, np.nan)
+        _test_one_value_input(rv.pmf, True)
+        _test_one_value_input(rv.pmf, np.nan)
 
     def test_cdf(self):
         """Tests for `.cdf()` method"""
@@ -192,7 +192,7 @@ class TestBool:
         assert_array_equal(rv.cdf(x), [0.25, 0.25, 1.0, 1.0])
 
         # Coercion of not ndarray input
-        _assert_input_coercion(rv.cdf, x)
+        _test_input_coercion(rv.cdf, x)
 
         # Other types
         x = np.array([-1, -1e-12, 0, 0.5, 1, 2])
@@ -210,8 +210,8 @@ class TestBool:
         assert_array_equal(rv.cdf(x), np.array([[0.25, 1.0], [1.0, 0.25]]))
 
         # One value input
-        _assert_one_value_input(rv.cdf, True)
-        _assert_one_value_input(rv.cdf, np.nan)
+        _test_one_value_input(rv.cdf, True)
+        _test_one_value_input(rv.cdf, np.nan)
 
     def test_ppf(self):
         """Tests for `.ppf()` method"""
@@ -225,7 +225,7 @@ class TestBool:
         assert out.dtype == np.dtype("bool")
 
         # Coercion of not ndarray input
-        _assert_input_coercion(rv.ppf, q)
+        _test_input_coercion(rv.ppf, q)
 
         # Bad input will result into `True` instead of `numpy.nan` as this is
         # how Numpy converts `numpy.nan` to "bool" dtype
@@ -241,9 +241,9 @@ class TestBool:
         assert out.dtype == np.dtype("bool")
 
         # One value input
-        _assert_one_value_input(rv.ppf, 0.25)
-        _assert_one_value_input(rv.ppf, -1)
-        _assert_one_value_input(rv.ppf, np.nan)
+        _test_one_value_input(rv.ppf, 0.25)
+        _test_one_value_input(rv.ppf, -1)
+        _test_one_value_input(rv.ppf, np.nan)
 
     def test_rvs(self):
         """Tests for `.rvs()`"""
