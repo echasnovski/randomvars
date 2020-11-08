@@ -58,6 +58,8 @@ class TestBool:
 
         assert_array_equal(rv.prob_false, 1 - prob_true)
         assert_array_equal(rv.prob_true, prob_true)
+        assert_array_equal(rv.a, False)
+        assert_array_equal(rv.b, True)
 
     def test_from_rv_basic(self):
         prob_true = 0.75

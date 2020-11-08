@@ -82,6 +82,16 @@ class Bool:
         """Return the probability of `False`"""
         return self._prob_false
 
+    @property
+    def a(self):
+        """Return left edge of support"""
+        return False
+
+    @property
+    def b(self):
+        """Return right edge of support"""
+        return True
+
     @classmethod
     def from_rv(cls, rv):
         """Create boolean RV from general RV
