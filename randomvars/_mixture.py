@@ -327,25 +327,25 @@ class Mixt:
 
         return np.asarray(res, dtype="float64")
 
-    # def rvs(self, size=None, random_state=None):
-    #     """Random number generation
+    def rvs(self, size=None, random_state=None):
+        """Random number generation
 
-    #     Generate random numbers into array of desired size.
+        Generate random numbers into array of desired size.
 
-    #     Parameters
-    #     ----------
-    #     size : int or tuple of ints, optional
-    #         Defining number of random variates (default is 1).
-    #     random_state : `None`, int, or RandomState, optional
-    #         Source of uniform random number generator. If `None`, it is
-    #         initiated as `numpy.random.RandomState()`. If integer,
-    #         `numpy.random.RandomState(seed=random_state)` is used.
-    #     """
-    #     if random_state is None:
-    #         random_state = np.random.RandomState()
-    #     elif isinstance(random_state, int):
-    #         random_state = np.random.RandomState(seed=random_state)
+        Parameters
+        ----------
+        size : int or tuple of ints, optional
+            Defining number of random variates (default is 1).
+        random_state : `None`, int, or RandomState, optional
+            Source of uniform random number generator. If `None`, it is
+            initiated as `numpy.random.RandomState()`. If integer,
+            `numpy.random.RandomState(seed=random_state)` is used.
+        """
+        if random_state is None:
+            random_state = np.random.RandomState()
+        elif isinstance(random_state, int):
+            random_state = np.random.RandomState(seed=random_state)
 
-    #     U = random_state.uniform(size=size)
+        U = random_state.uniform(size=size)
 
-    #     return self.ppf(U)
+        return self.ppf(U)
