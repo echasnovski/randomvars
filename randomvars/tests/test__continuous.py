@@ -11,6 +11,7 @@ from randomvars._utils import (
     _test_equal_seq,
     _test_input_coercion,
     _test_one_value_input,
+    _test_rvs_method,
 )
 from randomvars.options import get_option, option_context
 
@@ -516,26 +517,7 @@ class TestCont:
         """Tests for `.rvs()`"""
         rv_1 = Cont([0, 1, 2], [0, 1, 0])
 
-        # Regular checks
-        smpl = rv_1.rvs(size=10)
-        assert np.all((rv_1.a <= smpl) & (smpl <= rv_1.b))
-
-        # Treats default `size` as 1
-        assert rv_1.rvs().shape == tuple()
-
-        # Broadcasting
-        smpl_array = rv_1.rvs(size=(10, 2))
-        assert smpl_array.shape == (10, 2)
-
-        # Usage of `random_state`
-        smpl_1 = rv_1.rvs(size=100, random_state=np.random.RandomState(101))
-        smpl_2 = rv_1.rvs(size=100, random_state=np.random.RandomState(101))
-        assert_array_equal(smpl_1, smpl_2)
-
-        # Usage of integer `random_state` as a seed
-        smpl_1 = rv_1.rvs(size=100, random_state=101)
-        smpl_2 = rv_1.rvs(size=100, random_state=101)
-        assert_array_equal(smpl_1, smpl_2)
+        _test_rvs_method(rv_1)
 
 
 class TestFromRVAccuracy:

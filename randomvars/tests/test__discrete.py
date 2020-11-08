@@ -10,6 +10,7 @@ from randomvars._utils import (
     _test_equal_seq,
     _test_input_coercion,
     _test_one_value_input,
+    _test_rvs_method,
 )
 import randomvars.options as op
 
@@ -351,26 +352,7 @@ class TestDisc:
         """Tests for `.rvs()`"""
         rv = Disc([0.5, 1, 3], [0.1, 0.2, 0.7])
 
-        # Regular checks
-        smpl = rv.rvs(size=100)
-        assert np.all((rv.a <= smpl) & (smpl <= rv.b))
-
-        # Treats default `size` as 1
-        assert rv.rvs().shape == tuple()
-
-        # Broadcasting
-        smpl_array = rv.rvs(size=(10, 2))
-        assert smpl_array.shape == (10, 2)
-
-        # Usage of `random_state`
-        smpl_1 = rv.rvs(size=100, random_state=np.random.RandomState(101))
-        smpl_2 = rv.rvs(size=100, random_state=np.random.RandomState(101))
-        assert_array_equal(smpl_1, smpl_2)
-
-        # Usage of integer `random_state` as a seed
-        smpl_1 = rv.rvs(size=100, random_state=101)
-        smpl_2 = rv.rvs(size=100, random_state=101)
-        assert_array_equal(smpl_1, smpl_2)
+        _test_rvs_method(rv)
 
 
 class TestFromRVAccuracy:
