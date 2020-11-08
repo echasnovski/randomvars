@@ -270,7 +270,7 @@ class Mixt:
             return self._cont.ppf(q)
 
         q = np.asarray(q, dtype="float64")
-        res = np.zeros_like(q, dtype=np.float64)
+        res = np.zeros_like(q, dtype="float64")
         cum_p, x, ids = self._cum_p_tuple
 
         # Locate intervals for `q` elements

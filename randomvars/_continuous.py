@@ -149,8 +149,8 @@ class Cont:
         if ind is None:
             ind = np.arange(start=1, stop=len(self._x))
 
-        inter = np.zeros_like(ind, dtype=np.float64)
-        slope = np.zeros_like(ind, dtype=np.float64)
+        inter = np.zeros_like(ind, dtype="float64")
+        slope = np.zeros_like(ind, dtype="float64")
 
         ind_as_nan = (ind < 0) | (ind > len(self._x))
         inter[ind_as_nan] = np.nan
@@ -200,9 +200,9 @@ class Cont:
         if ind is None:
             return (self._x, self._y, self._cum_p)
 
-        x = np.empty_like(ind, dtype=np.float64)
-        y = np.empty_like(ind, dtype=np.float64)
-        cum_p = np.empty_like(ind, dtype=np.float64)
+        x = np.empty_like(ind, dtype="float64")
+        y = np.empty_like(ind, dtype="float64")
+        cum_p = np.empty_like(ind, dtype="float64")
 
         # There is no grid elements to the left of interval 0, so outputs are
         # `np.nan` for it
@@ -489,7 +489,7 @@ class Cont:
         cdf_vals : ndarray with shape inferred from `x`
         """
         x = np.asarray(x, dtype="float64")
-        res = np.zeros_like(x, dtype=np.float64)
+        res = np.zeros_like(x, dtype="float64")
 
         x_ind = utils._searchsorted_wrap(self._x, x, side="right", edge_inside=True)
         ind_is_good = (x_ind > 0) & (x_ind < len(self._x))
@@ -530,7 +530,7 @@ class Cont:
         ppf_vals : ndarray with shape inferred from `q`
         """
         q = np.asarray(q, dtype="float64")
-        res = np.zeros_like(q, dtype=np.float64)
+        res = np.zeros_like(q, dtype="float64")
 
         # Using `side="left"` is crucial to return the smallest value in case
         # there are more than one. For example, when there are zero-density
@@ -605,7 +605,7 @@ class Cont:
         -------
         quant : numpy array with the same length as q
         """
-        res = np.empty_like(q, dtype=np.float64)
+        res = np.empty_like(q, dtype="float64")
         x, _, p = grid
         inter, slope = coeffs
 

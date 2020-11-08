@@ -49,7 +49,7 @@ def test__as_1d_array():
         _as_1d_numpy(["a", "a"], "tmp_name", dtype="float64")
     ## Also boolean dtype is accepted, but as every object in Python can be tested
     ## for being "truthy", it can't fail
-    _as_1d_numpy([lambda x: x, {"a": 0}, np.inf], "tmp_name", dtype=np.bool)
+    _as_1d_numpy([lambda x: x, {"a": 0}, np.inf], "tmp_name", dtype="bool")
     _as_1d_numpy(["a", "a"], "tmp_name", dtype="bool")
 
     # Check for 1d

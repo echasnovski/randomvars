@@ -308,7 +308,7 @@ class Disc:
         # `self._cum_p`
         inds_clipped = np.maximum(inds, 1)
 
-        res = np.ones_like(x, dtype=np.float64)
+        res = np.ones_like(x, dtype="float64")
         res = np.where(inds == 0, 0.0, self._cum_p[inds_clipped - 1])
 
         return np.asarray(utils._copy_nan(fr=x, to=res), dtype="float64")
@@ -333,7 +333,7 @@ class Disc:
         # This is needed to avoid `IndexError` in later `np.where()` call
         q_inds_clipped = np.minimum(q_inds, len(self._cum_p) - 1)
 
-        res = np.empty_like(q, dtype=np.float64)
+        res = np.empty_like(q, dtype="float64")
         res = np.where(q_inds != len(self._cum_p), self._x[q_inds_clipped], res)
         res[(q < 0) | (q > 1)] = np.nan
 

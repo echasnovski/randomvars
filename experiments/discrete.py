@@ -65,7 +65,7 @@ import randomvars._utils as utils
 
 def cdf_my(rv, x):
     inds = np.searchsorted(rv.x, x, side="right")
-    res = np.ones_like(x, dtype=np.float64)
+    res = np.ones_like(x, dtype="float64")
     res = np.where(inds == 0, 0.0, rv._cum_p[inds - 1])
 
     return utils._copy_nan(fr=x, to=res)

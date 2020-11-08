@@ -2468,7 +2468,7 @@ static PyObject *__pyx_kp_s_stringsource;
 static PyObject *__pyx_n_s_struct;
 static PyObject *__pyx_n_s_test;
 static PyObject *__pyx_n_s_tol;
-static PyObject *__pyx_n_s_uint8;
+static PyObject *__pyx_n_u_uint8;
 static PyObject *__pyx_kp_s_unable_to_allocate_array_data;
 static PyObject *__pyx_kp_s_unable_to_allocate_shape_and_str;
 static PyObject *__pyx_kp_u_unknown_dtype_code_in_numpy_pxd;
@@ -3461,13 +3461,12 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
   PyObject *__pyx_t_4 = NULL;
   PyObject *__pyx_t_5 = NULL;
   PyObject *__pyx_t_6 = NULL;
-  PyObject *__pyx_t_7 = NULL;
-  __Pyx_memviewslice __pyx_t_8 = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __Pyx_memviewslice __pyx_t_7 = { 0, 0, { 0 }, { 0 }, { 0 } };
+  Py_ssize_t __pyx_t_8;
   Py_ssize_t __pyx_t_9;
-  Py_ssize_t __pyx_t_10;
-  __pyx_ctuple_double__and_double __pyx_t_11;
+  __pyx_ctuple_double__and_double __pyx_t_10;
+  double __pyx_t_11;
   double __pyx_t_12;
-  double __pyx_t_13;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -3482,7 +3481,7 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
  *     double[:] x, double[:] y, double tol=0.001
  * ):
  *     if len(x) <= 2:             # <<<<<<<<<<<<<<
- *         return np.ones(x.shape[0], dtype=np.uint8)
+ *         return np.ones(x.shape[0], dtype="uint8")
  *
  */
   __pyx_t_1 = __Pyx_MemoryView_Len(__pyx_v_x);
@@ -3492,7 +3491,7 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
     /* "randomvars/downgrid_maxtol.pyx":152
  * ):
  *     if len(x) <= 2:
- *         return np.ones(x.shape[0], dtype=np.uint8)             # <<<<<<<<<<<<<<
+ *         return np.ones(x.shape[0], dtype="uint8")             # <<<<<<<<<<<<<<
  *
  *     cdef int n_x = x.shape[0]
  */
@@ -3510,39 +3509,33 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
     __pyx_t_3 = 0;
     __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 152, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 152, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_n_u_uint8) < 0) __PYX_ERR(0, 152, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_5, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 152, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
-    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_uint8); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 152, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_7);
-    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_t_7) < 0) __PYX_ERR(0, 152, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_5, __pyx_t_3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 152, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_8 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn_uint8_t(__pyx_t_7, PyBUF_WRITABLE); if (unlikely(!__pyx_t_8.memview)) __PYX_ERR(0, 152, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    __pyx_r = __pyx_t_8;
-    __pyx_t_8.memview = NULL;
-    __pyx_t_8.data = NULL;
+    __pyx_t_7 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn_uint8_t(__pyx_t_6, PyBUF_WRITABLE); if (unlikely(!__pyx_t_7.memview)) __PYX_ERR(0, 152, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+    __pyx_r = __pyx_t_7;
+    __pyx_t_7.memview = NULL;
+    __pyx_t_7.data = NULL;
     goto __pyx_L0;
 
     /* "randomvars/downgrid_maxtol.pyx":151
  *     double[:] x, double[:] y, double tol=0.001
  * ):
  *     if len(x) <= 2:             # <<<<<<<<<<<<<<
- *         return np.ones(x.shape[0], dtype=np.uint8)
+ *         return np.ones(x.shape[0], dtype="uint8")
  *
  */
   }
 
   /* "randomvars/downgrid_maxtol.pyx":154
- *         return np.ones(x.shape[0], dtype=np.uint8)
+ *         return np.ones(x.shape[0], dtype="uint8")
  *
  *     cdef int n_x = x.shape[0]             # <<<<<<<<<<<<<<
- *     res_boolint = np.zeros(n_x, dtype=np.uint8)
+ *     res_boolint = np.zeros(n_x, dtype="uint8")
  *     cdef uint8_t[:] res_boolint_view = res_boolint
  */
   __pyx_v_n_x = (__pyx_v_x.shape[0]);
@@ -3550,50 +3543,44 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
   /* "randomvars/downgrid_maxtol.pyx":155
  *
  *     cdef int n_x = x.shape[0]
- *     res_boolint = np.zeros(n_x, dtype=np.uint8)             # <<<<<<<<<<<<<<
+ *     res_boolint = np.zeros(n_x, dtype="uint8")             # <<<<<<<<<<<<<<
  *     cdef uint8_t[:] res_boolint_view = res_boolint
  *
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_np); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 155, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_7);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_zeros); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 155, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 155, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_zeros); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 155, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-  __pyx_t_7 = __Pyx_PyInt_From_int(__pyx_v_n_x); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 155, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_7);
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  __pyx_t_6 = __Pyx_PyInt_From_int(__pyx_v_n_x); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 155, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
   __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 155, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_GIVEREF(__pyx_t_7);
-  PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_7);
-  __pyx_t_7 = 0;
-  __pyx_t_7 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 155, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_7);
-  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 155, __pyx_L1_error)
+  __Pyx_GIVEREF(__pyx_t_6);
+  PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_6);
+  __pyx_t_6 = 0;
+  __pyx_t_6 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 155, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_n_u_uint8) < 0) __PYX_ERR(0, 155, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, __pyx_t_6); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 155, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_uint8); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 155, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_dtype, __pyx_t_6) < 0) __PYX_ERR(0, 155, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, __pyx_t_7); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 155, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-  __pyx_v_res_boolint = __pyx_t_6;
-  __pyx_t_6 = 0;
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  __pyx_v_res_boolint = __pyx_t_4;
+  __pyx_t_4 = 0;
 
   /* "randomvars/downgrid_maxtol.pyx":156
  *     cdef int n_x = x.shape[0]
- *     res_boolint = np.zeros(n_x, dtype=np.uint8)
+ *     res_boolint = np.zeros(n_x, dtype="uint8")
  *     cdef uint8_t[:] res_boolint_view = res_boolint             # <<<<<<<<<<<<<<
  *
  *     # First point is always inside output grid
  */
-  __pyx_t_8 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn_uint8_t(__pyx_v_res_boolint, PyBUF_WRITABLE); if (unlikely(!__pyx_t_8.memview)) __PYX_ERR(0, 156, __pyx_L1_error)
-  __pyx_v_res_boolint_view = __pyx_t_8;
-  __pyx_t_8.memview = NULL;
-  __pyx_t_8.data = NULL;
+  __pyx_t_7 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn_uint8_t(__pyx_v_res_boolint, PyBUF_WRITABLE); if (unlikely(!__pyx_t_7.memview)) __PYX_ERR(0, 156, __pyx_L1_error)
+  __pyx_v_res_boolint_view = __pyx_t_7;
+  __pyx_t_7.memview = NULL;
+  __pyx_t_7.data = NULL;
 
   /* "randomvars/downgrid_maxtol.pyx":159
  *
@@ -3602,9 +3589,9 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
  *
  *     # Initialize base point and slope window
  */
-  __pyx_t_9 = 0;
-  if (__pyx_t_9 < 0) __pyx_t_9 += __pyx_v_res_boolint_view.shape[0];
-  *((uint8_t *) ( /* dim=0 */ (__pyx_v_res_boolint_view.data + __pyx_t_9 * __pyx_v_res_boolint_view.strides[0]) )) = 1;
+  __pyx_t_8 = 0;
+  if (__pyx_t_8 < 0) __pyx_t_8 += __pyx_v_res_boolint_view.shape[0];
+  *((uint8_t *) ( /* dim=0 */ (__pyx_v_res_boolint_view.data + __pyx_t_8 * __pyx_v_res_boolint_view.strides[0]) )) = 1;
 
   /* "randomvars/downgrid_maxtol.pyx":162
  *
@@ -3613,12 +3600,12 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
  *
  *     cdef double slope_min, slope_max
  */
-  __pyx_t_9 = 0;
-  if (__pyx_t_9 < 0) __pyx_t_9 += __pyx_v_x.shape[0];
-  __pyx_v_base_x = (*((double *) ( /* dim=0 */ (__pyx_v_x.data + __pyx_t_9 * __pyx_v_x.strides[0]) )));
-  __pyx_t_9 = 0;
-  if (__pyx_t_9 < 0) __pyx_t_9 += __pyx_v_y.shape[0];
-  __pyx_v_base_y = (*((double *) ( /* dim=0 */ (__pyx_v_y.data + __pyx_t_9 * __pyx_v_y.strides[0]) )));
+  __pyx_t_8 = 0;
+  if (__pyx_t_8 < 0) __pyx_t_8 += __pyx_v_x.shape[0];
+  __pyx_v_base_x = (*((double *) ( /* dim=0 */ (__pyx_v_x.data + __pyx_t_8 * __pyx_v_x.strides[0]) )));
+  __pyx_t_8 = 0;
+  if (__pyx_t_8 < 0) __pyx_t_8 += __pyx_v_y.shape[0];
+  __pyx_v_base_y = (*((double *) ( /* dim=0 */ (__pyx_v_y.data + __pyx_t_8 * __pyx_v_y.strides[0]) )));
 
   /* "randomvars/downgrid_maxtol.pyx":166
  *     cdef double slope_min, slope_max
@@ -3627,10 +3614,10 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
  *     )
  *
  */
+  __pyx_t_8 = 1;
+  if (__pyx_t_8 < 0) __pyx_t_8 += __pyx_v_x.shape[0];
   __pyx_t_9 = 1;
-  if (__pyx_t_9 < 0) __pyx_t_9 += __pyx_v_x.shape[0];
-  __pyx_t_10 = 1;
-  if (__pyx_t_10 < 0) __pyx_t_10 += __pyx_v_y.shape[0];
+  if (__pyx_t_9 < 0) __pyx_t_9 += __pyx_v_y.shape[0];
 
   /* "randomvars/downgrid_maxtol.pyx":165
  *
@@ -3639,11 +3626,11 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
  *         base_x, base_y, x[1], y[1], tol
  *     )
  */
-  __pyx_t_11 = __pyx_f_10randomvars_15downgrid_maxtol_tolerance_slope_window(__pyx_v_base_x, __pyx_v_base_y, (*((double *) ( /* dim=0 */ (__pyx_v_x.data + __pyx_t_9 * __pyx_v_x.strides[0]) ))), (*((double *) ( /* dim=0 */ (__pyx_v_y.data + __pyx_t_10 * __pyx_v_y.strides[0]) ))), __pyx_v_tol);
-  __pyx_t_12 = __pyx_t_11.f0;
-  __pyx_t_13 = __pyx_t_11.f1;
-  __pyx_v_slope_min = __pyx_t_12;
-  __pyx_v_slope_max = __pyx_t_13;
+  __pyx_t_10 = __pyx_f_10randomvars_15downgrid_maxtol_tolerance_slope_window(__pyx_v_base_x, __pyx_v_base_y, (*((double *) ( /* dim=0 */ (__pyx_v_x.data + __pyx_t_8 * __pyx_v_x.strides[0]) ))), (*((double *) ( /* dim=0 */ (__pyx_v_y.data + __pyx_t_9 * __pyx_v_y.strides[0]) ))), __pyx_v_tol);
+  __pyx_t_11 = __pyx_t_10.f0;
+  __pyx_t_12 = __pyx_t_10.f1;
+  __pyx_v_slope_min = __pyx_t_11;
+  __pyx_v_slope_max = __pyx_t_12;
 
   /* "randomvars/downgrid_maxtol.pyx":172
  *     cdef double seg_start_x, seg_start_y, seg_end_x, seg_end_y
@@ -3673,9 +3660,9 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
  *         seg_end_y = y[cur_i]
  *
  */
-    __pyx_t_10 = __pyx_v_cur_i;
-    if (__pyx_t_10 < 0) __pyx_t_10 += __pyx_v_x.shape[0];
-    __pyx_v_seg_end_x = (*((double *) ( /* dim=0 */ (__pyx_v_x.data + __pyx_t_10 * __pyx_v_x.strides[0]) )));
+    __pyx_t_9 = __pyx_v_cur_i;
+    if (__pyx_t_9 < 0) __pyx_t_9 += __pyx_v_x.shape[0];
+    __pyx_v_seg_end_x = (*((double *) ( /* dim=0 */ (__pyx_v_x.data + __pyx_t_9 * __pyx_v_x.strides[0]) )));
 
     /* "randomvars/downgrid_maxtol.pyx":176
  *     while cur_i < len(x):
@@ -3684,9 +3671,9 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
  *
  *         # Compute if segment lies inside current base cone. If it does, then it
  */
-    __pyx_t_10 = __pyx_v_cur_i;
-    if (__pyx_t_10 < 0) __pyx_t_10 += __pyx_v_y.shape[0];
-    __pyx_v_seg_end_y = (*((double *) ( /* dim=0 */ (__pyx_v_y.data + __pyx_t_10 * __pyx_v_y.strides[0]) )));
+    __pyx_t_9 = __pyx_v_cur_i;
+    if (__pyx_t_9 < 0) __pyx_t_9 += __pyx_v_y.shape[0];
+    __pyx_v_seg_end_y = (*((double *) ( /* dim=0 */ (__pyx_v_y.data + __pyx_t_9 * __pyx_v_y.strides[0]) )));
 
     /* "randomvars/downgrid_maxtol.pyx":187
  *             slope_min=slope_min,
@@ -3695,8 +3682,8 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
  *             seg1_y=y[cur_i - 1],
  *             seg2_x=seg_end_x,
  */
-    __pyx_t_10 = (__pyx_v_cur_i - 1);
-    if (__pyx_t_10 < 0) __pyx_t_10 += __pyx_v_x.shape[0];
+    __pyx_t_9 = (__pyx_v_cur_i - 1);
+    if (__pyx_t_9 < 0) __pyx_t_9 += __pyx_v_x.shape[0];
 
     /* "randomvars/downgrid_maxtol.pyx":188
  *             slope_max=slope_max,
@@ -3705,8 +3692,8 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
  *             seg2_x=seg_end_x,
  *             seg2_y=seg_end_y,
  */
-    __pyx_t_9 = (__pyx_v_cur_i - 1);
-    if (__pyx_t_9 < 0) __pyx_t_9 += __pyx_v_y.shape[0];
+    __pyx_t_8 = (__pyx_v_cur_i - 1);
+    if (__pyx_t_8 < 0) __pyx_t_8 += __pyx_v_y.shape[0];
 
     /* "randomvars/downgrid_maxtol.pyx":182
  *         # that skipping will introduce error strictly more than `tol`, so
@@ -3715,7 +3702,7 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
  *             base_x=base_x,
  *             base_y=base_y,
  */
-    __pyx_v_segment_is_inside = __pyx_f_10randomvars_15downgrid_maxtol_is_segment_inside_cone(__pyx_v_base_x, __pyx_v_base_y, __pyx_v_slope_min, __pyx_v_slope_max, (*((double *) ( /* dim=0 */ (__pyx_v_x.data + __pyx_t_10 * __pyx_v_x.strides[0]) ))), (*((double *) ( /* dim=0 */ (__pyx_v_y.data + __pyx_t_9 * __pyx_v_y.strides[0]) ))), __pyx_v_seg_end_x, __pyx_v_seg_end_y);
+    __pyx_v_segment_is_inside = __pyx_f_10randomvars_15downgrid_maxtol_is_segment_inside_cone(__pyx_v_base_x, __pyx_v_base_y, __pyx_v_slope_min, __pyx_v_slope_max, (*((double *) ( /* dim=0 */ (__pyx_v_x.data + __pyx_t_9 * __pyx_v_x.strides[0]) ))), (*((double *) ( /* dim=0 */ (__pyx_v_y.data + __pyx_t_8 * __pyx_v_y.strides[0]) ))), __pyx_v_seg_end_x, __pyx_v_seg_end_y);
 
     /* "randomvars/downgrid_maxtol.pyx":193
  *         )
@@ -3734,11 +3721,11 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
  *                 base_x, base_y, seg_end_x, seg_end_y, tol
  *             )
  */
-      __pyx_t_11 = __pyx_f_10randomvars_15downgrid_maxtol_tolerance_slope_window(__pyx_v_base_x, __pyx_v_base_y, __pyx_v_seg_end_x, __pyx_v_seg_end_y, __pyx_v_tol);
-      __pyx_t_13 = __pyx_t_11.f0;
-      __pyx_t_12 = __pyx_t_11.f1;
-      __pyx_v_seg_end_slope_min = __pyx_t_13;
-      __pyx_v_seg_end_slope_max = __pyx_t_12;
+      __pyx_t_10 = __pyx_f_10randomvars_15downgrid_maxtol_tolerance_slope_window(__pyx_v_base_x, __pyx_v_base_y, __pyx_v_seg_end_x, __pyx_v_seg_end_y, __pyx_v_tol);
+      __pyx_t_12 = __pyx_t_10.f0;
+      __pyx_t_11 = __pyx_t_10.f1;
+      __pyx_v_seg_end_slope_min = __pyx_t_12;
+      __pyx_v_seg_end_slope_max = __pyx_t_11;
 
       /* "randomvars/downgrid_maxtol.pyx":202
  *                 base_x, base_y, seg_end_x, seg_end_y, tol
@@ -3747,11 +3734,11 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
  *                 slope_min, slope_max, seg_end_slope_min, seg_end_slope_max
  *             )
  */
-      __pyx_t_11 = __pyx_f_10randomvars_15downgrid_maxtol_intersect_intervals(__pyx_v_slope_min, __pyx_v_slope_max, __pyx_v_seg_end_slope_min, __pyx_v_seg_end_slope_max);
-      __pyx_t_12 = __pyx_t_11.f0;
-      __pyx_t_13 = __pyx_t_11.f1;
-      __pyx_v_slope_min = __pyx_t_12;
-      __pyx_v_slope_max = __pyx_t_13;
+      __pyx_t_10 = __pyx_f_10randomvars_15downgrid_maxtol_intersect_intervals(__pyx_v_slope_min, __pyx_v_slope_max, __pyx_v_seg_end_slope_min, __pyx_v_seg_end_slope_max);
+      __pyx_t_11 = __pyx_t_10.f0;
+      __pyx_t_12 = __pyx_t_10.f1;
+      __pyx_v_slope_min = __pyx_t_11;
+      __pyx_v_slope_max = __pyx_t_12;
 
       /* "randomvars/downgrid_maxtol.pyx":193
  *         )
@@ -3771,9 +3758,9 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
  *             # Update base point to be current segment start
  */
     /*else*/ {
-      __pyx_t_9 = (__pyx_v_cur_i - 1);
-      if (__pyx_t_9 < 0) __pyx_t_9 += __pyx_v_res_boolint_view.shape[0];
-      *((uint8_t *) ( /* dim=0 */ (__pyx_v_res_boolint_view.data + __pyx_t_9 * __pyx_v_res_boolint_view.strides[0]) )) = 1;
+      __pyx_t_8 = (__pyx_v_cur_i - 1);
+      if (__pyx_t_8 < 0) __pyx_t_8 += __pyx_v_res_boolint_view.shape[0];
+      *((uint8_t *) ( /* dim=0 */ (__pyx_v_res_boolint_view.data + __pyx_t_8 * __pyx_v_res_boolint_view.strides[0]) )) = 1;
 
       /* "randomvars/downgrid_maxtol.pyx":210
  *
@@ -3782,14 +3769,14 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
  *
  *             # Update slope window to be slope window of current segment end
  */
-      __pyx_t_9 = (__pyx_v_cur_i - 1);
-      if (__pyx_t_9 < 0) __pyx_t_9 += __pyx_v_x.shape[0];
-      __pyx_t_13 = (*((double *) ( /* dim=0 */ (__pyx_v_x.data + __pyx_t_9 * __pyx_v_x.strides[0]) )));
-      __pyx_t_9 = (__pyx_v_cur_i - 1);
-      if (__pyx_t_9 < 0) __pyx_t_9 += __pyx_v_y.shape[0];
-      __pyx_t_12 = (*((double *) ( /* dim=0 */ (__pyx_v_y.data + __pyx_t_9 * __pyx_v_y.strides[0]) )));
-      __pyx_v_base_x = __pyx_t_13;
-      __pyx_v_base_y = __pyx_t_12;
+      __pyx_t_8 = (__pyx_v_cur_i - 1);
+      if (__pyx_t_8 < 0) __pyx_t_8 += __pyx_v_x.shape[0];
+      __pyx_t_12 = (*((double *) ( /* dim=0 */ (__pyx_v_x.data + __pyx_t_8 * __pyx_v_x.strides[0]) )));
+      __pyx_t_8 = (__pyx_v_cur_i - 1);
+      if (__pyx_t_8 < 0) __pyx_t_8 += __pyx_v_y.shape[0];
+      __pyx_t_11 = (*((double *) ( /* dim=0 */ (__pyx_v_y.data + __pyx_t_8 * __pyx_v_y.strides[0]) )));
+      __pyx_v_base_x = __pyx_t_12;
+      __pyx_v_base_y = __pyx_t_11;
 
       /* "randomvars/downgrid_maxtol.pyx":213
  *
@@ -3798,11 +3785,11 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
  *                 base_x, base_y, seg_end_x, seg_end_y, tol
  *             )
  */
-      __pyx_t_11 = __pyx_f_10randomvars_15downgrid_maxtol_tolerance_slope_window(__pyx_v_base_x, __pyx_v_base_y, __pyx_v_seg_end_x, __pyx_v_seg_end_y, __pyx_v_tol);
-      __pyx_t_12 = __pyx_t_11.f0;
-      __pyx_t_13 = __pyx_t_11.f1;
-      __pyx_v_slope_min = __pyx_t_12;
-      __pyx_v_slope_max = __pyx_t_13;
+      __pyx_t_10 = __pyx_f_10randomvars_15downgrid_maxtol_tolerance_slope_window(__pyx_v_base_x, __pyx_v_base_y, __pyx_v_seg_end_x, __pyx_v_seg_end_y, __pyx_v_tol);
+      __pyx_t_11 = __pyx_t_10.f0;
+      __pyx_t_12 = __pyx_t_10.f1;
+      __pyx_v_slope_min = __pyx_t_11;
+      __pyx_v_slope_max = __pyx_t_12;
     }
     __pyx_L6:;
 
@@ -3823,19 +3810,19 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
  *
  *     return res_boolint
  */
-  __pyx_t_9 = (__pyx_v_n_x - 1);
-  if (__pyx_t_9 < 0) __pyx_t_9 += __pyx_v_res_boolint_view.shape[0];
-  *((uint8_t *) ( /* dim=0 */ (__pyx_v_res_boolint_view.data + __pyx_t_9 * __pyx_v_res_boolint_view.strides[0]) )) = 1;
+  __pyx_t_8 = (__pyx_v_n_x - 1);
+  if (__pyx_t_8 < 0) __pyx_t_8 += __pyx_v_res_boolint_view.shape[0];
+  *((uint8_t *) ( /* dim=0 */ (__pyx_v_res_boolint_view.data + __pyx_t_8 * __pyx_v_res_boolint_view.strides[0]) )) = 1;
 
   /* "randomvars/downgrid_maxtol.pyx":222
  *     res_boolint_view[n_x-1] = 1
  *
  *     return res_boolint             # <<<<<<<<<<<<<<
  */
-  __pyx_t_8 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn_uint8_t(__pyx_v_res_boolint, PyBUF_WRITABLE); if (unlikely(!__pyx_t_8.memview)) __PYX_ERR(0, 222, __pyx_L1_error)
-  __pyx_r = __pyx_t_8;
-  __pyx_t_8.memview = NULL;
-  __pyx_t_8.data = NULL;
+  __pyx_t_7 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn_uint8_t(__pyx_v_res_boolint, PyBUF_WRITABLE); if (unlikely(!__pyx_t_7.memview)) __PYX_ERR(0, 222, __pyx_L1_error)
+  __pyx_r = __pyx_t_7;
+  __pyx_t_7.memview = NULL;
+  __pyx_t_7.data = NULL;
   goto __pyx_L0;
 
   /* "randomvars/downgrid_maxtol.pyx":148
@@ -3852,8 +3839,7 @@ static __Pyx_memviewslice __pyx_f_10randomvars_15downgrid_maxtol_downgrid_maxtol
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6);
-  __Pyx_XDECREF(__pyx_t_7);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_8, 1);
+  __PYX_XDEC_MEMVIEW(&__pyx_t_7, 1);
   __pyx_r.data = NULL;
   __pyx_r.memview = NULL;
   __Pyx_AddTraceback("randomvars.downgrid_maxtol.downgrid_maxtol_isin", __pyx_clineno, __pyx_lineno, __pyx_filename);
@@ -19348,7 +19334,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_struct, __pyx_k_struct, sizeof(__pyx_k_struct), 0, 0, 1, 1},
   {&__pyx_n_s_test, __pyx_k_test, sizeof(__pyx_k_test), 0, 0, 1, 1},
   {&__pyx_n_s_tol, __pyx_k_tol, sizeof(__pyx_k_tol), 0, 0, 1, 1},
-  {&__pyx_n_s_uint8, __pyx_k_uint8, sizeof(__pyx_k_uint8), 0, 0, 1, 1},
+  {&__pyx_n_u_uint8, __pyx_k_uint8, sizeof(__pyx_k_uint8), 0, 1, 0, 1},
   {&__pyx_kp_s_unable_to_allocate_array_data, __pyx_k_unable_to_allocate_array_data, sizeof(__pyx_k_unable_to_allocate_array_data), 0, 0, 1, 0},
   {&__pyx_kp_s_unable_to_allocate_shape_and_str, __pyx_k_unable_to_allocate_shape_and_str, sizeof(__pyx_k_unable_to_allocate_shape_and_str), 0, 0, 1, 0},
   {&__pyx_kp_u_unknown_dtype_code_in_numpy_pxd, __pyx_k_unknown_dtype_code_in_numpy_pxd, sizeof(__pyx_k_unknown_dtype_code_in_numpy_pxd), 0, 1, 0, 0},

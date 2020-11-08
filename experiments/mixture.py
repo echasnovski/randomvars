@@ -67,8 +67,8 @@ def _compute_cum_p_tuple(rv):
 
 
 def mixt_ppf(rv, q):
-    q = np.asarray(q, dtype=np.float64)
-    res = np.zeros_like(q, dtype=np.float64)
+    q = np.asarray(q, dtype="float64")
+    res = np.zeros_like(q, dtype="float64")
 
     cum_p, x, ids = _compute_cum_p_tuple(rv)
 

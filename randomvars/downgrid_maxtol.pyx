@@ -149,10 +149,10 @@ cdef uint8_t[:] downgrid_maxtol_isin(
     double[:] x, double[:] y, double tol=0.001
 ):
     if len(x) <= 2:
-        return np.ones(x.shape[0], dtype=np.uint8)
+        return np.ones(x.shape[0], dtype="uint8")
 
     cdef int n_x = x.shape[0]
-    res_boolint = np.zeros(n_x, dtype=np.uint8)
+    res_boolint = np.zeros(n_x, dtype="uint8")
     cdef uint8_t[:] res_boolint_view = res_boolint
 
     # First point is always inside output grid

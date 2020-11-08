@@ -25,7 +25,7 @@ def default_discrete_estimator(sample):
         Here `x` represents estimated values of distribution and `prob` -
         estimated probabilities.
     """
-    sample = np.asarray(sample, dtype=np.float64)
+    sample = np.asarray(sample, dtype="float64")
 
     sample_is_finite = np.isfinite(sample)
     if not np.all(sample_is_finite):
@@ -57,12 +57,12 @@ def default_boolean_estimator(sample):
     -------
     prob_true : number
     """
-    sample = np.asarray(sample, dtype=np.bool)
+    sample = np.asarray(sample, dtype="bool")
     return np.mean(sample)
 
 
 # %% Array manipulations
-def _as_1d_numpy(x, x_name, chkfinite=True, dtype=np.float64):
+def _as_1d_numpy(x, x_name, chkfinite=True, dtype="float64"):
     """Convert input to one-dimensional numpy array
 
     Parameters
