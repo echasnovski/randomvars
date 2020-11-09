@@ -4,11 +4,12 @@
 import numpy as np
 from scipy.stats.distributions import rv_frozen
 
+from randomvars._random import Rand
 import randomvars.options as op
 import randomvars._utils as utils
 
 
-class Disc:
+class Disc(Rand):
     """Discrete random variable
 
     Class for discrete random variable with **finite number of (finite and
@@ -104,9 +105,7 @@ class Disc:
         """Return right edge of support"""
         return self._b
 
-    def support(self):
-        """Return support of random variable"""
-        return (self._a, self._b)
+    # `support()` is inherited from `Rand`
 
     @classmethod
     def from_rv(cls, rv):
@@ -339,25 +338,4 @@ class Disc:
 
         return np.asarray(utils._copy_nan(fr=q, to=res), dtype="float64")
 
-    def rvs(self, size=None, random_state=None):
-        """Random number generation
-
-        Generate random numbers into array of desired size.
-
-        Parameters
-        ----------
-        size : int or tuple of ints, optional
-            Defining number of random variates (default is 1).
-        random_state : `None`, int, or RandomState, optional
-            Source of uniform random number generator. If `None`, it is
-            initiated as `numpy.random.RandomState()`. If integer,
-            `numpy.random.RandomState(seed=random_state)` is used.
-        """
-        if random_state is None:
-            random_state = np.random.RandomState()
-        elif isinstance(random_state, int):
-            random_state = np.random.RandomState(seed=random_state)
-
-        U = random_state.uniform(size=size)
-
-        return self.ppf(U)
+    # `rvs()` is inherited from `Rand`

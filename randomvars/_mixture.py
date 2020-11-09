@@ -6,10 +6,11 @@ import numpy as np
 
 from randomvars._continuous import Cont
 from randomvars._discrete import Disc
+from randomvars._random import Rand
 import randomvars._utils as utils
 
 
-class Mixt:
+class Mixt(Rand):
     """Mixture random variable
 
     Class for mixture random variable which has a mixture distribution of
@@ -211,9 +212,7 @@ class Mixt:
         """Return right edge of support"""
         return self._b
 
-    def support(self):
-        """Return support of random variable"""
-        return (self._a, self._b)
+    # `support()` is inherited from `Rand`
 
     def _missing_cont(self):
         return (self._cont is None) or (self._weight_cont == 0)
@@ -327,25 +326,4 @@ class Mixt:
 
         return np.asarray(res, dtype="float64")
 
-    def rvs(self, size=None, random_state=None):
-        """Random number generation
-
-        Generate random numbers into array of desired size.
-
-        Parameters
-        ----------
-        size : int or tuple of ints, optional
-            Defining number of random variates (default is 1).
-        random_state : `None`, int, or RandomState, optional
-            Source of uniform random number generator. If `None`, it is
-            initiated as `numpy.random.RandomState()`. If integer,
-            `numpy.random.RandomState(seed=random_state)` is used.
-        """
-        if random_state is None:
-            random_state = np.random.RandomState()
-        elif isinstance(random_state, int):
-            random_state = np.random.RandomState(seed=random_state)
-
-        U = random_state.uniform(size=size)
-
-        return self.ppf(U)
+    # `rvs()` is inherited from `Rand`

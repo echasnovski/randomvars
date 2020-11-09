@@ -62,6 +62,10 @@ class TestBool:
         assert_array_equal(rv.a, False)
         assert_array_equal(rv.b, True)
 
+    def test_support(self):
+        rv = Bool(0.75)
+        assert rv.support() == (False, True)
+
     def test_from_rv_basic(self):
         prob_true = 0.75
         rv = distrs.rv_discrete(values=([0, 1], [1 - prob_true, prob_true]))
