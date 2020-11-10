@@ -235,6 +235,46 @@ class TestMixt:
         rv_weight_1 = Mixt(cont=cont, disc=disc, weight_cont=1)
         assert rv_weight_1.support() == cont.support()
 
+    def test_from_sample_basic(self):
+        # Normal usage
+        sample = ([0, 0.25, 0.5, 0.75, 1], [0, 1, 1, 1])
+        weight_cont = 0.75
+        rv = Mixt.from_sample(sample=sample, weight_cont=weight_cont)
+        rv_ref = Mixt(
+            Cont.from_sample(sample[0]), Disc.from_sample(sample[1]), weight_cont
+        )
+        assert_equal_mixt(rv, rv_ref)
+
+        # Degenerate cases
+        rv_none_cont = Mixt.from_sample((None, sample[1]), weight_cont=0)
+        rv_none_cont_ref = Mixt(None, Disc.from_sample(sample[1]), 0)
+        assert_equal_mixt(rv_none_cont, rv_none_cont_ref)
+
+        rv_none_disc = Mixt.from_sample((sample[0], None), weight_cont=1)
+        rv_none_disc_ref = Mixt(Cont.from_sample(sample[0]), None, 1)
+        assert_equal_mixt(rv_none_disc, rv_none_disc_ref)
+
+    def test_from_sample_errors(self):
+        # `sample` should be tuple
+        with pytest.raises(ValueError, match="`sample`.*tuple"):
+            Mixt.from_sample([[0, 1, 2], [0, 1, 1, 1]], weight_cont=0.5)
+
+        # `sample` should have exactly two elements
+        with pytest.raises(ValueError, match="`sample`.*two"):
+            Mixt.from_sample(([0, 1, 2],), weight_cont=0.5)
+        with pytest.raises(ValueError, match="`sample`.*two"):
+            Mixt.from_sample(([0, 1, 2], [3, 4, 5], [6, 7]), weight_cont=0.5)
+
+        # `sample` can't have both elements to be `None`
+        with pytest.raises(ValueError, match="`sample`.*two `None`"):
+            Mixt.from_sample((None, None), weight_cont=0.5)
+
+        # Errors for degenerate cases
+        with pytest.raises(ValueError, match="`weight_cont`.*1"):
+            Mixt.from_sample(([0, 1], None), weight_cont=0.5)
+        with pytest.raises(ValueError, match="`weight_cont`.*0"):
+            Mixt.from_sample((None, [0, 1]), weight_cont=0.5)
+
     def test_cdf(self):
         """Tests for `.cdf()` method"""
         cont = Cont([0, 1], [1, 1])

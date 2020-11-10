@@ -46,8 +46,16 @@ class Mixt(Rand):
     ```
 
     ```
-    3. Use `Mixt.from_sample()`:
+    3. Use `Mixt.from_sample()` to create estimation based on existing two
+    samples (one for continuous part and another for discrete) and weight of
+    continuous part:
     ```
+        # Two samples should be supplied in tuple
+        my_mixt = Mixt.from_sample(sample=([0, 0.5, 1], [0, 1]), weight_cont=0.5)
+        print(my_mixt)
+
+        # One of samples can be `None` but only if other part has full weight
+        my_mixt_2 = Mixt.from_sample(([0, 0.5, 1], None), weight_cont=1.0)
 
     ```
     """
@@ -213,6 +221,51 @@ class Mixt(Rand):
         return self._b
 
     # `support()` is inherited from `Rand`
+
+    @classmethod
+    def from_sample(cls, sample, weight_cont):
+        """Create mixture RV from two samples
+
+        This is mostly a wrapper for for
+        `Mixt(cont=Cont.from_sample(sample[0]),
+        disc=Disc.from_sample(sample[1]), weight_cont=weight_cont)`. If one of
+        samples is `None` and other part has full weight, mixture random
+        variable with only one part is created.
+
+        Parameters
+        ----------
+        sample : tuple with two elements
+            First element should be a valid input for `Cont.from_sample()` or
+            `None`. Second - for `Disc.from_sample()` or `None`.
+        weight_cont : number
+            Weight of continuous part.
+
+        Returns
+        -------
+        rv_out : Mixt
+            Mixture random variable with parts created from sample.
+        """
+        if type(sample) != tuple:
+            raise ValueError("`sample` should be a tuple.")
+        if len(sample) != 2:
+            raise ValueError("`sample` should have exactly two elements.")
+        if (sample[0] is None) and (sample[1] is None):
+            raise ValueError("`sample` can't have two `None` elements.")
+
+        if sample[0] is None:
+            return cls(
+                cont=None, disc=Disc.from_sample(sample[1]), weight_cont=weight_cont
+            )
+        if sample[1] is None:
+            return cls(
+                cont=Cont.from_sample(sample[0]), disc=None, weight_cont=weight_cont
+            )
+
+        return cls(
+            cont=Cont.from_sample(sample[0]),
+            disc=Disc.from_sample(sample[1]),
+            weight_cont=weight_cont,
+        )
 
     def _missing_cont(self):
         return (self._cont is None) or (self._weight_cont == 0)
