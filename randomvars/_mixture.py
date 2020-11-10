@@ -273,6 +273,12 @@ class Mixt(Rand):
     def _missing_disc(self):
         return (self._disc is None) or (self._weight_disc == 0)
 
+    def pdf(self, x):
+        raise AttributeError("`Mixt` doesn't have probability density function.")
+
+    def pmf(self, x):
+        raise AttributeError("`Mixt` doesn't have probability mass function.")
+
     def cdf(self, x):
         """Cumulative distribution function
 

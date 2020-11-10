@@ -255,6 +255,11 @@ class Disc(Rand):
 
         return cls(x=estimate[0], p=estimate[1])
 
+    def pdf(self, x):
+        raise AttributeError(
+            "`Disc` doesn't have probability density function. Use `pmf()` instead."
+        )
+
     def pmf(self, x):
         """Probability mass function
 

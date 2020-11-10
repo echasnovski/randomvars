@@ -474,6 +474,11 @@ class Cont(Rand):
             np.interp(x, self._x, self._y, left=0, right=0), dtype="float64"
         )
 
+    def pmf(self, x):
+        raise AttributeError(
+            "`Cont` doesn't have probability mass function. Use `pdf()` instead."
+        )
+
     def cdf(self, x):
         """Cumulative distribution function
 

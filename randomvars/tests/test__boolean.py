@@ -160,6 +160,11 @@ class TestBool:
             rv_ref = Bool.from_rv(rv_bernoulli)
             assert_equal_bool(rv, rv_ref)
 
+    def test_pdf(self):
+        rv = Bool(0.75)
+        with pytest.raises(AttributeError, match=r"Use `pmf\(\)`"):
+            rv.pdf(False)
+
     def test_pmf(self):
         """Tests for `.pmf()` method"""
         rv = Bool(0.75)

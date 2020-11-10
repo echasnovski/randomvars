@@ -275,6 +275,24 @@ class TestMixt:
         with pytest.raises(ValueError, match="`weight_cont`.*0"):
             Mixt.from_sample((None, [0, 1]), weight_cont=0.5)
 
+    def test_pdf(self):
+        cont = Cont([0, 1], [1, 1])
+        disc = Disc([-1, 0.5], [0.25, 0.75])
+        weight_cont = 0.75
+        rv = Mixt(cont=cont, disc=disc, weight_cont=weight_cont)
+
+        with pytest.raises(AttributeError, match="doesn't have.*density"):
+            rv.pdf(0)
+
+    def test_pmf(self):
+        cont = Cont([0, 1], [1, 1])
+        disc = Disc([-1, 0.5], [0.25, 0.75])
+        weight_cont = 0.75
+        rv = Mixt(cont=cont, disc=disc, weight_cont=weight_cont)
+
+        with pytest.raises(AttributeError, match="doesn't have.*mass"):
+            rv.pmf(0)
+
     def test_cdf(self):
         """Tests for `.cdf()` method"""
         cont = Cont([0, 1], [1, 1])

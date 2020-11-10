@@ -254,6 +254,11 @@ class TestDisc:
             rv_ref = Disc.from_rv(rv_binom)
             assert_equal_disc(rv, rv_ref)
 
+    def test_pdf(self):
+        rv = Disc([0.5, 1, 3], [0.1, 0.2, 0.7])
+        with pytest.raises(AttributeError, match=r"Use `pmf\(\)`"):
+            rv.pdf(0.5)
+
     def test_pmf(self):
         """Tests for `.pmf()` method"""
         rv = Disc([0.5, 1, 3], [0.1, 0.2, 0.7])

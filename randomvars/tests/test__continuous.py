@@ -442,6 +442,11 @@ class TestCont:
         _test_one_value_input(rv.pdf, -1)
         _test_one_value_input(rv.pdf, np.nan)
 
+    def test_pmf(self):
+        rv = Cont([0, 1, 3], [0.5, 0.5, 0])
+        with pytest.raises(AttributeError, match=r"Use `pdf\(\)`"):
+            rv.pmf(0)
+
     def test_cdf(self):
         """Tests for `.cdf()` method"""
         rv_1 = Cont([0, 1, 2], [0, 1, 0])

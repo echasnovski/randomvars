@@ -193,6 +193,11 @@ class Bool(Rand):
 
         return cls(prob_true=estimate)
 
+    def pdf(self, x):
+        raise AttributeError(
+            "`Bool` doesn't have probability density function. Use `pmf()` instead."
+        )
+
     def pmf(self, x):
         """Probability mass function
 
