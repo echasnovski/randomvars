@@ -124,16 +124,16 @@ class TestCont:
 
     def test_init_errors(self):
         def check_one_input(def_args, var):
-            with pytest.raises(ValueError, match=f"`{var}`.*numpy array"):
+            with pytest.raises(TypeError, match=f"`{var}`.*numpy array"):
                 def_args[var] = {"a": None}
                 Cont(**def_args)
-            with pytest.raises(ValueError, match=f"`{var}`.*numeric"):
+            with pytest.raises(TypeError, match=f"`{var}`.*numeric"):
                 def_args[var] = ["a", "a"]
                 Cont(**def_args)
-            with pytest.raises(ValueError, match=f"`{var}`.*finite values"):
+            with pytest.raises(TypeError, match=f"`{var}`.*finite values"):
                 def_args[var] = [0, np.nan]
                 Cont(**def_args)
-            with pytest.raises(ValueError, match=f"`{var}`.*finite values"):
+            with pytest.raises(TypeError, match=f"`{var}`.*finite values"):
                 def_args[var] = [0, np.inf]
                 Cont(**def_args)
             with pytest.raises(ValueError, match=f"`{var}`.*1d array"):
@@ -324,7 +324,7 @@ class TestCont:
         assert isinstance(rv, Cont)
 
     def test_from_sample_errors(self):
-        with pytest.raises(ValueError, match="numeric numpy array"):
+        with pytest.raises(TypeError, match="numeric numpy array"):
             Cont.from_sample(["a"])
 
         with pytest.raises(ValueError, match="1d"):

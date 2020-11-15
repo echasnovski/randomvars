@@ -26,7 +26,7 @@ class TestBool:
     """Regression tests for `Bool` class"""
 
     def test_init_errors(self):
-        with pytest.raises(ValueError, match="number"):
+        with pytest.raises(TypeError, match="number"):
             Bool("a")
         with pytest.raises(ValueError, match="0"):
             Bool(-0.1)

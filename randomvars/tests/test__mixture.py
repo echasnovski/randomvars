@@ -100,7 +100,7 @@ class TestMixt:
             Mixt(cont=None, disc=disc, weight_cont=0.5)
 
         ## `cont` can't be any other than `Cont` or `None`
-        with pytest.raises(ValueError, match="`cont`.*`Cont`.*`None`"):
+        with pytest.raises(TypeError, match="`cont`.*`Cont`.*`None`"):
             Mixt(cont=distrs.norm(), disc=disc, weight_cont=0.5)
 
         # Checking `disc`
@@ -109,7 +109,7 @@ class TestMixt:
             Mixt(cont=cont, disc=None, weight_cont=0.5)
 
         ## `disc` can't be any other than `Disc` or `None`
-        with pytest.raises(ValueError, match="`disc`.*`Disc`.*`None`"):
+        with pytest.raises(TypeError, match="`disc`.*`Disc`.*`None`"):
             Mixt(cont=cont, disc=distrs.bernoulli(p=0.1), weight_cont=0.5)
 
         # Both `cont` and `disc` being `None` should also throw error
@@ -117,7 +117,7 @@ class TestMixt:
             Mixt(cont=None, disc=None, weight_cont=0.5)
 
         # Checking `weight_cont`
-        with pytest.raises(ValueError, match="number"):
+        with pytest.raises(TypeError, match="number"):
             Mixt(cont=cont, disc=disc, weight_cont="a")
         with pytest.raises(ValueError, match="0"):
             Mixt(cont=cont, disc=disc, weight_cont=-0.1)
@@ -286,9 +286,9 @@ class TestMixt:
         disc_scipy = distrs.bernoulli(p=0.5)
 
         # `rv` should be tuple
-        with pytest.raises(ValueError, match="`rv`.*tuple"):
+        with pytest.raises(TypeError, match="`rv`.*tuple"):
             Mixt.from_rv(cont_scipy, weight_cont=0.5)
-        with pytest.raises(ValueError, match="`rv`.*tuple"):
+        with pytest.raises(TypeError, match="`rv`.*tuple"):
             Mixt.from_rv([cont_scipy, disc_scipy], weight_cont=0.5)
 
         # `rv` should have exactly two elements
@@ -332,7 +332,7 @@ class TestMixt:
 
     def test_from_sample_errors(self):
         # `sample` should be tuple
-        with pytest.raises(ValueError, match="`sample`.*tuple"):
+        with pytest.raises(TypeError, match="`sample`.*tuple"):
             Mixt.from_sample([[0, 1, 2], [0, 1, 1, 1]], weight_cont=0.5)
 
         # `sample` should have exactly two elements

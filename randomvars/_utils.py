@@ -91,7 +91,7 @@ def _as_1d_numpy(x, x_name, chkfinite=True, dtype="float64"):
             extra_chr = ""
             res = np.asarray(x, dtype=dtype)
     except:
-        raise ValueError(
+        raise TypeError(
             f"`{x_name}` is not convertible to {dtype_chr} numpy array{extra_chr}."
         )
 

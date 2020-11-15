@@ -86,7 +86,7 @@ class Mixt(Rand):
         try:
             weight_cont = float(weight_cont)
         except ValueError:
-            raise ValueError("`weight_cont` should be a number.")
+            raise TypeError("`weight_cont` should be a number.")
 
         if (weight_cont < 0) or (weight_cont > 1):
             raise ValueError("`weight_cont` should be between 0 and 1 (inclusively).")
@@ -96,14 +96,14 @@ class Mixt(Rand):
             if weight_cont > 0:
                 raise ValueError("`cont` can't be `None` if `weight_cont` is above 0.")
         elif not isinstance(cont, Cont):
-            raise ValueError("`cont` should be object of `Cont` or `None`.")
+            raise TypeError("`cont` should be object of `Cont` or `None`.")
 
         # Impute `disc`
         if disc is None:
             if weight_cont < 1:
                 raise ValueError("`disc` can't be `None` if `weight_cont` is below 1.")
         elif not isinstance(disc, Disc):
-            raise ValueError("`disc` should be object of `Disc` or `None`.")
+            raise TypeError("`disc` should be object of `Disc` or `None`.")
 
         return cont, disc, weight_cont
 
@@ -453,7 +453,7 @@ class Mixt(Rand):
 
 def _assert_two_tuple(x, x_name):
     if type(x) != tuple:
-        raise ValueError(f"`{x_name}` should be a tuple.")
+        raise TypeError(f"`{x_name}` should be a tuple.")
     if len(x) != 2:
         raise ValueError(f"`{x_name}` should have exactly two elements.")
     if (x[0] is None) and (x[1] is None):

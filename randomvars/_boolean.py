@@ -65,7 +65,7 @@ class Bool(Rand):
         try:
             prob_true = float(prob_true)
         except ValueError:
-            raise ValueError("`prob_true` should be a number.")
+            raise TypeError("`prob_true` should be a number.")
 
         if (prob_true < 0) or (prob_true > 1):
             raise ValueError("`prob_true` should be between 0 and 1 (inclusively).")
