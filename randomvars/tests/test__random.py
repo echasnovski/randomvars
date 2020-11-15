@@ -35,9 +35,9 @@ class TestRand:
 
         # Object of class `Rand` should be returned untouched
         rv = Rand()
-        rv.aaa = "bbb"
+        rv.aaa = "Extra method"
         rv2 = Rand.from_rv(rv)
-        assert rv2.aaa == "bbb"
+        assert rv2.aaa == "Extra method"
 
     def test_from_sample(self):
         with pytest.raises(NotImplementedError):

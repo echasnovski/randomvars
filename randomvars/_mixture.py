@@ -294,8 +294,7 @@ class Mixt(Rand):
     def from_sample(cls, sample, weight_cont):
         """Create mixture RV from two samples
 
-        This is mostly a wrapper for for
-        `Mixt(cont=Cont.from_sample(sample[0]),
+        This is mostly a wrapper for `Mixt(cont=Cont.from_sample(sample[0]),
         disc=Disc.from_sample(sample[1]), weight_cont=weight_cont)`. If one of
         samples is `None` and other part has full weight, mixture random
         variable with only one part is created.
