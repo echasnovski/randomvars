@@ -225,6 +225,72 @@ class Mixt(Rand):
     # `support()` is inherited from `Rand`
 
     @classmethod
+    def from_rv(cls, rv, weight_cont=None):
+        """Create mixture RV from two general Rvs
+
+        This is mostly a wrapper for `Mixt(cont=Cont.from_rv(rv[0]),
+        disc=Disc.from_rv(rv[1]), weight_cont=weight_cont)`. It has special
+        treatment for degenerate cases (when one part of mixture is `None`):
+        - If input `rv` is object of `Cont` or `Disc` it is transformed into
+          tuple with other part being `None`.
+        - If one of `rv` element is `None` and other part has full weight (or
+          weight is `None`), mixture random variable with only one part is
+          created.
+
+        **Note** that if `rv` is already an object of class `Mixt`, it is
+        returned untouched.
+
+        Parameters
+        ----------
+        rv : tuple with two elements or object of `Cont`, `Disc`, or `Mixt`
+            First element should be a valid input for `Cont.from_rv()` or
+            `None`. Second - for `Disc.from_rv()` or `None`. Objects of `Cont`
+            and `Disc` are transformed into tuples with other part being
+            `None`. If object of `Mixt`, returned untouched.
+        weight_cont : number or `None` (default)
+            Weight of continuous part. Can be `None` if one of input tuple's
+            element is `None`.
+
+        Returns
+        -------
+        rv_out : Mixt
+            Mixture random variable with parts created from input random
+            variables.
+        """
+        if isinstance(rv, Mixt):
+            # `Mixt` should be returned untouched
+            return rv
+        elif isinstance(rv, Cont):
+            # Allow `Mixt.from_rv(rv)` if `rv` is object of `Cont`
+            rv = (rv, None)
+        elif isinstance(rv, Disc):
+            # Allow `Mixt.from_rv(rv)` if `rv` is object of `Disc`
+            rv = (None, rv)
+
+        _assert_two_tuple(rv, "rv")
+        if (weight_cont is None) and (rv[0] is not None) and (rv[1] is not None):
+            raise ValueError(
+                "`weight_cont` can't be `None` if both elements of `rv` are not `None`."
+            )
+
+        if rv[0] is None:
+            if weight_cont is None:
+                # Allow `Mixt.from_rv((None, disc))`
+                weight_cont = 0.0
+            return cls(cont=None, disc=Disc.from_rv(rv[1]), weight_cont=weight_cont)
+        if rv[1] is None:
+            if weight_cont is None:
+                # Allow `Mixt.from_rv((cont, None))`
+                weight_cont = 1.0
+            return cls(cont=Cont.from_rv(rv[0]), disc=None, weight_cont=weight_cont)
+
+        return cls(
+            cont=Cont.from_rv(rv[0]),
+            disc=Disc.from_rv(rv[1]),
+            weight_cont=weight_cont,
+        )
+
+    @classmethod
     def from_sample(cls, sample, weight_cont):
         """Create mixture RV from two samples
 
@@ -247,12 +313,7 @@ class Mixt(Rand):
         rv_out : Mixt
             Mixture random variable with parts created from sample.
         """
-        if type(sample) != tuple:
-            raise ValueError("`sample` should be a tuple.")
-        if len(sample) != 2:
-            raise ValueError("`sample` should have exactly two elements.")
-        if (sample[0] is None) and (sample[1] is None):
-            raise ValueError("`sample` can't have two `None` elements.")
+        _assert_two_tuple(sample, "sample")
 
         if sample[0] is None:
             return cls(
@@ -388,3 +449,12 @@ class Mixt(Rand):
         return np.asarray(res, dtype="float64")
 
     # `rvs()` is inherited from `Rand`
+
+
+def _assert_two_tuple(x, x_name):
+    if type(x) != tuple:
+        raise ValueError(f"`{x_name}` should be a tuple.")
+    if len(x) != 2:
+        raise ValueError(f"`{x_name}` should have exactly two elements.")
+    if (x[0] is None) and (x[1] is None):
+        raise ValueError(f"`{x_name}` can't have two `None` elements.")

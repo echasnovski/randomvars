@@ -235,6 +235,82 @@ class TestMixt:
         rv_weight_1 = Mixt(cont=cont, disc=disc, weight_cont=1)
         assert rv_weight_1.support() == cont.support()
 
+    def test_from_rv_basic(self):
+        cont = Cont([0, 1], [1, 1])
+        disc = Disc([-1, 0.5], [0.25, 0.75])
+
+        cont_scipy = distrs.norm()
+        disc_scipy = distrs.bernoulli(p=0.5)
+        weight_cont_scipy = 0.75
+
+        # Normal usage
+        out = Mixt.from_rv((cont_scipy, disc_scipy), weight_cont_scipy)
+        out_ref = Mixt(
+            Cont.from_rv(cont_scipy), Disc.from_rv(disc_scipy), weight_cont_scipy
+        )
+        assert_equal_mixt(out, out_ref)
+
+        # `Mixt` should be returned untouched
+        rv_mixt = Mixt(cont, disc, 0.5)
+        rv_mixt.aaa = "Extra method"
+        out = Mixt.from_rv(rv_mixt)
+        assert out.aaa == "Extra method"
+
+        # Degenerate cases
+        ## Allow `rv` to be an object of `Cont` or `Disc`
+        ### `weight_cont` can be `None`
+        assert_equal_mixt(Mixt.from_rv(cont), Mixt(cont, None, 1))
+        assert_equal_mixt(Mixt.from_rv(disc), Mixt(None, disc, 0))
+
+        ### `weight_cont` can represent full weight of non-`None` part
+        assert_equal_mixt(Mixt.from_rv(cont, weight_cont=1), Mixt(cont, None, 1))
+        assert_equal_mixt(Mixt.from_rv(disc, weight_cont=0), Mixt(None, disc, 0))
+
+        ## Allow degenerate cases with tuple `rv`
+        mixt_nonedisc_ref = Mixt(Cont.from_rv(cont_scipy), None, 1)
+        mixt_nonecont_ref = Mixt(None, Disc.from_rv(disc_scipy), 0)
+
+        ### `weight_cont` can be `None`
+        assert_equal_mixt(Mixt.from_rv((cont_scipy, None)), mixt_nonedisc_ref)
+        assert_equal_mixt(Mixt.from_rv((None, disc_scipy)), mixt_nonecont_ref)
+
+        ### `weight_cont` can represent full weight of non-`None` part
+        assert_equal_mixt(Mixt.from_rv((cont_scipy, None), 1), mixt_nonedisc_ref)
+        assert_equal_mixt(Mixt.from_rv((None, disc_scipy), 0), mixt_nonecont_ref)
+
+    def test_from_rv_errors(self):
+        cont = Cont([0, 1], [1, 1])
+        disc = Disc([-1, 0.5], [0.25, 0.75])
+
+        cont_scipy = distrs.norm()
+        disc_scipy = distrs.bernoulli(p=0.5)
+
+        # `rv` should be tuple
+        with pytest.raises(ValueError, match="`rv`.*tuple"):
+            Mixt.from_rv(cont_scipy, weight_cont=0.5)
+        with pytest.raises(ValueError, match="`rv`.*tuple"):
+            Mixt.from_rv([cont_scipy, disc_scipy], weight_cont=0.5)
+
+        # `rv` should have exactly two elements
+        with pytest.raises(ValueError, match="`rv`.*two"):
+            Mixt.from_rv((cont_scipy,), weight_cont=0.5)
+        with pytest.raises(ValueError, match="`rv`.*two"):
+            Mixt.from_rv((cont_scipy, disc_scipy, cont_scipy), weight_cont=0.5)
+
+        # `rv` can't have both elements to be `None`
+        with pytest.raises(ValueError, match="`rv`.*two `None`"):
+            Mixt.from_rv((None, None), weight_cont=0.5)
+
+        # `weight_cont` can't be `None` if both elements of tuple are not `None`
+        with pytest.raises(ValueError, match="`weight_cont` can't be `None`"):
+            Mixt.from_rv((cont_scipy, disc_scipy), weight_cont=None)
+
+        # Errors for degenerate cases
+        with pytest.raises(ValueError, match="`weight_cont`.*1"):
+            Mixt.from_rv((cont_scipy, None), weight_cont=0.5)
+        with pytest.raises(ValueError, match="`weight_cont`.*0"):
+            Mixt.from_rv((None, disc_scipy), weight_cont=0.5)
+
     def test_from_sample_basic(self):
         # Normal usage
         sample = ([0, 0.25, 0.5, 0.75, 1], [0, 1, 1, 1])
