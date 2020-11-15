@@ -78,6 +78,8 @@ class Mixt(Rand):
         # Private attributes
         self._cum_p_tuple = self._compute_cum_p_tuple()
 
+        super().__init__()
+
     @staticmethod
     def _impute_init_args(cont, disc, weight_cont):
         # Impute `weight_cont`

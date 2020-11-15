@@ -58,6 +58,8 @@ class Bool(Rand):
         self._prob_true = self._impute_init_args(prob_true)
         self._prob_false = 1.0 - self._prob_true
 
+        super().__init__()
+
     @staticmethod
     def _impute_init_args(prob_true):
         try:

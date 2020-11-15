@@ -62,6 +62,8 @@ class Cont(Rand):
         # Private attributes
         self._cum_p = utils._trapez_integral_cum(self._x, self._y)
 
+        super().__init__()
+
     @staticmethod
     def _impute_init_args(x, y):
         x = utils._as_1d_numpy(x, "x", chkfinite=True, dtype="float64")

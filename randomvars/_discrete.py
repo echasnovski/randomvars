@@ -64,6 +64,8 @@ class Disc(Rand):
         # Private attributes
         self._cum_p = np.cumsum(p)
 
+        super().__init__()
+
     @staticmethod
     def _impute_init_args(x, p):
         x = utils._as_1d_numpy(x, "x", chkfinite=True, dtype="float64")
