@@ -160,8 +160,8 @@ class Cont(Rand):
         ind_is_in = (ind > 0) & (ind < len(self._x))
         inds_in = ind[ind_is_in]
         if len(inds_in) > 0:
-            slope[ind_is_in] = (self._y[inds_in - 1] - self._y[inds_in]) / (
-                self._x[inds_in - 1] - self._x[inds_in]
+            slope[ind_is_in] = (self._y[inds_in] - self._y[inds_in - 1]) / (
+                self._x[inds_in] - self._x[inds_in - 1]
             )
             inter[ind_is_in] = (
                 self._y[inds_in - 1] - slope[ind_is_in] * self._x[inds_in - 1]
