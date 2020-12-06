@@ -307,12 +307,12 @@ class TestCont:
             rv_norm_small = Cont.from_rv(norm)
         assert len(rv_norm_small.x) <= 20
 
-        # Usage of `integr_tol` option
-        with option_context({"integr_tol": 1e-4}):
+        # Usage of `smoothing_factor` option
+        with option_context({"smoothing_factor": 1e-8}):
             rv_norm_1 = Cont.from_rv(norm)
-        with option_context({"integr_tol": 1e-1}):
+        with option_context({"smoothing_factor": 1e-2}):
             rv_norm_2 = Cont.from_rv(norm)
-        ## Increasing tolerance should lead to decrease of density grid
+        ## Increasing smoothing factor should lead to decrease of density grid
         assert len(rv_norm_1.x) > len(rv_norm_2.x)
 
     def test_from_sample_basic(self):
@@ -535,8 +535,8 @@ class TestFromRVAccuracy:
         "distr_dict,thres",
         [
             (DISTRIBUTIONS_COMMON, 1e-4),
-            (DISTRIBUTIONS_INF_DENSITY, 1e-2),
-            (DISTRIBUTIONS_HEAVY_TAILS, 1e-2),
+            (DISTRIBUTIONS_INF_DENSITY, 1e-3),
+            (DISTRIBUTIONS_HEAVY_TAILS, 5e-3),
         ],
     )
     def test_cdf_maxerror(self, distr_dict, thres):

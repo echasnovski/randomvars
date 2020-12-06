@@ -3,6 +3,7 @@
 import warnings
 
 import numpy as np
+from scipy.interpolate import UnivariateSpline
 from scipy.stats.distributions import rv_frozen
 
 import randomvars._utils as utils
@@ -285,19 +286,30 @@ class Cont(Rand):
           `n_grid` (package option). Also it is ensured that no points lie very
           close to each other (order of `1e-13` distance), because otherwise
           output will have unstable values.
-        - **Create density xy-grid**. X-grid is taken from previous step, while
-          corresponding y-grid is computed as derivatives (with
-          `np.gradient()`) of CDF-values. Density is not used directly to
-          account for its possible infinite values.
-        - **Downgrid density xy-grid**. `downgrid_maxtol()` is used with
-          tolerance ensuring that difference of total integrals between input
-          and downgridded xy-grids is less than `integr_tol` (package option).
+        - **Fit quadratic spline to CDF at x-grid**. This dramatically reduces
+          number of points in output `Cont`'s xy-grid in exchange of (usually)
+          small inaccuracy. Spline is fitted using
+          `scipy.interpolate.UnivariateSpline` with the following arguments:
+            - `x` is equal to x-grid from previous step.
+            - `y` is equal to values of `rv.cdf()` at x-grid.
+            - `k` (spline degree) is given as 2 for output to represent
+              quadratic spline.
+            - `s` (smoothing factor) is taken from `smoothing_factor` package
+              option. Bigger values lead to smaller number of elements in
+              output `Cont`'s xy-grid. Smaller values (together with large
+              enough values of `n_grid` option) lead to better approximation of
+              `rv.cdf()`.
+        - **Create density xy-grid**. X-grid is taken as spline knots. Y-grid
+          is computed as values of spline derivative at those knots truncating
+          possible negative values to become zero. Here negative values can
+          occur if CDF approximation is allowed to be loose (either `n_grid` is
+          low or `smoothing_factor` is high).
 
         **Note** that if `rv` is already an object of class `Cont`, it is
         returned untouched.
 
-        Relevant package options: `n_grid`, `small_prob`, `integr_tol`. See
-        documentation of `randomvars.options.get_option()` for more
+        Relevant package options: `n_grid`, `small_prob`, `smoothing_factor`.
+        See documentation of `randomvars.options.get_option()` for more
         information. To temporarily set options use
         `randomvars.options.option_context()` context manager.
 
@@ -333,7 +345,7 @@ class Cont(Rand):
         # Get options
         n_grid = get_option("n_grid")
         small_prob = get_option("small_prob")
-        integr_tol = get_option("integr_tol")
+        smoothing_factor = get_option("smoothing_factor")
 
         # Detect effective support of `rv`
         x_left, x_right = _detect_finite_supp(rv, supp, small_prob)
@@ -349,17 +361,19 @@ class Cont(Rand):
         # Combine equidistant and quantile grids into one sorted array
         x = _combine_grids(x_equi, x_quan)
 
-        # Compute `y` as derivative of CDF. Not using `pdf` directly to account
-        # for infinite density values.
-        # Using `edge_order=2` gives better accuracy when edge has infinite
-        # density
-        y = np.gradient(rv.cdf(x), x, edge_order=2)
-        ## Account for possible negative values of order 1e-17
-        y = np.clip(y, 0, None)
+        # Fit quadratic spline to points on CDF at computed grid.
+        # Although "the user is strongly dissuaded from choosing k
+        # even, together with a small s-value" (see 'curfit.f' file in
+        # 'scipy/interpolate/fitpack'), this currently proved to be working
+        # quite good.
+        spline = UnivariateSpline(x=x, y=rv.cdf(x), k=2, s=smoothing_factor)
 
-        # Reduce grid size allowing such maximum difference so that
-        # piecewise-linear integrals differ by not more than `integr_tol`
-        x, y = downgrid_maxtol(x, y, integr_tol / (x[-1] - x[0]))
+        # Construct xy-grid as knots and derivative values of spline
+        x = spline.get_knots()
+        y = spline.derivative(n=1)(x)
+        ## Here `y` can have negative values (in case of small `n_grid` or big
+        ## `smoothing_factor` not so small ones)
+        y = np.clip(y, 0, None)
 
         return cls(x, y)
 
