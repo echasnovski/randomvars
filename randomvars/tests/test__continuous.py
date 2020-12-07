@@ -3,6 +3,7 @@
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 import scipy.stats.distributions as distrs
+from scipy.stats.kde import gaussian_kde
 from scipy.integrate import quad
 import pytest
 
@@ -68,11 +69,33 @@ def assert_almost_equal_cont(rv_1, rv_2, decimal=10):
     assert_array_almost_equal(rv_1.y, rv_2.y, decimal=decimal)
 
 
-def from_sample_max_error(x):
+def augment_grid(x, n_inner_points):
+    test_arr = [
+        np.linspace(x[i], x[i + 1], n_inner_points + 1, endpoint=False)
+        for i in np.arange(len(x) - 1)
+    ]
+    test_arr.append([x[-1]])
+    return np.concatenate(test_arr)
+
+
+def from_sample_cdf_max_error(x):
     rv = Cont.from_sample(x)
     density = get_option("density_estimator")(x)
 
-    return np.max(np.abs(density(rv.x) - rv.y))
+    x_grid = augment_grid(rv.x, 10)
+
+    # Efficient way of computing `quad(density, -np.inf, x_grid)`
+    x_grid_ext = np.concatenate([[-np.inf], x_grid])
+    cdf_intervals = np.array(
+        [
+            quad(density, x_l, x_r)[0]
+            for x_l, x_r in zip(x_grid_ext[:-1], x_grid_ext[1:])
+        ]
+    )
+    cdf_grid = np.cumsum(cdf_intervals)
+
+    err = cdf_grid - rv.cdf(x_grid)
+    return np.max(np.abs(err))
 
 
 def circle_fun(x, low, high):
@@ -347,7 +370,8 @@ class TestCont:
 
         with option_context({"density_estimator": uniform_estimator}):
             rv = Cont.from_sample(x)
-        assert len(np.unique(rv.y)) == 1
+        assert len(rv.y) == 2
+        assert np.allclose(rv.y, rv.y[0], atol=1e-13)
 
         # "density_estimator" which returns allowed classes
         ## `Cont` object should be returned untouched
@@ -376,13 +400,16 @@ class TestCont:
             rv = Cont.from_sample(x)
         assert len(rv.x) <= 22
 
-        # "integr_tol"
-        with option_context({"integr_tol": 1e5}):
+        # "smoothing_factor"
+        with option_context({"smoothing_factor": 2}):
             rv = Cont.from_sample(x)
-        ## With very high integral tolerance downgridding should result into
-        ## grid with two elements
-        assert len(rv.x) == 2
+        ## With very high smoothing factor downgridding should result into grid
+        ## with three elements. That is because CDF is approximated with
+        ## simplest quadratic spline with single segment. That requires three
+        ## knots.
+        assert len(rv.x) == 3
 
+    @pytest.mark.slow
     def test_from_sample_single_value(self):
         """How well `from_sample()` handles single unique value in sample
 
@@ -397,12 +424,15 @@ class TestCont:
         # Case when sample width is zero but density is not zero
         density_centered_interval = make_circ_density([(-1, 1)])
         with option_context({"density_estimator": lambda x: density_centered_interval}):
-            assert from_sample_max_error(zero_vec) <= 1e-4
+            assert from_sample_cdf_max_error(zero_vec) <= 1e-4
 
         # Case when both sample width and density are zero
         density_shifted_interval = make_circ_density([(10, 20)])
         with option_context({"density_estimator": lambda x: density_shifted_interval}):
-            assert from_sample_max_error(zero_vec) <= 1e-4
+            # Here currently the problem is that support is estimated way to
+            # wide with very small (~1e-9) non-zero density outside of [10,
+            # 20]. However, CDFs are still close.
+            assert from_sample_cdf_max_error(zero_vec) <= 2e-4
 
     def test_pdf(self):
         """Tests for `.pdf()` method"""
@@ -550,18 +580,9 @@ class TestFromRVAccuracy:
     @staticmethod
     def from_rv_cdf_maxerror(rv_base, n_inner_points=10, **kwargs):
         rv_test = Cont.from_rv(rv_base, **kwargs)
-        x_grid = TestFromRVAccuracy.augment_grid(rv_test.x, n_inner_points)
+        x_grid = augment_grid(rv_test.x, n_inner_points)
         err = rv_base.cdf(x_grid) - rv_test.cdf(x_grid)
         return np.max(np.abs(err))
-
-    @staticmethod
-    def augment_grid(x, n_inner_points):
-        test_arr = [
-            np.linspace(x[i], x[i + 1], n_inner_points + 1, endpoint=False)
-            for i in np.arange(len(x) - 1)
-        ]
-        test_arr.append([x[-1]])
-        return np.concatenate(test_arr)
 
 
 class TestFromSampleAccuracy:
@@ -573,15 +594,15 @@ class TestFromSampleAccuracy:
     @pytest.mark.parametrize(
         "distr_dict,thres",
         [
-            (DISTRIBUTIONS_COMMON, 1e-3),
-            (DISTRIBUTIONS_INF_DENSITY, 1e-3),
-            (DISTRIBUTIONS_HEAVY_TAILS, 1e-3),
+            (DISTRIBUTIONS_COMMON, 1e-4),
+            (DISTRIBUTIONS_INF_DENSITY, 1.5e-4),
+            (DISTRIBUTIONS_HEAVY_TAILS, 1e-4),
         ],
     )
-    def test_close_densities(self, distr_dict, thres):
+    def test_close_cdf(self, distr_dict, thres):
         rng = np.random.default_rng(101)
         test_passed = {
-            name: TestFromSampleAccuracy.simulated_density_error(distr, rng) <= thres
+            name: TestFromSampleAccuracy.simulated_cdf_error(distr, rng) <= thres
             for name, distr in distr_dict.items()
         }
 
@@ -607,9 +628,29 @@ class TestFromSampleAccuracy:
         assert all(test_passed.values())
 
     @staticmethod
-    def simulated_density_error(distr, rng):
+    def simulated_cdf_error(distr, rng):
         x = distr.rvs(size=100, random_state=rng)
-        return from_sample_max_error(x)
+
+        # Testing with `gaussian_kde` as the most used density estimator. This
+        # also enables to use rather fast way of computing CDF of estimated
+        # density via `integrate_box_1d` method.
+        with option_context({"density_estimator": gaussian_kde}):
+            rv = Cont.from_sample(x)
+            density = get_option("density_estimator")(x)
+
+        x_grid = augment_grid(rv.x, 10)
+
+        # Interestingly enough, direct computation with `-np.inf` as left
+        # integration limit is both accurate and more efficient than computing
+        # integrals for each segment and then use `np.cumsum()`. Probably this
+        # is because integration of gaussian curves with infinite left limit is
+        # done directly through gaussian CDF.
+        cdf_grid = np.array(
+            [density.integrate_box_1d(-np.inf, cur_x) for cur_x in x_grid]
+        )
+
+        err = cdf_grid - rv.cdf(x_grid)
+        return np.max(np.abs(err))
 
 
 def test__extend_range():

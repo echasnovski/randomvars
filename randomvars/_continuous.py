@@ -404,16 +404,37 @@ class Cont(Rand):
           grids is equal to `n_grid` (package option). Also it is ensured that
           no points lie very close to each other (order of `1e-13` distance),
           because otherwise output will have unstable values.
-        - **Create density xy-grid**. X-grid is taken from previous step,
-          y-grid is taken as values of density estimate at points of x-grid.
-        - **Downgrid density xy-grid**. `downgrid_maxtol()` is used with
-          tolerance ensuring that difference of total integrals between input
-          and downgridded xy-grids is less than `integr_tol` (package option).
-        - **Create random variable** with `Cont(x=x, y=y)`, where `x` and `y`
-          are x-grid and y-grid.
+        - **Approximate CDF at x-grid**. X-grid is taken from previous step.
+          Using values of density estimate at x-grid, CDF values are computed
+          as cumulative integrals (normalized for the widest one to be equal to
+          one) of piecewise-linear density defined by xy-grid. This is a fast
+          approximation to integrals of density estimate from minus infinity to
+          values of x-grid.
+        - **Fit quadratic spline to cdf-grid**. This dramatically reduces
+          number of points in output `Cont`'s xy-grid in exchange of (usually)
+          small inaccuracy. **Note** that it is possible to fit linear spline
+          to density xy-grid, however approximating CDF: showed better
+          reduction of output grid size while introducing adequate inaccuracy
+          to CDF function; is consistent with `Cont.from_rv()`. Spline is
+          fitted using `scipy.interpolate.UnivariateSpline` with the following
+          arguments:
+            - `x` is equal to x-grid from previous step.
+            - `y` is equal to CDF values at x-grid.
+            - `k` (spline degree) is given as 2 for output to represent
+              quadratic spline.
+            - `s` (smoothing factor) is taken from `smoothing_factor` package
+              option. Bigger values lead to smaller number of elements in
+              output `Cont`'s xy-grid. Smaller values (together with large
+              enough values of `n_grid` option) lead to better approximation of
+              `rv.cdf()`.
+        - **Create density xy-grid**. X-grid is taken as spline knots. Y-grid
+          is computed as values of spline derivative at those knots truncating
+          possible negative values to become zero. Here negative values can
+          occur if CDF approximation is allowed to be loose (either `n_grid` is
+          low or `smoothing_factor` is high).
 
         Relevant package options: `density_estimator`, `density_mincoverage`,
-        `n_grid`, `integr_tol`. See documentation of
+        `n_grid`, `smoothing_factor`. See documentation of
         `randomvars.options.get_option()` for more information. To temporarily
         set options use `randomvars.options.option_context()` context manager.
 
@@ -436,7 +457,7 @@ class Cont(Rand):
         density_estimator = get_option("density_estimator")
         density_mincoverage = get_option("density_mincoverage")
         n_grid = get_option("n_grid")
-        integr_tol = get_option("integr_tol")
+        smoothing_factor = get_option("smoothing_factor")
 
         # Estimate density
         density = density_estimator(sample)
@@ -461,13 +482,25 @@ class Cont(Rand):
         x_grid = _combine_grids(x_equi, x_quan)
         y_grid = density(x_grid)
 
-        # Reduce grid size allowing such maximum difference so that
-        # piecewise-linear integrals differ by not more than `integr_tol`
-        x_grid, y_grid = downgrid_maxtol(
-            x_grid, y_grid, tol=integr_tol / (x_grid[-1] - x_grid[0])
-        )
+        # Fit quadratic spline to cdf-grid. This uses the same approach as `from_rv()`
+        # and results into considerably fewer xy-grid elements at the cost of
+        # some accuracy loss in terms of actual density approximation.
+        # Although "the user is strongly dissuaded from choosing k
+        # even, together with a small s-value" (see 'curfit.f' file in
+        # 'scipy/interpolate/fitpack'), this currently proved to be working
+        # quite good.
+        cdf_grid = utils._trapez_integral_cum(x_grid, y_grid)
+        cdf_grid = cdf_grid / cdf_grid[-1]
+        spline = UnivariateSpline(x=x_grid, y=cdf_grid, k=2, s=smoothing_factor)
 
-        return cls(x_grid, y_grid)
+        # Construct xy-grid as knots and derivative values of spline
+        x = spline.get_knots()
+        y = spline.derivative(n=1)(x)
+        ## Here `y` can have negative values (and not so small ones in case of
+        ## small `n_grid` or big `smoothing_factor`)
+        y = np.clip(y, 0, None)
+
+        return cls(x, y)
 
     def pdf(self, x):
         """Probability density function
