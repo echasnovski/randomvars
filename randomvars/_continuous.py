@@ -349,18 +349,15 @@ class Cont(Rand):
         cdf_tolerance = get_option("cdf_tolerance")
 
         # Detect effective support of `rv`
-        x_left, x_right = _detect_finite_supp(rv, supp, small_prob)
+        finite_supp = _detect_finite_supp(rv, supp, small_prob)
 
-        # Construct equidistant grid
-        x_equi = np.linspace(x_left, x_right, n_grid)
-
-        # Construct quantile grid
-        prob_left, prob_right = rv.cdf([x_left, x_right])
-        prob_equi = np.linspace(prob_left, prob_right, n_grid)
-        x_quan = rv.ppf(prob_equi)
-
-        # Combine equidistant and quantile grids into one sorted array
-        x = _combine_grids(x_equi, x_quan)
+        # Compute combination of equidistant and quantile grids
+        x = _compute_union_grid(
+            x_range=finite_supp,
+            prob_range=rv.cdf(list(finite_supp)),
+            quantile_fun=rv.ppf,
+            n_grid=n_grid,
+        )
 
         # Fit quadratic spline to points on CDF at computed grid.
         # Although "the user is strongly dissuaded from choosing k
@@ -471,17 +468,15 @@ class Cont(Rand):
             return Cont.from_rv(density)
 
         # Estimate density range
-        x_left, x_right = _estimate_density_range(density, sample, density_mincoverage)
+        density_range = _estimate_density_range(density, sample, density_mincoverage)
 
-        # Construct equidistant grid
-        x_equi = np.linspace(x_left, x_right, n_grid)
-
-        # Construct quantile grid
-        prob_equi = np.linspace(0, 1, n_grid)
-        x_quan = np.quantile(a=sample, q=prob_equi, interpolation="linear")
-
-        # Combine equidistant and quantile grids into one sorted array
-        x_grid = _combine_grids(x_equi, x_quan)
+        # Compute combination of equidistant and quantile grids
+        x_grid = _compute_union_grid(
+            x_range=density_range,
+            prob_range=(0, 1),
+            quantile_fun=lambda q: np.quantile(a=sample, q=q, interpolation="linear"),
+            n_grid=n_grid,
+        )
         y_grid = density(x_grid)
 
         # Fit quadratic spline to cdf-grid. This uses the same approach as `from_rv()`
@@ -785,8 +780,8 @@ def _extend_range(x_range, density, cov_prob):
     res_range = (x_range[0] - delta_left, x_range[1] + delta_right)
 
     # Update covered probability. Here not using direct approach of the form
-    # `utils._quad_silent(density, x_range[0], x_range[1])` is crucial because
-    # it may lead to inaccurate results with wide range.
+    # `utils._quad_silent(density, res_range[0], res_range[1])` is crucial
+    # because it may lead to inaccurate results with wide range.
     cov_prob_left = utils._quad_silent(density, res_range[0], x_range[0])
     cov_prob_right = utils._quad_silent(density, x_range[1], res_range[1])
     res_cov_prob = cov_prob + cov_prob_left + cov_prob_right
@@ -794,8 +789,16 @@ def _extend_range(x_range, density, cov_prob):
     return res_range, res_cov_prob
 
 
-def _combine_grids(grid1, grid2, tol=1e-13):
-    x = np.union1d(grid1, grid2)
+def _compute_union_grid(x_range, prob_range, quantile_fun, n_grid, tol=1e-13):
+    # Equidistant grid
+    x_equi = np.linspace(x_range[0], x_range[1], n_grid)
+
+    # Equiprobable grid
+    prob_equi = np.linspace(prob_range[0], prob_range[1], n_grid)
+    x_quan = quantile_fun(prob_equi)
+
+    # Raw union grid
+    x = np.union1d(x_equi, x_quan)
 
     ## Ensure that minimum difference between consecutive elements isn't
     ## very small, otherwise this will make `np.gradient()` perform poorly
