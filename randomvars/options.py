@@ -15,13 +15,13 @@ __all__ = [
 
 _default_options = {
     "boolean_estimator": default_boolean_estimator,
+    "cdf_tolerance": 1e-4,
     "density_estimator": gaussian_kde,
     "density_mincoverage": 0.9999,
     "discrete_estimator": default_discrete_estimator,
     "integr_tol": 1e-4,
     "n_grid": 1001,
     "small_prob": 1e-6,
-    "smoothing_factor": 1e-8,
     "tolerance": (0.0, 1e-8),
 }
 _options = _default_options.copy()
@@ -33,6 +33,10 @@ _options_list = """
     - Number representing probability of `True` for boolean random variable.
     - Object of class `Bool, `Disc`, or `rv_frozen` (`rv_discrete` with all
       hyperparameters defined).
+- cdf_tolerance: float, default 1e-4. Tolerance for CDF approximation. Usually
+  meant as mean approximation error. Smaller values lead to better
+  approximation, larger values lead to less number of grid elements (knots) in
+  output approximation.
 - density_estimator : callable, default scipy.stats.kde.gaussian_kde. Function
   which takes sample as input and returns one of:
     - Callable object for density estimate (takes points as input and returns
@@ -59,12 +63,6 @@ _options_list = """
   creating object of class `Cont`.
 - small_prob : float, default 1e-6. Probability value that can be considered
   "small" during approximations.
-- smoothing_factor : float, default 1e-8. Value for argument `s` of
-  `scipy.interpolate.UnivariateSpline` when spline approximation is done.
-  It has meaning of "average squared error at interpolated points". Smaller
-  values lead to better approximation (up to the interpolation when set to
-  zero), larger values lead to less number of grid elements (knots) in output
-  spline.
 - tolerance : tuple with two elements, default (0.0, 1e-8). Tuple with
   relative and absolute tolerance to be used as `rtol` and `atol` arguments in
   `numpy.isclose()` and similar functions. **Note** that default values are

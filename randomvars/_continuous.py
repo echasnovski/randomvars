@@ -294,21 +294,22 @@ class Cont(Rand):
             - `y` is equal to values of `rv.cdf()` at x-grid.
             - `k` (spline degree) is given as 2 for output to represent
               quadratic spline.
-            - `s` (smoothing factor) is taken from `smoothing_factor` package
-              option. Bigger values lead to smaller number of elements in
-              output `Cont`'s xy-grid. Smaller values (together with large
-              enough values of `n_grid` option) lead to better approximation of
-              `rv.cdf()`.
+            - `s` (smoothing factor) is taken as square of `cdf_tolerance`
+              package option (as `s` represents mean squared approximation
+              error). Bigger values of `cdf_tolerance` lead to smaller number
+              of elements in output `Cont`'s xy-grid. Smaller values (together
+              with large enough values of `n_grid` option) lead to better
+              approximation of `rv.cdf()`.
         - **Create density xy-grid**. X-grid is taken as spline knots. Y-grid
           is computed as values of spline derivative at those knots truncating
           possible negative values to become zero. Here negative values can
           occur if CDF approximation is allowed to be loose (either `n_grid` is
-          low or `smoothing_factor` is high).
+          low or `cdf_tolerance` is high).
 
         **Note** that if `rv` is already an object of class `Cont`, it is
         returned untouched.
 
-        Relevant package options: `n_grid`, `small_prob`, `smoothing_factor`.
+        Relevant package options: `n_grid`, `small_prob`, `cdf_tolerance`.
         See documentation of `randomvars.options.get_option()` for more
         information. To temporarily set options use
         `randomvars.options.option_context()` context manager.
@@ -345,7 +346,7 @@ class Cont(Rand):
         # Get options
         n_grid = get_option("n_grid")
         small_prob = get_option("small_prob")
-        smoothing_factor = get_option("smoothing_factor")
+        cdf_tolerance = get_option("cdf_tolerance")
 
         # Detect effective support of `rv`
         x_left, x_right = _detect_finite_supp(rv, supp, small_prob)
@@ -366,13 +367,13 @@ class Cont(Rand):
         # even, together with a small s-value" (see 'curfit.f' file in
         # 'scipy/interpolate/fitpack'), this currently proved to be working
         # quite good.
-        spline = UnivariateSpline(x=x, y=rv.cdf(x), k=2, s=smoothing_factor)
+        spline = UnivariateSpline(x=x, y=rv.cdf(x), k=2, s=cdf_tolerance ** 2)
 
         # Construct xy-grid as knots and derivative values of spline
         x = spline.get_knots()
         y = spline.derivative(n=1)(x)
-        ## Here `y` can have negative values (in case of small `n_grid` or big
-        ## `smoothing_factor` not so small ones)
+        ## Here `y` can have negative values (and not so small ones in case of
+        ## small `n_grid` or big `cdf_tolerance`)
         y = np.clip(y, 0, None)
 
         return cls(x, y)
@@ -415,26 +416,27 @@ class Cont(Rand):
           small inaccuracy. **Note** that it is possible to fit linear spline
           to density xy-grid, however approximating CDF: showed better
           reduction of output grid size while introducing adequate inaccuracy
-          to CDF function; is consistent with `Cont.from_rv()`. Spline is
-          fitted using `scipy.interpolate.UnivariateSpline` with the following
-          arguments:
+          to CDF function; is consistent with `Cont.from_rv()` and utilizes the
+          same `cdf_tolerance` package option. Spline is fitted using
+          `scipy.interpolate.UnivariateSpline` with the following arguments:
             - `x` is equal to x-grid from previous step.
             - `y` is equal to CDF values at x-grid.
             - `k` (spline degree) is given as 2 for output to represent
               quadratic spline.
-            - `s` (smoothing factor) is taken from `smoothing_factor` package
-              option. Bigger values lead to smaller number of elements in
-              output `Cont`'s xy-grid. Smaller values (together with large
-              enough values of `n_grid` option) lead to better approximation of
-              `rv.cdf()`.
+            - `s` (smoothing factor) is taken as square of `cdf_tolerance`
+              package option (as `s` represents mean squared approximation
+              error). Bigger values of `cdf_tolerance` lead to smaller number
+              of elements in output `Cont`'s xy-grid. Smaller values (together
+              with large enough values of `n_grid` option) lead to better
+              approximation of random variable with estimated density.
         - **Create density xy-grid**. X-grid is taken as spline knots. Y-grid
           is computed as values of spline derivative at those knots truncating
           possible negative values to become zero. Here negative values can
           occur if CDF approximation is allowed to be loose (either `n_grid` is
-          low or `smoothing_factor` is high).
+          low or `cdf_tolerance` is high).
 
         Relevant package options: `density_estimator`, `density_mincoverage`,
-        `n_grid`, `smoothing_factor`. See documentation of
+        `n_grid`, `cdf_tolerance`. See documentation of
         `randomvars.options.get_option()` for more information. To temporarily
         set options use `randomvars.options.option_context()` context manager.
 
@@ -457,7 +459,7 @@ class Cont(Rand):
         density_estimator = get_option("density_estimator")
         density_mincoverage = get_option("density_mincoverage")
         n_grid = get_option("n_grid")
-        smoothing_factor = get_option("smoothing_factor")
+        cdf_tolerance = get_option("cdf_tolerance")
 
         # Estimate density
         density = density_estimator(sample)
@@ -491,13 +493,13 @@ class Cont(Rand):
         # quite good.
         cdf_grid = utils._trapez_integral_cum(x_grid, y_grid)
         cdf_grid = cdf_grid / cdf_grid[-1]
-        spline = UnivariateSpline(x=x_grid, y=cdf_grid, k=2, s=smoothing_factor)
+        spline = UnivariateSpline(x=x_grid, y=cdf_grid, k=2, s=cdf_tolerance ** 2)
 
         # Construct xy-grid as knots and derivative values of spline
         x = spline.get_knots()
         y = spline.derivative(n=1)(x)
         ## Here `y` can have negative values (and not so small ones in case of
-        ## small `n_grid` or big `smoothing_factor`)
+        ## small `n_grid` or big `cdf_tolerance`)
         y = np.clip(y, 0, None)
 
         return cls(x, y)

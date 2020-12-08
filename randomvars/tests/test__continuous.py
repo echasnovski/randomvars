@@ -330,12 +330,12 @@ class TestCont:
             rv_norm_small = Cont.from_rv(norm)
         assert len(rv_norm_small.x) <= 20
 
-        # Usage of `smoothing_factor` option
-        with option_context({"smoothing_factor": 1e-8}):
+        # Usage of `cdf_tolerance` option
+        with option_context({"cdf_tolerance": 1e-4}):
             rv_norm_1 = Cont.from_rv(norm)
-        with option_context({"smoothing_factor": 1e-2}):
+        with option_context({"cdf_tolerance": 1e-1}):
             rv_norm_2 = Cont.from_rv(norm)
-        ## Increasing smoothing factor should lead to decrease of density grid
+        ## Increasing CDF tolerance should lead to decrease of density grid
         assert len(rv_norm_1.x) > len(rv_norm_2.x)
 
     def test_from_sample_basic(self):
@@ -400,10 +400,10 @@ class TestCont:
             rv = Cont.from_sample(x)
         assert len(rv.x) <= 22
 
-        # "smoothing_factor"
-        with option_context({"smoothing_factor": 2}):
+        # "cdf_tolerance"
+        with option_context({"cdf_tolerance": 2}):
             rv = Cont.from_sample(x)
-        ## With very high smoothing factor downgridding should result into grid
+        ## With very high CDF tolerance downgridding should result into grid
         ## with three elements. That is because CDF is approximated with
         ## simplest quadratic spline with single segment. That requires three
         ## knots.
