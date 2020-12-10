@@ -300,11 +300,12 @@ class Cont(Rand):
               of elements in output `Cont`'s xy-grid. Smaller values (together
               with large enough values of `n_grid` option) lead to better
               approximation of `rv.cdf()`.
-        - **Create density xy-grid**. X-grid is taken as spline knots. Y-grid
-          is computed as values of spline derivative at those knots truncating
-          possible negative values to become zero. Here negative values can
-          occur if CDF approximation is allowed to be loose (either `n_grid` is
-          low or `cdf_tolerance` is high).
+        - **Create density xy-grid**. Density is estimated as spline derivative
+          of quadratic spline from previous step. X-grid is taken as knots of
+          "density spline". Y-grid is computed as values of "density spline" at
+          those knots truncating possible negative values to become zero. Here
+          negative values can occur if CDF approximation is allowed to be loose
+          (either `n_grid` is low or `cdf_tolerance` is high).
 
         **Note** that if `rv` is already an object of class `Cont`, it is
         returned untouched.
@@ -364,14 +365,10 @@ class Cont(Rand):
         # even, together with a small s-value" (see 'curfit.f' file in
         # 'scipy/interpolate/fitpack'), this currently proved to be working
         # quite good.
-        spline = UnivariateSpline(x=x, y=rv.cdf(x), k=2, s=cdf_tolerance ** 2)
+        cdf_spline = UnivariateSpline(x=x, y=rv.cdf(x), k=2, s=cdf_tolerance ** 2)
 
-        # Construct xy-grid as knots and derivative values of spline
-        x = spline.get_knots()
-        y = spline.derivative(n=1)(x)
-        ## Here `y` can have negative values (and not so small ones in case of
-        ## small `n_grid` or big `cdf_tolerance`)
-        y = np.clip(y, 0, None)
+        # Construct xy-grid as knots and values of derivative spline
+        x, y = _xy_from_cdf_spline(cdf_spline)
 
         return cls(x, y)
 
@@ -426,11 +423,12 @@ class Cont(Rand):
               of elements in output `Cont`'s xy-grid. Smaller values (together
               with large enough values of `n_grid` option) lead to better
               approximation of random variable with estimated density.
-        - **Create density xy-grid**. X-grid is taken as spline knots. Y-grid
-          is computed as values of spline derivative at those knots truncating
-          possible negative values to become zero. Here negative values can
-          occur if CDF approximation is allowed to be loose (either `n_grid` is
-          low or `cdf_tolerance` is high).
+        - **Create density xy-grid**. Density is estimated as spline derivative
+          of quadratic spline from previous step. X-grid is taken as knots of
+          "density spline". Y-grid is computed as values of "density spline" at
+          those knots truncating possible negative values to become zero. Here
+          negative values can occur if CDF approximation is allowed to be loose
+          (either `n_grid` is low or `cdf_tolerance` is high).
 
         Relevant package options: `density_estimator`, `density_mincoverage`,
         `n_grid`, `cdf_tolerance`. See documentation of
@@ -488,14 +486,10 @@ class Cont(Rand):
         # quite good.
         cdf_grid = utils._trapez_integral_cum(x_grid, y_grid)
         cdf_grid = cdf_grid / cdf_grid[-1]
-        spline = UnivariateSpline(x=x_grid, y=cdf_grid, k=2, s=cdf_tolerance ** 2)
+        cdf_spline = UnivariateSpline(x=x_grid, y=cdf_grid, k=2, s=cdf_tolerance ** 2)
 
-        # Construct xy-grid as knots and derivative values of spline
-        x = spline.get_knots()
-        y = spline.derivative(n=1)(x)
-        ## Here `y` can have negative values (and not so small ones in case of
-        ## small `n_grid` or big `cdf_tolerance`)
-        y = np.clip(y, 0, None)
+        # Construct xy-grid as knots and values of derivative spline
+        x, y = _xy_from_cdf_spline(cdf_spline)
 
         return cls(x, y)
 
@@ -805,3 +799,14 @@ def _compute_union_grid(x_range, prob_range, quantile_fun, n_grid, tol=1e-12):
     x_is_good = np.concatenate([[True], np.ediff1d(x) > tol])
 
     return x[x_is_good]
+
+
+def _xy_from_cdf_spline(cdf_spline):
+    spline_deriv = cdf_spline.derivative()
+
+    x = spline_deriv.get_knots()
+    # Here `y` can have negative values (and not so small ones in case of small
+    # `n_grid` or big `cdf_tolerance`)
+    y = np.clip(spline_deriv(x), 0, None)
+
+    return x, y
