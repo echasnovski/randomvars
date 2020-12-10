@@ -284,8 +284,8 @@ class Cont(Rand):
           probability between consecutive points) grids between edges of
           detected finite support. Number of points in grids is equal to
           `n_grid` (package option). Also it is ensured that no points lie very
-          close to each other (order of `1e-13` distance), because otherwise
-          output will have unstable values.
+          close to each other (order of `1e-12` distance), because otherwise
+          output density will have unstable values.
         - **Fit quadratic spline to CDF at x-grid**. This dramatically reduces
           number of points in output `Cont`'s xy-grid in exchange of (usually)
           small inaccuracy. Spline is fitted using
@@ -396,12 +396,12 @@ class Cont(Rand):
             - Iteratively extend range in both directions until density total
               integral is above desired threshold.
         - **Create x-grid**. It is computed as union of equidistant (fixed
-          distance between consecutive points) and equiprobable (fixed
-          probability between consecutive points based on sample quantiles)
-          grids between edges of detected density range. Number of points in
-          grids is equal to `n_grid` (package option). Also it is ensured that
-          no points lie very close to each other (order of `1e-13` distance),
-          because otherwise output will have unstable values.
+          distance between consecutive points inside detected density range)
+          and equiprobable (fixed probability between consecutive points based
+          on sample quantiles) grids. Number of points in grids is equal to
+          `n_grid` (package option). Also it is ensured that no points lie very
+          close to each other (order of `1e-12` distance), because otherwise
+          output density will have unstable values.
         - **Approximate CDF at x-grid**. X-grid is taken from previous step.
           Using values of density estimate at x-grid, CDF values are computed
           as cumulative integrals (normalized for the widest one to be equal to
@@ -789,7 +789,7 @@ def _extend_range(x_range, density, cov_prob):
     return res_range, res_cov_prob
 
 
-def _compute_union_grid(x_range, prob_range, quantile_fun, n_grid, tol=1e-13):
+def _compute_union_grid(x_range, prob_range, quantile_fun, n_grid, tol=1e-12):
     # Equidistant grid
     x_equi = np.linspace(x_range[0], x_range[1], n_grid)
 
