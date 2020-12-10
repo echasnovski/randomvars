@@ -36,7 +36,9 @@ _options_list = """
 - cdf_tolerance: float, default 1e-4. Tolerance for CDF approximation. Usually
   meant as mean approximation error. Smaller values lead to better
   approximation, larger values lead to less number of grid elements (knots) in
-  output approximation.
+  output approximation. However, using large values (bigger than 0.01) is
+  discouraged because this might lead to unexpected properties of approximation
+  (like increasing density in tails where it should originally decrease, etc.).
 - density_estimator : callable, default scipy.stats.kde.gaussian_kde. Function
   which takes sample as input and returns one of:
     - Callable object for density estimate (takes points as input and returns
