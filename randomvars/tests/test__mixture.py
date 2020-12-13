@@ -530,3 +530,33 @@ class TestMixt:
         rv = Mixt(cont=cont, disc=disc, weight_cont=weight_cont)
 
         _test_rvs_method(rv)
+
+    def test_integrate_cdf(self):
+        cont = Cont([0, 1], [1, 1])
+        disc = Disc([-1, 0.5], [0.25, 0.75])
+        weight_cont = 0.75
+        rv = Mixt(cont=cont, disc=disc, weight_cont=weight_cont)
+        a = -10
+        b = 10
+
+        # Regular checks
+        assert_array_equal(
+            rv.integrate_cdf(a, b),
+            rv.weight_cont * rv.cont.integrate_cdf(a, b)
+            + rv.weight_disc * rv.disc.integrate_cdf(a, b),
+        )
+
+        # Degenerate cases
+        ## `None` part
+        rv_none_cont = Mixt(cont=None, disc=disc, weight_cont=0)
+        assert_array_equal(rv_none_cont.integrate_cdf(a, b), disc.integrate_cdf(a, b))
+
+        rv_none_disc = Mixt(cont=cont, disc=None, weight_cont=1)
+        assert_array_equal(rv_none_disc.integrate_cdf(a, b), cont.integrate_cdf(a, b))
+
+        ## Extreme weight
+        rv_weight_0 = Mixt(cont=cont, disc=disc, weight_cont=0)
+        assert_array_equal(rv_weight_0.integrate_cdf(a, b), disc.integrate_cdf(a, b))
+
+        rv_weight_1 = Mixt(cont=cont, disc=disc, weight_cont=1)
+        assert_array_equal(rv_weight_1.integrate_cdf(a, b), cont.integrate_cdf(a, b))

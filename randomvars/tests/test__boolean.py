@@ -267,3 +267,7 @@ class TestBool:
         smpl = rv.rvs(size=100, random_state=101)
         assert_array_equal(np.unique(smpl), [False, True])
         assert smpl.dtype == np.dtype("bool")
+
+    def test_integrate_cdf(self):
+        rv = Bool(prob_true=0.75)
+        assert np.allclose(rv.integrate_cdf(-10, 10), 0.25 * 1 + 1 * 9)

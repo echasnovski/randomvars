@@ -449,6 +449,17 @@ class Mixt(Rand):
 
     # `rvs()` is inherited from `Rand`
 
+    def integrate_cdf(self, a, b):
+        """Efficient version of CDF integration"""
+        if self._missing_cont():
+            return self._disc.integrate_cdf(a, b)
+        if self._missing_disc():
+            return self._cont.integrate_cdf(a, b)
+
+        return self._weight_cont * self._cont.integrate_cdf(
+            a, b
+        ) + self._weight_disc * self._disc.integrate_cdf(a, b)
+
 
 def _assert_two_tuple(x, x_name):
     if type(x) != tuple:

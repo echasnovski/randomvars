@@ -346,3 +346,14 @@ class Disc(Rand):
         return np.asarray(utils._copy_nan(fr=q, to=res), dtype="float64")
 
     # `rvs()` is inherited from `Rand`
+
+    @property
+    def _cdf_spline(self):
+        cdf_tck = (self._x, self._cum_p[:-1], 0)
+        return utils.BSplineConstExtrapolate(
+            left=0, right=1, t=cdf_tck[0], c=cdf_tck[1], k=cdf_tck[2]
+        )
+
+    def integrate_cdf(self, a, b):
+        """Efficient version of CDF integration"""
+        return self._cdf_spline.integrate(a=a, b=b)

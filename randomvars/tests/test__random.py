@@ -67,3 +67,7 @@ class TestRand:
 
         smpl2 = rv.rvs(size=10, random_state=101)
         assert smpl2.shape == (10,)
+
+    def test_integrate_cdf(self):
+        with pytest.raises(NotImplementedError):
+            Rand().integrate_cdf(0, 1)

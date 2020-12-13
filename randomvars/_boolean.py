@@ -263,3 +263,11 @@ class Bool(Rand):
         return np.asarray(res, dtype="bool")
 
     # `rvs()` is inherited from `Rand`
+
+    def integrate_cdf(self, a, b):
+        """Efficient version of CDF integration"""
+        cdf_spline = utils.BSplineConstExtrapolate(
+            left=0, right=1, t=[0, 1], c=[self._prob_false], k=0
+        )
+
+        return cdf_spline.integrate(a=a, b=b)

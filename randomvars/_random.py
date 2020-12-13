@@ -82,3 +82,7 @@ class Rand:
         U = random_state.uniform(size=size)
 
         return self.ppf(U)
+
+    def integrate_cdf(self, a, b):
+        """Efficient version of CDF integration"""
+        raise NotImplementedError

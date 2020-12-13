@@ -359,6 +359,16 @@ class TestDisc:
 
         _test_rvs_method(rv)
 
+    def test__cdf_spline(self):
+        rv = Disc([0.5, 1, 3], [0.1, 0.2, 0.7])
+        h = 1e-12
+        x = np.array([-10, 0.5 - h, 0.5, 0.5 + h, 1 - h, 1, 1 + h, 3 - h, 3, 3 + h, 10])
+        assert_array_equal(rv._cdf_spline(x), rv.cdf(x))
+
+    def test_integrate_cdf(self):
+        rv = Disc([0.5, 1, 3], [0.1, 0.2, 0.7])
+        assert np.allclose(rv.integrate_cdf(-10, 10), 0.1 * 0.5 + 0.3 * 2 + 1 * 7)
+
 
 class TestFromRVAccuracy:
     """Accuracy of `Disc.from_rv()`"""

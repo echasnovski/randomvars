@@ -3,7 +3,7 @@
 import warnings
 
 import numpy as np
-from scipy.interpolate import UnivariateSpline
+from scipy.interpolate import UnivariateSpline, splantider
 from scipy.stats.distributions import rv_frozen
 
 import randomvars._utils as utils
@@ -656,6 +656,22 @@ class Cont(Rand):
         res[is_const] = x[is_const]
 
         return res
+
+    @property
+    def _cdf_spline(self):
+        density_tck = (
+            np.concatenate(([self._x[0]], self._x, [self._x[-1]])),
+            np.concatenate((self._y, [0, 0])),
+            1,
+        )
+        cdf_tck = splantider(density_tck)
+        return utils.BSplineConstExtrapolate(
+            left=0, right=1, t=cdf_tck[0], c=cdf_tck[1], k=cdf_tck[2]
+        )
+
+    def integrate_cdf(self, a, b):
+        """Efficient version of CDF integration"""
+        return self._cdf_spline.integrate(a=a, b=b)
 
 
 def _detect_finite_supp(rv, supp=None, small_prob=1e-6):

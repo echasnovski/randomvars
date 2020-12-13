@@ -554,6 +554,15 @@ class TestCont:
 
         _test_rvs_method(rv_1)
 
+    def test__cdf_spline(self):
+        rv = Cont([0, 1, 2], [0, 1, 0])
+        x = [-10, 0, 0.5, 1, 1.5, 2, 10]
+        assert_array_equal(rv._cdf_spline(x), rv.cdf(x))
+
+    def test_integrate_cdf(self):
+        rv = Cont([0, 1, 2], [0, 1, 0])
+        assert np.allclose(rv.integrate_cdf(-10, 10), quad(rv.cdf, -10, 10)[0])
+
 
 class TestFromRVAccuracy:
     """Accuracy of `Cont.from_rv()`"""
