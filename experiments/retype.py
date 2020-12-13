@@ -33,13 +33,13 @@ def cont_from_disc(rv, method="mean"):
 
 
 def p_from_xy(x, y, coeff):
-    cum_p = utils._trapez_integral_cum(x, y)
+    cump = utils._trapez_integral_cum(x, y)
     dx = np.diff(x)
 
     # This is missing last value, which is 1
-    disc_cum_p = cum_p[:-1] + 0.5 * dx * (coeff * y[:-1] + (1 - coeff) * y[1:])
+    disc_cump = cump[:-1] + 0.5 * dx * (coeff * y[:-1] + (1 - coeff) * y[1:])
 
-    p = np.diff(disc_cum_p, prepend=0, append=1)
+    p = np.diff(disc_cump, prepend=0, append=1)
 
     return p
 
@@ -71,9 +71,9 @@ def disc_from_rv(rv, x_new, method):
     question.
     """
     # This is missing last value, which is 1
-    disc_cum_p = compute_interval_centers(f=rv.cdf, grid=x_new, method=method)
+    disc_cump = compute_interval_centers(f=rv.cdf, grid=x_new, method=method)
 
-    p = np.diff(disc_cum_p, prepend=0, append=1)
+    p = np.diff(disc_cump, prepend=0, append=1)
 
     return Disc(x=x_new, p=p)
 

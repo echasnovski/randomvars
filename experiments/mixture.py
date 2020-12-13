@@ -25,54 +25,54 @@ h = 1e-12
 q = rv.cdf([0, 1, 2.125 - h, 2.125, 2.5, 2.875 - h, 2.875, 4, 5])
 
 
-def _compute_cum_p_tuple(rv):
+def _compute_cump_tuple(rv):
     # Case of one discrete part
     if rv._missing_cont():
         disc_x = rv._disc.x
-        cum_p = np.concatenate([0, rv._disc.cdf(disc_x)])
+        cump = np.concatenate([0, rv._disc.cdf(disc_x)])
         x = np.concatenate([rv._disc.a, disc_x])
         ids = np.repeat("d", len(x) - 1)
-        return cum_p, x, ids
+        return cump, x, ids
 
     # Case of one continuous part
     if rv._missing_disc():
         cont_x = rv._cont.x
-        cum_p = rv._cont.cdf(cont_x)
+        cump = rv._cont.cdf(cont_x)
         x = cont_x
         ids = np.repeat("c", len(x) - 1)
-        return cum_p, x, ids
+        return cump, x, ids
 
     disc_x = rv._disc.x
     x = np.repeat(disc_x, 2)
 
-    cum_p_right = rv.cdf(disc_x)
-    cum_p_left = cum_p_right - rv._weight_disc * rv._disc.p
-    ## Interchange elements of `cum_p_left` and `cum_p_right`
-    cum_p = np.array([cum_p_left, cum_p_right], order="C").flatten(order="F")
+    cump_right = rv.cdf(disc_x)
+    cump_left = cump_right - rv._weight_disc * rv._disc.p
+    ## Interchange elements of `cump_left` and `cump_right`
+    cump = np.array([cump_left, cump_right], order="C").flatten(order="F")
 
     ids = np.tile(["d", "c"], len(disc_x))[:-1]
 
     # Add possibly missing intervals because of continuous part tails
-    if cum_p[0] > 0:
+    if cump[0] > 0:
         x = np.concatenate([[rv._cont.a], x])
-        cum_p = np.concatenate([[0], cum_p])
+        cump = np.concatenate([[0], cump])
         ids = np.concatenate([["c"], ids])
-    if cum_p[-1] < 1:
+    if cump[-1] < 1:
         x = np.concatenate([x, [rv._cont.b]])
-        cum_p = np.concatenate([cum_p, [1]])
+        cump = np.concatenate([cump, [1]])
         ids = np.concatenate([ids, ["c"]])
 
-    # print(f"{x=}, {cum_p=}, {ids=}")
-    return cum_p, x, ids
+    # print(f"{x=}, {cump=}, {ids=}")
+    return cump, x, ids
 
 
 def mixt_ppf(rv, q):
     q = np.asarray(q, dtype="float64")
     res = np.zeros_like(q, dtype="float64")
 
-    cum_p, x, ids = _compute_cum_p_tuple(rv)
+    cump, x, ids = _compute_cump_tuple(rv)
 
-    interval_inds = utils._searchsorted_wrap(cum_p, q, edge_inside=True) - 1
+    interval_inds = utils._searchsorted_wrap(cump, q, edge_inside=True) - 1
 
     # Process intervals from discrete part
     is_in_disc = ids[interval_inds] == "d"
@@ -85,7 +85,7 @@ def mixt_ppf(rv, q):
     is_in_cont = ids[interval_inds] == "c"
     cont_inds = interval_inds[is_in_cont]
     disc_ppf = (
-        cum_p[cont_inds] - rv._weight_cont * rv._cont.cdf(x[cont_inds])
+        cump[cont_inds] - rv._weight_cont * rv._cont.cdf(x[cont_inds])
     ) / rv._weight_disc
     q_mod = (q[is_in_cont] - rv._weight_disc * disc_ppf) / rv._weight_cont
     res[is_in_cont] = rv._cont.ppf(q_mod)

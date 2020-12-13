@@ -62,7 +62,7 @@ class Disc(Rand):
         self._b = x[-1]
 
         # Private attributes
-        self._cum_p = np.cumsum(p)
+        self._cump = np.cumsum(p)
 
         super().__init__()
 
@@ -311,11 +311,11 @@ class Disc(Rand):
 
         inds = np.searchsorted(self._x, x, side="right")
         # This is needed to avoid possible confusion at index 0 when subsetting
-        # `self._cum_p`
+        # `self._cump`
         inds_clipped = np.maximum(inds, 1)
 
         res = np.ones_like(x, dtype="float64")
-        res = np.where(inds == 0, 0.0, self._cum_p[inds_clipped - 1])
+        res = np.where(inds == 0, 0.0, self._cump[inds_clipped - 1])
 
         return np.asarray(utils._copy_nan(fr=x, to=res), dtype="float64")
 
@@ -335,12 +335,12 @@ class Disc(Rand):
         """
         q = np.asarray(q, dtype="float64")
 
-        q_inds = np.searchsorted(self._cum_p, q, side="left")
+        q_inds = np.searchsorted(self._cump, q, side="left")
         # This is needed to avoid `IndexError` in later `np.where()` call
-        q_inds_clipped = np.minimum(q_inds, len(self._cum_p) - 1)
+        q_inds_clipped = np.minimum(q_inds, len(self._cump) - 1)
 
         res = np.empty_like(q, dtype="float64")
-        res = np.where(q_inds != len(self._cum_p), self._x[q_inds_clipped], res)
+        res = np.where(q_inds != len(self._cump), self._x[q_inds_clipped], res)
         res[(q < 0) | (q > 1)] = np.nan
 
         return np.asarray(utils._copy_nan(fr=q, to=res), dtype="float64")
@@ -349,7 +349,7 @@ class Disc(Rand):
 
     @property
     def _cdf_spline(self):
-        cdf_tck = (self._x, self._cum_p[:-1], 0)
+        cdf_tck = (self._x, self._cump[:-1], 0)
         return utils.BSplineConstExtrapolate(
             left=0, right=1, t=cdf_tck[0], c=cdf_tck[1], k=cdf_tck[2]
         )

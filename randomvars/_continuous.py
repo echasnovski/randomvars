@@ -61,7 +61,7 @@ class Cont(Rand):
         self._b = x[-1]
 
         # Private attributes
-        self._cum_p = utils._trapez_integral_cum(self._x, self._y)
+        self._cump = utils._trapez_integral_cum(self._x, self._y)
 
         super().__init__()
 
@@ -186,40 +186,40 @@ class Cont(Rand):
         Returns
         -------
         grid: tuple with 3 numpy arrays
-            Elements represent `x`, `y`, and `_cum_p` *left* values of
+            Elements represent `x`, `y`, and `_cump` *left* values of
             intervals.
 
         Examples
         --------
         >>> rv = Cont([0, 1, 2], [0, 1, 0])
-        >>> x, y, cum_p = rv._grid_by_ind(np.array([-1, 0, 1, 2, 3, 4]))
+        >>> x, y, cump = rv._grid_by_ind(np.array([-1, 0, 1, 2, 3, 4]))
         >>> x
         array([nan, nan,  0.,  1.,  2., nan])
-        >>> x, y, cum_p = rv._grid_by_ind()
-        >>> cum_p
+        >>> x, y, cump = rv._grid_by_ind()
+        >>> cump
         array([0. , 0.5, 1. ])
         """
         if ind is None:
-            return (self._x, self._y, self._cum_p)
+            return (self._x, self._y, self._cump)
 
         x = np.empty_like(ind, dtype="float64")
         y = np.empty_like(ind, dtype="float64")
-        cum_p = np.empty_like(ind, dtype="float64")
+        cump = np.empty_like(ind, dtype="float64")
 
         # There is no grid elements to the left of interval 0, so outputs are
         # `np.nan` for it
         out_is_nan = (ind <= 0) | (ind > len(self._x))
         x[out_is_nan] = np.nan
         y[out_is_nan] = np.nan
-        cum_p[out_is_nan] = np.nan
+        cump[out_is_nan] = np.nan
 
         out_isnt_nan = ~out_is_nan
         ind_in = ind[out_isnt_nan] - 1
         x[out_isnt_nan] = self._x[ind_in]
         y[out_isnt_nan] = self._y[ind_in]
-        cum_p[out_isnt_nan] = self._cum_p[ind_in]
+        cump[out_isnt_nan] = self._cump[ind_in]
 
-        return (x, y, cum_p)
+        return (x, y, cump)
 
     def pdf_coeffs(self, x, side="right"):
         """Compute density linear coefficients based on `x`.
@@ -542,13 +542,13 @@ class Cont(Rand):
             x_good = x[ind_is_good]
             x_ind_good = x_ind[ind_is_good]
 
-            gr_x, _, gr_p = self._grid_by_ind(x_ind_good)
+            gr_x, _, gr_cump = self._grid_by_ind(x_ind_good)
             inter, slope = self._coeffs_by_ind(x_ind_good)
 
             # Using `(a+b)*(a-b)` instead of `(a*a-b*b)` for better accuracy in
             # case density x-grid has really close elements
             res[ind_is_good] = (
-                gr_p
+                gr_cump
                 + inter * (x_good - gr_x)
                 + 0.5 * slope * (x_good + gr_x) * (x_good - gr_x)
             )
@@ -579,11 +579,11 @@ class Cont(Rand):
         # Using `side="left"` is crucial to return the smallest value in case
         # there are more than one. For example, when there are zero-density
         # intervals (which will result into consecutive duplicated values of
-        # `_cum_p`).
+        # `_cump`).
         # Using `edge_inside=True` is crucial in order to treat the left edge
         # of support as part of support.
-        q_ind = utils._searchsorted_wrap(self._cum_p, q, side="left", edge_inside=True)
-        ind_is_good = (q_ind > 0) & (q_ind < len(self._cum_p)) & (q != 0.0) & (q != 1.0)
+        q_ind = utils._searchsorted_wrap(self._cump, q, side="left", edge_inside=True)
+        ind_is_good = (q_ind > 0) & (q_ind < len(self._cump)) & (q != 0.0) & (q != 1.0)
 
         if np.any(ind_is_good):
             q_good = q[ind_is_good]
@@ -600,7 +600,7 @@ class Cont(Rand):
 
         # Values 0.0 and 1.0 should be treated separately due to floating point
         # representation issues during `utils._searchsorted_wrap()`
-        # application. In some extreme cases last `_cum_p` can be smaller than
+        # application. In some extreme cases last `_cump` can be smaller than
         # 1 by value of 10**(-16) magnitude, which will result into "bad" value
         # of `q_ind` (that is why this should also be done after assigning
         # `nan` to "bad" values)
@@ -615,8 +615,8 @@ class Cont(Rand):
         """Compute quantiles with data from linearity intervals
 
         Based on precomputed data of linearity intervals, compute actual quantiles.
-        Here `grid` and `coeffs` are `(x, y, p)` and `(inter, slope)` values of
-        intervals inside which `q` quantile is located.
+        Here `grid` and `coeffs` are `(x, y, cump)` and `(inter, slope)` values
+        of intervals inside which `q` quantile is located.
 
         Parameters
         ----------
@@ -629,7 +629,7 @@ class Cont(Rand):
         quant : numpy array with the same length as q
         """
         res = np.empty_like(q, dtype="float64")
-        x, _, p = grid
+        x, y, cump = grid
         inter, slope = coeffs
 
         is_quad = ~np.isclose(slope, 0)
@@ -642,7 +642,7 @@ class Cont(Rand):
         # Equations have form a*t^2 + t*x + c = 0
         a = 0.5 * slope[is_quad]
         b = 2 * a * x[is_quad] + inter[is_quad]
-        c = p[is_quad] - q[is_quad]
+        c = cump[is_quad] - q[is_quad]
         # Theoretically, `discr` should always be >= 0. However, due to
         # numerical inaccuracies of magnitude ~10^(-15), here call to
         # `np.clip()` is needed.
@@ -650,7 +650,7 @@ class Cont(Rand):
         res[is_quad] = (-b + np.sqrt(discr)) / (2 * a) + x[is_quad]
 
         # Case of linear CDF curve (density is non-zero constant)
-        res[is_lin] = x[is_lin] + (q[is_lin] - p[is_lin]) / inter[is_lin]
+        res[is_lin] = x[is_lin] + (q[is_lin] - cump[is_lin]) / inter[is_lin]
 
         # Case of plateau in CDF (density equals zero)
         res[is_const] = x[is_const]

@@ -66,7 +66,7 @@ import randomvars._utils as utils
 def cdf_my(rv, x):
     inds = np.searchsorted(rv.x, x, side="right")
     res = np.ones_like(x, dtype="float64")
-    res = np.where(inds == 0, 0.0, rv._cum_p[inds - 1])
+    res = np.where(inds == 0, 0.0, rv._cump[inds - 1])
 
     return utils._copy_nan(fr=x, to=res)
 
@@ -74,7 +74,7 @@ def cdf_my(rv, x):
 def cdf_scipy(rv, x):
     xx, xxk = np.broadcast_arrays(x[:, None], rv.x)
     indx = np.argmax(xxk > xx, axis=-1) - 1
-    return rv._cum_p[indx]
+    return rv._cump[indx]
 
 
 n = 1000

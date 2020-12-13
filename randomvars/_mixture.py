@@ -76,7 +76,7 @@ class Mixt(Rand):
             self._b = max(self._cont.b, self._disc.b)
 
         # Private attributes
-        self._cum_p_tuple = self._compute_cum_p_tuple()
+        self._cump_tuple = self._compute_cump_tuple()
 
         super().__init__()
 
@@ -107,7 +107,7 @@ class Mixt(Rand):
 
         return cont, disc, weight_cont
 
-    def _compute_cum_p_tuple(self):
+    def _compute_cump_tuple(self):
         """Compute tuple defining cumulative probability grid
 
         Main purpose is to be used inside quantile (`.ppf()`) function. Its
@@ -116,11 +116,11 @@ class Mixt(Rand):
 
         Returns
         -------
-        cum_p_tuple : Tuple with three numpy arrays
+        cump_tuple : Tuple with three numpy arrays
             Elements are:
-            - Cum_p-grid (cumulative probability grid), that starts at 0 and
+            - Cump-grid (cumulative probability grid), that starts at 0 and
               ends at 1.
-            - X-grid which is values corresponding to both cum_p-grid and
+            - X-grid which is values corresponding to both cump-grid and
               interval type.
             - Identifiers of intervals' nature. Has length less by one than
               previous two. Its value at position `i` is "c" if interval
@@ -133,8 +133,8 @@ class Mixt(Rand):
                 - Last value depends on if there is a non-zero tail of
                   continuous part to the right of last value of discrete part.
             Note:
-            - Both cum_p-grid and x-grid can have consecutive duplicating elements:
-                - Cum_p-grid - in case there are values of discrete part inside
+            - Both cump-grid and x-grid can have consecutive duplicating elements:
+                - Cump-grid - in case there are values of discrete part inside
                   zero density region of continuous part. Those define
                   "interval" of continuous nature, which in fact isn't used.
                 - X-grid - for every value of discrete part in case there is
@@ -145,45 +145,45 @@ class Mixt(Rand):
         # Case of one discrete part
         if self._missing_cont():
             disc_x = self._disc.x
-            cum_p = np.concatenate([[0], self._disc.cdf(disc_x)])
+            cump = np.concatenate([[0], self._disc.cdf(disc_x)])
             x = np.concatenate([[self._disc.a], disc_x])
             ids = np.repeat("d", len(x) - 1)
-            return cum_p, x, ids
+            return cump, x, ids
 
         # Case of one continuous part
         if self._missing_disc():
             cont_x = self._cont.x
-            cum_p = self._cont.cdf(cont_x)
+            cump = self._cont.cdf(cont_x)
             x = cont_x
             ids = np.repeat("c", len(x) - 1)
-            return cum_p, x, ids
+            return cump, x, ids
 
         # Compute "inner" x-grid
         disc_x = self._disc.x
         x = np.repeat(disc_x, 2)
 
-        # Compute "inner" cum_p-grid
+        # Compute "inner" cump-grid
         ## Values of mixture cdf
-        cum_p_right = self.cdf(disc_x)
+        cump_right = self.cdf(disc_x)
         ## Values of left limit of mixture cdf
-        cum_p_left = cum_p_right - self._weight_disc * self._disc.p
-        ## Interchange elements of `cum_p_left` and `cum_p_right`
-        cum_p = np.array([cum_p_left, cum_p_right], order="C").flatten(order="F")
+        cump_left = cump_right - self._weight_disc * self._disc.p
+        ## Interchange elements of `cump_left` and `cump_right`
+        cump = np.array([cump_left, cump_right], order="C").flatten(order="F")
 
         # Compute "inner" interval identifiers
         ids = np.tile(["d", "c"], len(disc_x))[:-1]
 
         # Add possibly missing intervals because of continuous part tails
-        if cum_p[0] > 0:
-            cum_p = np.concatenate([[0], cum_p])
+        if cump[0] > 0:
+            cump = np.concatenate([[0], cump])
             x = np.concatenate([[self._cont.a], x])
             ids = np.concatenate([["c"], ids])
-        if cum_p[-1] < 1:
-            cum_p = np.concatenate([cum_p, [1]])
+        if cump[-1] < 1:
+            cump = np.concatenate([cump, [1]])
             x = np.concatenate([x, [self._cont.b]])
             ids = np.concatenate([ids, ["c"]])
 
-        return cum_p, x, ids
+        return cump, x, ids
 
     def __str__(self):
         return (
@@ -391,11 +391,11 @@ class Mixt(Rand):
 
         q = np.asarray(q, dtype="float64")
         res = np.zeros_like(q, dtype="float64")
-        cum_p, x, ids = self._cum_p_tuple
+        cump, x, ids = self._cump_tuple
 
         # Locate intervals for `q` elements
-        q_ind = utils._searchsorted_wrap(cum_p, q, side="left", edge_inside=True) - 1
-        ind_is_good = (q_ind >= 0) & (q_ind < len(cum_p) - 1) & (q != 0.0) & (q != 1.0)
+        q_ind = utils._searchsorted_wrap(cump, q, side="left", edge_inside=True) - 1
+        ind_is_good = (q_ind >= 0) & (q_ind < len(cump) - 1) & (q != 0.0) & (q != 1.0)
 
         if np.any(ind_is_good):
             # Process "good" values of `q` separately
@@ -419,12 +419,12 @@ class Mixt(Rand):
             ## We know that for the whole interval discrete term `w_d * F_d(x)` is
             ## constant. So it can be found by taking `x` as left edge of interval
             ## (`x_left`), for which we know mixture CDF `F_m(x_left)` (value of
-            ## `cum_p`) and can compute value of `F_c(x_left)`. Then `disc_term =
+            ## `cump`) and can compute value of `F_c(x_left)`. Then `disc_term =
             ## F_m(x_left) - w_c * F_c(x_left)`.
             ## This reduces original problem to `F_c(x) = (q - disc_term) / w_c`,
             ## which can solved by directly using quantile function of continuous
             ## part.
-            disc_term = cum_p[cont_inds] - self._weight_cont * self._cont.cdf(
+            disc_term = cump[cont_inds] - self._weight_cont * self._cont.cdf(
                 x[cont_inds]
             )
             q_mod = (q_good[is_in_cont] - disc_term) / self._weight_cont

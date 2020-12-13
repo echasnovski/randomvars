@@ -83,11 +83,11 @@ k = 2
 cdf_spline = create_cdf_spline(rv, n_grid, s=s, k=k)
 x_grid_spline = cdf_spline.get_knots()
 y_grid_spline = cdf_spline.derivative(n=1)(x_grid_spline)
-cum_p_grid_spline = cdf_spline(x_grid_spline)
+cump_grid_spline = cdf_spline(x_grid_spline)
 
 plot_spline(cdf_spline, label="spline")
 plot_rv(rv, label="original")
-plt.plot(x_grid_spline, cum_p_grid_spline, "ok")
+plt.plot(x_grid_spline, cump_grid_spline, "ok")
 plt.legend()
 plt.show()
 
