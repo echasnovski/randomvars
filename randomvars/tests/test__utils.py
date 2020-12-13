@@ -13,6 +13,7 @@ from randomvars._utils import (
     _trapez_integral_cum,
     _quad_silent,
     _assert_positive,
+    BSplineConstExtrapolate,
 )
 
 
@@ -222,3 +223,94 @@ def test__assert_positive():
         _assert_positive(np.array([-1, 0, 1]), x_name="tmp_name")
     with pytest.raises(ValueError, match="`tmp_name`.*no positive"):
         _assert_positive(np.array([0, 0, 0]), x_name="tmp_name")
+
+
+class TestBSplineConstExtrapolate:
+    def test_init(self):
+        h = 1e-8
+
+        # Constant spline with values -0.5 in [-3, -2) and 0.5 in [-2, -1]
+        # Extrapolates as -1 on (-inf, -3) and as 1 on (-1, inf)
+        spline = BSplineConstExtrapolate(
+            left=-1, right=1, t=[-3, -2, -1], c=[-0.5, 0.5], k=0
+        )
+        assert_array_equal(
+            spline([-10, -3 - h, -3, -2.5, -2 - h, -2, -1.5, -1 - h, -1, -1 + h, 10]),
+            np.array([-1, -1, -0.5, -0.5, -0.5, 0.5, 0.5, 0.5, 1, 1, 1]),
+        )
+        assert_array_equal(spline([np.nan, -np.inf, np.inf]), [np.nan, -1, 1])
+
+        # Linear spline inside [-3, -2] with one segment from (-3, -1) to (-2, 1).
+        # Extrapolates as -2 in (-inf, -3) and 2 on (2, inf)
+        spline = BSplineConstExtrapolate(
+            left=-2, right=2, t=[-3, -3, -2, -2], c=[-1, 1, 0, 0], k=1
+        )
+        assert_array_equal(
+            spline([-10, -3 - h, -3, -2.5, -2, -2 + h, 10]),
+            np.array([-2, -2, -1, 0, 2, 2, 2]),
+        )
+        assert_array_equal(spline([np.nan, -np.inf, np.inf]), [np.nan, -2, 2])
+
+        # Quadratic spline inside [-3, -2] (integration of linear spline with
+        # one segment from (-3, -1) to (-2, 1)).
+        # Extrapolates as -1 in (-inf, -3) and 2 in (-2, inf)
+        spline = BSplineConstExtrapolate(
+            left=-1, right=2, t=[-3, -3, -3, -2, -2, -2], c=[0, -0.5, 0, 0, 0, 0], k=2
+        )
+        assert_array_equal(
+            spline([-10, -3 - h, -3, -2.5, -2, -2 + h, 10]),
+            np.array([-1, -1, 0, -0.25, 2, 2, 2]),
+        )
+        assert_array_equal(spline([np.nan, -np.inf, np.inf]), [np.nan, -1, 2])
+
+    def test_integrate(self):
+        # Constant spline with values -0.5 in [-3, -2) and 0.5 in [-2, -1]
+        # Extrapolates as -1 on (-inf, -3) and as 1 on (-1, inf)
+        spline = BSplineConstExtrapolate(
+            left=-1, right=1, t=[-3, -2, -1], c=[-0.5, 0.5], k=0
+        )
+        assert np.allclose(
+            spline.integrate(-10, 10), -1 * 7 + (-0.5) * 1 + 0.5 * 1 + 1 * 11
+        )
+        assert np.allclose(
+            spline.integrate(10, -10), -(-1 * 7 + (-0.5) * 1 + 0.5 * 1 + 1 * 11)
+        )
+
+        # Linear spline inside [-3, -2] with one segment from (-3, -1) to (-2, 1).
+        # Extrapolates as -2 in (-inf, -3) and 2 on (2, inf)
+        spline = BSplineConstExtrapolate(
+            left=-2, right=2, t=[-3, -3, -2, -2], c=[-1, 1, 0, 0], k=1
+        )
+        assert np.allclose(spline.integrate(-10, 10), -2 * 7 + 0 + 2 * 12)
+        assert np.allclose(spline.integrate(10, -10), -(-2 * 7 + 0 + 2 * 12))
+
+        # Quadratic spline inside [-3, -2] (integration of linear spline with
+        # one segment from (-3, -1) to (-2, 1)).
+        # Extrapolates as -1 in (-inf, -3) and 2 in (-2, inf)
+        spline = BSplineConstExtrapolate(
+            left=-1, right=2, t=[-3, -3, -3, -2, -2, -2], c=[0, -0.5, 0, 0, 0, 0], k=2
+        )
+        assert np.allclose(spline.integrate(-10, 10), -1 * 7 + (-1 / 6) + 2 * 12)
+        assert np.allclose(spline.integrate(10, -10), -(-1 * 7 + (-1 / 6) + 2 * 12))
+
+    def test_derivative(self):
+        h = 1e-8
+        # Quadratic spline inside [-3, -2] (integration of linear spline with
+        # one segment from (-3, -1) to (-2, 1)).
+        # Extrapolates as -1 in (-inf, -3) and 2 in (-2, inf)
+        spline = BSplineConstExtrapolate(
+            left=-1, right=2, t=[-3, -3, -3, -2, -2, -2], c=[0, -0.5, 0, 0, 0, 0], k=2
+        )
+        spline_deriv = spline.derivative()
+        assert_array_equal(
+            spline_deriv([-10, -3 - h, -3, -2.5, -2, -2 + h, 10]),
+            np.array([0, 0, -1, 0, 0, 0, 0]),
+        )
+        assert_array_equal(spline_deriv([np.nan, -np.inf, np.inf]), [np.nan, 0, 0])
+
+    def test_antiderivative(self):
+        spline = BSplineConstExtrapolate(
+            left=-1, right=1, t=[-3, -2, -1], c=[-0.5, 0.5], k=0
+        )
+        with pytest.raises(NotImplementedError):
+            spline.antiderivative()

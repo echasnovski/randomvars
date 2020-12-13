@@ -3,6 +3,7 @@ import warnings
 import numpy as np
 from numpy.testing import assert_array_equal
 from scipy.integrate import quad
+from scipy.interpolate import BSpline
 
 
 # %% User-facing functions
@@ -312,3 +313,47 @@ def _test_rvs_method(obj):
     smpl_1 = obj.rvs(size=100, random_state=101)
     smpl_2 = obj.rvs(size=100, random_state=101)
     assert_array_equal(smpl_1, smpl_2)
+
+
+# %% Custom classes
+class BSplineConstExtrapolate(BSpline):
+    """Version of BSpline which extrapolates with constant values
+
+    Extrapolation is right continuous (here `t` is vector of knots):
+    - Value is equal to `left` in (-inf, t[0]).
+    - Value is equal to `right` in [t[-1], inf).
+    """
+
+    def __init__(self, left, right, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._left = left
+        self._right = right
+
+    def __call__(self, x):
+        res = super().__call__(x)
+        res[x < self.t[0]] = self._left
+        res[x >= self.t[-1]] = self._right
+
+        return res
+
+    def integrate(self, a, b):
+        lim_l, lim_r = min(a, b), max(a, b)
+        lim_l_in = max(lim_l, self.t[0])
+        lim_r_in = min(lim_r, self.t[-1])
+
+        res = (
+            self._left * (lim_l_in - lim_l)
+            + super().integrate(lim_l_in, lim_r_in)
+            + self._right * (lim_r - lim_r_in)
+        )
+        return -res if b < a else res
+
+    def derivative(self, nu=1):
+        deriv_tck = super().derivative(nu=nu).tck
+        return BSplineConstExtrapolate(0, 0, *deriv_tck)
+
+    def antiderivative(self, nu=1):
+        raise NotImplementedError(
+            "Antiderivative of spline with constant extrapolation can't be simply "
+            "described as spline. Implement if needed."
+        )
