@@ -542,15 +542,11 @@ class Cont(Rand):
             x_good = x[ind_is_good]
             x_ind_good = x_ind[ind_is_good]
 
-            gr_x, _, gr_cump = self._grid_by_ind(x_ind_good)
-            inter, slope = self._coeffs_by_ind(x_ind_good)
+            gr_x, gr_y, gr_cump = self._grid_by_ind(x_ind_good)
+            _, slope = self._coeffs_by_ind(x_ind_good)
 
-            # Using `(a+b)*(a-b)` instead of `(a*a-b*b)` for better accuracy in
-            # case density x-grid has really close elements
             res[ind_is_good] = (
-                gr_cump
-                + inter * (x_good - gr_x)
-                + 0.5 * slope * (x_good + gr_x) * (x_good - gr_x)
+                gr_cump + gr_y * (x_good - gr_x) + 0.5 * slope * (x_good - gr_x) ** 2
             )
 
         # `res` is already initialized with zeros, so taking care of `x` to the
@@ -630,27 +626,27 @@ class Cont(Rand):
         """
         res = np.empty_like(q, dtype="float64")
         x, y, cump = grid
-        inter, slope = coeffs
+        _, slope = coeffs
 
         is_quad = ~np.isclose(slope, 0)
-        is_lin = ~(is_quad | np.isclose(inter, 0))
+        is_lin = ~(is_quad | np.isclose(y, 0))
         is_const = ~(is_quad | is_lin)
 
         # Case of quadratic CDF curve (density is a line not aligned to x axis)
         # The "true" quadratic curves are transformed in terms of `t = x - x_l`
         # for numerical accuracy
-        # Equations have form a*t^2 + t*x + c = 0
+        # Equations have form a*t^2 + b*t + c = 0
         a = 0.5 * slope[is_quad]
-        b = 2 * a * x[is_quad] + inter[is_quad]
+        b = y[is_quad]
         c = cump[is_quad] - q[is_quad]
         # Theoretically, `discr` should always be >= 0. However, due to
         # numerical inaccuracies of magnitude ~10^(-15), here call to
         # `np.clip()` is needed.
         discr = np.clip(b * b - 4 * a * c, 0, None)
-        res[is_quad] = (-b + np.sqrt(discr)) / (2 * a) + x[is_quad]
+        res[is_quad] = x[is_quad] + (-b + np.sqrt(discr)) / (2 * a)
 
         # Case of linear CDF curve (density is non-zero constant)
-        res[is_lin] = x[is_lin] + (q[is_lin] - cump[is_lin]) / inter[is_lin]
+        res[is_lin] = x[is_lin] + (q[is_lin] - cump[is_lin]) / y[is_lin]
 
         # Case of plateau in CDF (density equals zero)
         res[is_const] = x[is_const]
