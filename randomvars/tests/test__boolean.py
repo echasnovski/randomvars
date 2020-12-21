@@ -165,6 +165,11 @@ class TestBool:
         with pytest.raises(AttributeError, match=r"Use `pmf\(\)`"):
             rv.pdf(False)
 
+    def test_logpdf(self):
+        rv = Bool(0.75)
+        with pytest.raises(AttributeError, match=r"Use `logpmf\(\)`"):
+            rv.logpdf(False)
+
     def test_pmf(self):
         """Tests for `.pmf()` method"""
         rv = Bool(0.75)

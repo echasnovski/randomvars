@@ -200,6 +200,11 @@ class Bool(Rand):
             "`Bool` doesn't have probability density function. Use `pmf()` instead."
         )
 
+    def logpdf(self, x):
+        raise AttributeError(
+            "`Bool` doesn't have probability density function. Use `logpmf()` instead."
+        )
+
     def pmf(self, x):
         """Probability mass function
 

@@ -472,6 +472,17 @@ class TestCont:
         _test_one_value_input(rv.pdf, -1)
         _test_one_value_input(rv.pdf, np.nan)
 
+    def test_logpdf(self):
+        """Tests for `.logpdf()` method"""
+        rv = Cont([0, 1, 3], [0.5, 0.5, 0])
+        x_ref = [-1, 0.1, 3, np.inf, np.nan]
+        with np.errstate(divide="ignore"):
+            logpdf_ref = np.log(rv.pdf(x_ref))
+
+        # No warnings should be thrown
+        with pytest.warns(None):
+            assert_array_equal(rv.logpdf(x_ref), logpdf_ref)
+
     def test_pmf(self):
         rv = Cont([0, 1, 3], [0.5, 0.5, 0])
         with pytest.raises(AttributeError, match=r"Use `pdf\(\)`"):

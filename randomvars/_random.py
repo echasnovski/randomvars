@@ -42,6 +42,14 @@ class Rand:
         """Probability density function"""
         raise NotImplementedError
 
+    def logpdf(self, x):
+        """Logarithm of probability density function"""
+        # Do not throw warning if `x` is zero
+        with np.errstate(divide="ignore"):
+            # Using `np.asarray()` to ensure ndarray output in case of `x`
+            # originally was scalar
+            return np.asarray(np.log(self.pdf(x)))
+
     def pmf(self, x):
         """Probability mass function"""
         raise NotImplementedError

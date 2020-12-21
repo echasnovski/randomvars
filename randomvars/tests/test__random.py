@@ -1,8 +1,11 @@
 # pylint: disable=missing-function-docstring
 """Tests for '_random.py' file"""
+import numpy as np
+from numpy.testing import assert_array_equal
 import pytest
 
 from randomvars._random import Rand
+from randomvars._utils import _test_one_value_input
 
 
 class TestRand:
@@ -46,6 +49,28 @@ class TestRand:
     def test_pdf(self):
         with pytest.raises(NotImplementedError):
             Rand().pdf(0)
+
+    def test_logpdf(self):
+        class TmpRand(Rand):
+            def pdf(self, x):
+                return x
+
+        tmp_rv = TmpRand()
+
+        # Regular checks
+        assert_array_equal(tmp_rv.logpdf(np.exp([1, 2])), [1, 2])
+
+        # One-value input
+        _test_one_value_input(tmp_rv.logpdf, 1)
+
+        # Giving zero pdf values to `np.log` shouldn't result into `RuntimeWarning`
+        with pytest.warns(None):
+            assert_array_equal(tmp_rv.logpdf([0]), np.array([-np.inf]))
+
+        # Giving negative pdf values (for any reason) should result into
+        # warning
+        with pytest.warns(RuntimeWarning):
+            assert_array_equal(tmp_rv.logpdf([-1]), np.nan)
 
     def test_pmf(self):
         with pytest.raises(NotImplementedError):
