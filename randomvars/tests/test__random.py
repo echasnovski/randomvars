@@ -76,6 +76,28 @@ class TestRand:
         with pytest.raises(NotImplementedError):
             Rand().pmf(0)
 
+    def test_logpdf(self):
+        class TmpRand(Rand):
+            def pmf(self, x):
+                return x
+
+        tmp_rv = TmpRand()
+
+        # Regular checks
+        assert_array_equal(tmp_rv.logpmf(np.exp([1, 2])), [1, 2])
+
+        # One-value input
+        _test_one_value_input(tmp_rv.logpmf, 1)
+
+        # Giving zero pmf values to `np.log` shouldn't result into `RuntimeWarning`
+        with pytest.warns(None):
+            assert_array_equal(tmp_rv.logpmf([0]), np.array([-np.inf]))
+
+        # Giving negative pmf values (for any reason) should result into
+        # warning
+        with pytest.warns(RuntimeWarning):
+            assert_array_equal(tmp_rv.logpmf([-1]), np.nan)
+
     def test_cdf(self):
         with pytest.raises(NotImplementedError):
             Rand().cdf(0)

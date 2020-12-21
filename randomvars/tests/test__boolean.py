@@ -200,6 +200,17 @@ class TestBool:
         _test_one_value_input(rv.pmf, True)
         _test_one_value_input(rv.pmf, np.nan)
 
+    def test_logpmf(self):
+        """Tests for `.logpmf()` method"""
+        rv = Bool(0.75)
+        x_ref = [-1, 0, 1, 3, np.inf, np.nan]
+        with np.errstate(divide="ignore"):
+            logpmf_ref = np.log(rv.pmf(x_ref))
+
+        # No warnings should be thrown
+        with pytest.warns(None):
+            assert_array_equal(rv.logpmf(x_ref), logpmf_ref)
+
     def test_cdf(self):
         """Tests for `.cdf()` method"""
         rv = Bool(0.75)

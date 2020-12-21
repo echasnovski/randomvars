@@ -224,6 +224,8 @@ class Bool(Rand):
         res[x] = self._prob_true
         return np.asarray(res, dtype="float64")
 
+    # `logpmf()` is inherited from `Rand`
+
     def cdf(self, x):
         """Cumulative distribution function
 

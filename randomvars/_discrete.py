@@ -299,6 +299,8 @@ class Disc(Rand):
 
         return np.asarray(utils._copy_nan(fr=x, to=res), dtype="float64")
 
+    # `logpmf()` is inherited from `Rand`
+
     def cdf(self, x):
         """Cumulative distribution function
 

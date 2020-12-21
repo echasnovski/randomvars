@@ -521,6 +521,11 @@ class Cont(Rand):
             "`Cont` doesn't have probability mass function. Use `pdf()` instead."
         )
 
+    def logpmf(self, x):
+        raise AttributeError(
+            "`Cont` doesn't have probability mass function. Use `logpdf()` instead."
+        )
+
     def cdf(self, x):
         """Cumulative distribution function
 

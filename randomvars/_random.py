@@ -54,6 +54,14 @@ class Rand:
         """Probability mass function"""
         raise NotImplementedError
 
+    def logpmf(self, x):
+        """Logarithm of probability mass function"""
+        # Do not throw warning if `x` is zero
+        with np.errstate(divide="ignore"):
+            # Using `np.asarray()` to ensure ndarray output in case of `x`
+            # originally was scalar
+            return np.asarray(np.log(self.pmf(x)))
+
     def cdf(self, x):
         """Cumulative distribution function"""
         raise NotImplementedError
