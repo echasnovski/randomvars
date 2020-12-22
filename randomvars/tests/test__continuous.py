@@ -23,6 +23,7 @@ DISTRIBUTIONS_COMMON = {
     "expon": distrs.expon(),
     "f": distrs.f(dfn=20, dfd=20),
     "gamma": distrs.gamma(a=10),
+    "laplace": distrs.laplace(),
     "lognorm": distrs.lognorm(s=0.5),
     "norm": distrs.norm(),
     "norm2": distrs.norm(loc=10),
