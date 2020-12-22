@@ -11,6 +11,7 @@ from randomvars._mixture import Mixt
 from .commontests import (
     _test_equal_seq,
     _test_input_coercion,
+    _test_log_fun,
     _test_one_value_input,
     _test_rvs_method,
 )
@@ -360,6 +361,15 @@ class TestMixt:
         with pytest.raises(AttributeError, match="doesn't have.*density"):
             rv.pdf(0)
 
+    def test_logpdf(self):
+        cont = Cont([0, 1], [1, 1])
+        disc = Disc([-1, 0.5], [0.25, 0.75])
+        weight_cont = 0.75
+        rv = Mixt(cont=cont, disc=disc, weight_cont=weight_cont)
+
+        with pytest.raises(AttributeError, match="doesn't have.*density"):
+            rv.logpdf(0)
+
     def test_pmf(self):
         cont = Cont([0, 1], [1, 1])
         disc = Disc([-1, 0.5], [0.25, 0.75])
@@ -368,6 +378,15 @@ class TestMixt:
 
         with pytest.raises(AttributeError, match="doesn't have.*mass"):
             rv.pmf(0)
+
+    def test_logpmf(self):
+        cont = Cont([0, 1], [1, 1])
+        disc = Disc([-1, 0.5], [0.25, 0.75])
+        weight_cont = 0.75
+        rv = Mixt(cont=cont, disc=disc, weight_cont=weight_cont)
+
+        with pytest.raises(AttributeError, match="doesn't have.*mass"):
+            rv.logpmf(0)
 
     def test_cdf(self):
         """Tests for `.cdf()` method"""
@@ -432,6 +451,19 @@ class TestMixt:
 
         rv_weight_1 = Mixt(cont=cont, disc=disc, weight_cont=1)
         assert_array_equal(rv_weight_1.cdf(ref_x), cont.cdf(ref_x))
+
+    def test_logcdf(self):
+        cont = Cont([0, 1], [1, 1])
+        disc = Disc([-1, 0.5], [0.25, 0.75])
+        weight_cont = 0.75
+        rv = Mixt(cont=cont, disc=disc, weight_cont=weight_cont)
+        h = 1e-12
+
+        _test_log_fun(
+            rv.logcdf,
+            rv.cdf,
+            x_ref=np.array([-1.1, -1 - h, -1, 0, 0.25, 0.5 - h, 0.5, 0.75, 1, 1.1]),
+        )
 
     def test_ppf(self):
         """Tests for `.ppf()` method"""

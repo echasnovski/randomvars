@@ -338,7 +338,13 @@ class Mixt(Rand):
     def pdf(self, x):
         raise AttributeError("`Mixt` doesn't have probability density function.")
 
+    def logpdf(self, x):
+        raise AttributeError("`Mixt` doesn't have probability density function.")
+
     def pmf(self, x):
+        raise AttributeError("`Mixt` doesn't have probability mass function.")
+
+    def logpmf(self, x):
         raise AttributeError("`Mixt` doesn't have probability mass function.")
 
     def cdf(self, x):
@@ -368,6 +374,8 @@ class Mixt(Rand):
         # Using `np.asarray()` to ensure ndarray output in case of `x`
         # originally was scalar
         return np.asarray(res, dtype="float64")
+
+    # `logcdf()` is inherited from `Rand`
 
     def ppf(self, q):
         """Percent point (quantile, inverse of cdf) function
