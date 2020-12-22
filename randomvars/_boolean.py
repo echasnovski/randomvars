@@ -247,6 +247,8 @@ class Bool(Rand):
         res[x] = 1.0
         return np.asarray(res, dtype="float64")
 
+    # `logcdf()` is inherited from `Rand`
+
     def ppf(self, q):
         """Percent point (quantile, inverse of cdf) function
 

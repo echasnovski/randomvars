@@ -326,6 +326,8 @@ class Disc(Rand):
 
         return np.asarray(utils._copy_nan(fr=x, to=res), dtype="float64")
 
+    # `logcdf()` is inherited from `Rand`
+
     def ppf(self, q):
         """Percent point (quantile, inverse of cdf) function
 

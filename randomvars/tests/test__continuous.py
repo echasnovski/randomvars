@@ -524,6 +524,17 @@ class TestCont:
         _test_one_value_input(rv_1.cdf, -1)
         _test_one_value_input(rv_1.cdf, np.nan)
 
+    def test_logcdf(self):
+        """Tests for `.logcdf()` method"""
+        rv = Cont([0, 1, 3], [0.5, 0.5, 0])
+        x_ref = [-1, 0.1, 3, np.inf, np.nan]
+        with np.errstate(divide="ignore"):
+            logcdf_ref = np.log(rv.cdf(x_ref))
+
+        # No warnings should be thrown
+        with pytest.warns(None):
+            assert_array_equal(rv.logcdf(x_ref), logcdf_ref)
+
     def test_ppf(self):
         """Tests for `.ppf()` method"""
         # `ppf()` method should be inverse to `cdf()` for every sensible input

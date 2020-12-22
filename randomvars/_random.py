@@ -44,7 +44,7 @@ class Rand:
 
     def logpdf(self, x):
         """Logarithm of probability density function"""
-        # Do not throw warning if `x` is zero
+        # Do not throw warning if pdf at `x` is zero
         with np.errstate(divide="ignore"):
             # Using `np.asarray()` to ensure ndarray output in case of `x`
             # originally was scalar
@@ -56,7 +56,7 @@ class Rand:
 
     def logpmf(self, x):
         """Logarithm of probability mass function"""
-        # Do not throw warning if `x` is zero
+        # Do not throw warning if pmf at `x` is zero
         with np.errstate(divide="ignore"):
             # Using `np.asarray()` to ensure ndarray output in case of `x`
             # originally was scalar
@@ -65,6 +65,14 @@ class Rand:
     def cdf(self, x):
         """Cumulative distribution function"""
         raise NotImplementedError
+
+    def logcdf(self, x):
+        """Logarithm of cumulative distribution function"""
+        # Do not throw warning if cdf at `x` is zero
+        with np.errstate(divide="ignore"):
+            # Using `np.asarray()` to ensure ndarray output in case of `x`
+            # originally was scalar
+            return np.asarray(np.log(self.cdf(x)))
 
     def ppf(self, q):
         """Percent point (quantile, inverse of cdf) function"""

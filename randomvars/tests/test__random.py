@@ -76,7 +76,7 @@ class TestRand:
         with pytest.raises(NotImplementedError):
             Rand().pmf(0)
 
-    def test_logpdf(self):
+    def test_logpmf(self):
         class TmpRand(Rand):
             def pmf(self, x):
                 return x
@@ -101,6 +101,28 @@ class TestRand:
     def test_cdf(self):
         with pytest.raises(NotImplementedError):
             Rand().cdf(0)
+
+    def test_logpdf(self):
+        class TmpRand(Rand):
+            def cdf(self, x):
+                return x
+
+        tmp_rv = TmpRand()
+
+        # Regular checks
+        assert_array_equal(tmp_rv.logcdf(np.exp([1, 2])), [1, 2])
+
+        # One-value input
+        _test_one_value_input(tmp_rv.logcdf, 1)
+
+        # Giving zero cdf values to `np.log` shouldn't result into `RuntimeWarning`
+        with pytest.warns(None):
+            assert_array_equal(tmp_rv.logcdf([0]), np.array([-np.inf]))
+
+        # Giving negative cdf values (for any reason) should result into
+        # warning
+        with pytest.warns(RuntimeWarning):
+            assert_array_equal(tmp_rv.logcdf([-1]), np.nan)
 
     def test_ppf(self):
         with pytest.raises(NotImplementedError):

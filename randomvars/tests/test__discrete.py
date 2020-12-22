@@ -341,6 +341,17 @@ class TestDisc:
         _test_one_value_input(rv.cdf, -1)
         _test_one_value_input(rv.cdf, np.nan)
 
+    def test_logcdf(self):
+        """Tests for `.logcdf()` method"""
+        rv = Disc([0.5, 1, 3], [0.1, 0.2, 0.7])
+        x_ref = [-1, 0.5, 3, np.inf, np.nan]
+        with np.errstate(divide="ignore"):
+            logcdf_ref = np.log(rv.cdf(x_ref))
+
+        # No warnings should be thrown
+        with pytest.warns(None):
+            assert_array_equal(rv.logcdf(x_ref), logcdf_ref)
+
     def test_ppf(self):
         """Tests for `.ppf()` method"""
         rv = Disc([0.5, 1, 3], [0.1, 0.2, 0.7])
