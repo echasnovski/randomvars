@@ -829,5 +829,7 @@ def _xy_from_cdf_spline(cdf_spline):
     # Here `y` can have negative values (and not so small ones in case of small
     # `n_grid` or big `cdf_tolerance`)
     y = np.clip(spline_deriv(x), 0, None)
+    # Renormalize xy-grid to have integral 1
+    y = y / utils._trapez_integral(x, y)
 
     return x, y
