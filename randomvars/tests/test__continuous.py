@@ -8,7 +8,7 @@ from scipy.integrate import quad
 import pytest
 
 from randomvars._continuous import Cont
-from randomvars._utils import (
+from .commontests import (
     _test_equal_seq,
     _test_input_coercion,
     _test_one_value_input,

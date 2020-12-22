@@ -7,7 +7,7 @@ import pytest
 
 from randomvars._boolean import Bool
 from randomvars._discrete import Disc
-from randomvars._utils import (
+from .commontests import (
     _test_equal_seq,
     _test_input_coercion,
     _test_one_value_input,
