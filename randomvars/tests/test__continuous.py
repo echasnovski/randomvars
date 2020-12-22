@@ -11,6 +11,7 @@ from randomvars._continuous import Cont
 from .commontests import (
     _test_equal_seq,
     _test_input_coercion,
+    _test_log_fun,
     _test_one_value_input,
     _test_rvs_method,
 )
@@ -476,13 +477,7 @@ class TestCont:
     def test_logpdf(self):
         """Tests for `.logpdf()` method"""
         rv = Cont([0, 1, 3], [0.5, 0.5, 0])
-        x_ref = [-1, 0.1, 3, np.inf, np.nan]
-        with np.errstate(divide="ignore"):
-            logpdf_ref = np.log(rv.pdf(x_ref))
-
-        # No warnings should be thrown
-        with pytest.warns(None):
-            assert_array_equal(rv.logpdf(x_ref), logpdf_ref)
+        _test_log_fun(rv.logpdf, rv.pdf, x_ref=[-1, 0.1, 3, np.inf, np.nan])
 
     def test_pmf(self):
         rv = Cont([0, 1, 3], [0.5, 0.5, 0])
@@ -528,13 +523,7 @@ class TestCont:
     def test_logcdf(self):
         """Tests for `.logcdf()` method"""
         rv = Cont([0, 1, 3], [0.5, 0.5, 0])
-        x_ref = [-1, 0.1, 3, np.inf, np.nan]
-        with np.errstate(divide="ignore"):
-            logcdf_ref = np.log(rv.cdf(x_ref))
-
-        # No warnings should be thrown
-        with pytest.warns(None):
-            assert_array_equal(rv.logcdf(x_ref), logcdf_ref)
+        _test_log_fun(rv.logcdf, rv.cdf, x_ref=[-1, 0.1, 3, np.inf, np.nan])
 
     def test_ppf(self):
         """Tests for `.ppf()` method"""

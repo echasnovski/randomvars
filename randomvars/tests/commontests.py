@@ -1,6 +1,8 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 
+import pytest
+
 
 def _test_equal_seq(first, second, *args, **kwargs):
     assert len(first) == len(second)
@@ -13,6 +15,15 @@ def _test_input_coercion(func, arr):
     out_ref = func(arr)
     assert_array_equal(out, out_ref)
     assert type(out) == type(out_ref)
+
+
+def _test_log_fun(logfun, fun, x_ref):
+    with np.errstate(divide="ignore"):
+        logval_ref = np.log(fun(x_ref))
+
+    # No warnings should be thrown
+    with pytest.warns(None):
+        assert_array_equal(logfun(x_ref), logval_ref)
 
 
 def _test_one_value_input(func, value):

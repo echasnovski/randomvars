@@ -10,6 +10,7 @@ from randomvars._discrete import Disc
 from .commontests import (
     _test_equal_seq,
     _test_input_coercion,
+    _test_log_fun,
     _test_one_value_input,
     _test_rvs_method,
 )
@@ -204,12 +205,7 @@ class TestBool:
         """Tests for `.logpmf()` method"""
         rv = Bool(0.75)
         x_ref = [-1, 0, 1, 3, np.inf, np.nan]
-        with np.errstate(divide="ignore"):
-            logpmf_ref = np.log(rv.pmf(x_ref))
-
-        # No warnings should be thrown
-        with pytest.warns(None):
-            assert_array_equal(rv.logpmf(x_ref), logpmf_ref)
+        _test_log_fun(rv.logpmf, rv.pmf, x_ref=[-1, 0, 1, 3, np.inf, np.nan])
 
     def test_cdf(self):
         """Tests for `.cdf()` method"""
@@ -244,13 +240,7 @@ class TestBool:
     def test_logcdf(self):
         """Tests for `.logcdf()` method"""
         rv = Bool(0.75)
-        x_ref = [-1, 0, 1, 3, np.inf, np.nan]
-        with np.errstate(divide="ignore"):
-            logcdf_ref = np.log(rv.cdf(x_ref))
-
-        # No warnings should be thrown
-        with pytest.warns(None):
-            assert_array_equal(rv.logcdf(x_ref), logcdf_ref)
+        _test_log_fun(rv.logcdf, rv.cdf, x_ref=[-1, 0, 1, 3, np.inf, np.nan])
 
     def test_ppf(self):
         """Tests for `.ppf()` method"""
