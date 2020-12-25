@@ -53,7 +53,7 @@ class TestRand:
     def test_logpdf(self):
         class TmpRand(Rand):
             def pdf(self, x):
-                return x
+                return np.asarray(x)
 
         tmp_rv = TmpRand()
 
@@ -79,7 +79,7 @@ class TestRand:
     def test_logpmf(self):
         class TmpRand(Rand):
             def pmf(self, x):
-                return x
+                return np.asarray(x)
 
         tmp_rv = TmpRand()
 
@@ -102,10 +102,10 @@ class TestRand:
         with pytest.raises(NotImplementedError):
             Rand().cdf(0)
 
-    def test_logpdf(self):
+    def test_logcdf(self):
         class TmpRand(Rand):
             def cdf(self, x):
-                return x
+                return np.asarray(x)
 
         tmp_rv = TmpRand()
 
@@ -123,6 +123,19 @@ class TestRand:
         # warning
         with pytest.warns(RuntimeWarning):
             assert_array_equal(tmp_rv.logcdf([-1]), np.nan)
+
+    def test_sf(self):
+        class TmpRand(Rand):
+            def cdf(self, x):
+                return np.asarray(x)
+
+        tmp_rv = TmpRand()
+
+        # Regular checks
+        assert_array_equal(tmp_rv.sf([1, 2]), [0, -1])
+
+        # One-value input
+        _test_one_value_input(tmp_rv.sf, 1)
 
     def test_ppf(self):
         with pytest.raises(NotImplementedError):

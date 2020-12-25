@@ -74,6 +74,10 @@ class Rand:
             # originally was scalar
             return np.asarray(np.log(self.cdf(x)))
 
+    def sf(self, x):
+        """Survival function"""
+        return np.asarray(1.0 - self.cdf(x))
+
     def ppf(self, q):
         """Percent point (quantile, inverse of cdf) function"""
         raise NotImplementedError

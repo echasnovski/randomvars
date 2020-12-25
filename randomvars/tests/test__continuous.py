@@ -525,6 +525,11 @@ class TestCont:
         rv = Cont([0, 1, 3], [0.5, 0.5, 0])
         _test_log_fun(rv.logcdf, rv.cdf, x_ref=[-1, 0.1, 3, np.inf, np.nan])
 
+    def test_sf(self):
+        rv = Cont([0, 1, 3], [0.5, 0.5, 0])
+        x_ref = [-1, 0.1, 3, np.inf, np.nan]
+        assert_array_equal(rv.sf(x_ref), 1 - rv.cdf(x_ref))
+
     def test_ppf(self):
         """Tests for `.ppf()` method"""
         # `ppf()` method should be inverse to `cdf()` for every sensible input

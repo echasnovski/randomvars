@@ -341,6 +341,11 @@ class TestDisc:
         rv = Disc([0.5, 1, 3], [0.1, 0.2, 0.7])
         _test_log_fun(rv.logcdf, rv.cdf, x_ref=[-1, 0.5, 3, np.inf, np.nan])
 
+    def test_sf(self):
+        rv = Disc([0.5, 1, 3], [0.1, 0.2, 0.7])
+        x_ref = [-1, 0.5, 3, np.inf, np.nan]
+        assert_array_equal(rv.sf(x_ref), 1 - rv.cdf(x_ref))
+
     def test_ppf(self):
         """Tests for `.ppf()` method"""
         rv = Disc([0.5, 1, 3], [0.1, 0.2, 0.7])

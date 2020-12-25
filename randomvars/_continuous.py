@@ -564,6 +564,8 @@ class Cont(Rand):
 
     # `logcdf()` is inherited from `Rand`
 
+    # `sf()` is inherited from `Rand`
+
     def ppf(self, q):
         """Percent point (quantile, inverse of cdf) function
 
