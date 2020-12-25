@@ -26,8 +26,9 @@ op.set_option("n_grid", 5001)
 def downgrid_spline(x, y, n_grid, params=None):
     if n_grid >= len(x):
         return x, y
+    if params is None:
+        params = {}
 
-    s_big = params.get("s_big", 2)
     s_small = params.get("s_small", 1e-16)
     scale_factor = params.get("scale_factor", 0.5)
 
@@ -35,13 +36,15 @@ def downgrid_spline(x, y, n_grid, params=None):
     cdf_spline = UnivariateSpline(x=x, y=cdf_vals, s=np.inf, k=2)
 
     # Iteratively reduce smoothing factor to achieve xy-grid with enough points
-    cur_s = s_big
-    while cur_s > s_small:
-        n_knots = len(cdf_spline.get_knots())
-        if n_knots >= n_grid:
+    # Note: technically, condition should be checking number of knots in
+    # derivative of `cdf_spline`, but this is the same as number of knots in
+    # spline itself.
+    while len(cdf_spline.get_knots()) < n_grid:
+        cur_s = cdf_spline.get_residual() * scale_factor
+        # Ensure that there is no infinite loop
+        if cur_s <= s_small:
             break
         cdf_spline.set_smoothing_factor(cur_s)
-        cur_s *= scale_factor
 
     x_res, y_res = _xy_from_cdf_spline(cdf_spline)
 
