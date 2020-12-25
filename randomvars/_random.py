@@ -90,6 +90,10 @@ class Rand:
         """Percent point (quantile, inverse of cdf) function"""
         raise NotImplementedError
 
+    def isf(self, q):
+        """Inverse survival function"""
+        return np.asarray(self.ppf(1.0 - np.asarray(q)))
+
     def rvs(self, size=None, random_state=None):
         """Random number generation
 

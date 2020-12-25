@@ -577,6 +577,16 @@ class TestMixt:
         rv_weight_1 = Mixt(cont=cont, disc=disc, weight_cont=1)
         assert_array_equal(rv_weight_1.ppf(ref_q), cont.ppf(ref_q))
 
+    def test_isf(self):
+        cont = Cont([0, 1], [1, 1])
+        disc = Disc([-1, 0.5], [0.25, 0.75])
+        weight_cont = 0.75
+        rv = Mixt(cont=cont, disc=disc, weight_cont=weight_cont)
+        h = 1e-12
+        x_ref = np.array([-1.1, -1 - h, -1, 0, 0.25, 0.5 - h, 0.5, 0.75, 1, 1.1])
+        q_ref = rv.cdf(x_ref)
+        assert_array_equal(rv.isf(q_ref), rv.ppf(1 - q_ref))
+
     def test_rvs(self):
         """Tests for `.rvs()`"""
         cont = Cont([0, 1], [1, 1])

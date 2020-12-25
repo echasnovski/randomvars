@@ -380,6 +380,14 @@ class TestDisc:
         _test_one_value_input(rv.ppf, -1)
         _test_one_value_input(rv.ppf, np.nan)
 
+    def test_isf(self):
+        rv = Disc([0.5, 1, 3], [0.1, 0.2, 0.7])
+        h = 1e-12
+        q_ref = np.array([0, 0.7 - h, 0.7, 0.7 + h, 0.9 - h, 0.9, 0.9 + h, 1 - h, 1])
+
+        # Output is lowest value `t` (within supp.) for which `P(X > t) <= q`
+        assert_array_equal(rv.isf(q_ref), rv.ppf(1 - q_ref))
+
     def test_rvs(self):
         """Tests for `.rvs()`"""
         rv = Disc([0.5, 1, 3], [0.1, 0.2, 0.7])

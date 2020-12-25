@@ -618,6 +618,8 @@ class Cont(Rand):
 
         return np.asarray(res, dtype="float64")
 
+    # `isf()` is inherited from `Rand`
+
     # `rvs()` is inherited from `Rand`
 
     def _find_quant(self, q, grid, coeffs):

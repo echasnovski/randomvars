@@ -275,6 +275,8 @@ class Bool(Rand):
         res[(0 <= q) & (q <= self._prob_false)] = False
         return np.asarray(res, dtype="bool")
 
+    # `isf()` is inherited from `Rand`
+
     # `rvs()` is inherited from `Rand`
 
     def integrate_cdf(self, a, b):

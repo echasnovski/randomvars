@@ -358,6 +358,8 @@ class Disc(Rand):
 
         return np.asarray(utils._copy_nan(fr=q, to=res), dtype="float64")
 
+    # `isf()` is inherited from `Rand`
+
     # `rvs()` is inherited from `Rand`
 
     @property

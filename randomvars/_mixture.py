@@ -459,6 +459,8 @@ class Mixt(Rand):
 
         return np.asarray(res, dtype="float64")
 
+    # `isf()` is inherited from `Rand`
+
     # `rvs()` is inherited from `Rand`
 
     def integrate_cdf(self, a, b):

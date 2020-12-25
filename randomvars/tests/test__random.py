@@ -1,7 +1,7 @@
 # pylint: disable=missing-function-docstring
 """Tests for '_random.py' file"""
 import numpy as np
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_equal, assert_array_almost_equal
 import pytest
 
 from randomvars._random import Rand
@@ -161,6 +161,23 @@ class TestRand:
     def test_ppf(self):
         with pytest.raises(NotImplementedError):
             Rand().ppf(0)
+
+    def test_isf(self):
+        class TmpRand(Rand):
+            def cdf(self, x):
+                return np.asarray(x ** 2)
+
+            def ppf(self, q):
+                return np.asarray(np.sqrt(q))
+
+        tmp_rv = TmpRand()
+
+        # Regular checks
+        q_ref = np.linspace(0, 1, 11)
+        assert_array_almost_equal(tmp_rv.sf(tmp_rv.isf(q_ref)), q_ref, decimal=15)
+
+        # One-value input
+        _test_one_value_input(tmp_rv.isf, 1)
 
     def test_rvs(self):
         rv = Rand()

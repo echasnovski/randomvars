@@ -285,6 +285,16 @@ class TestBool:
         _test_one_value_input(rv.ppf, -1)
         _test_one_value_input(rv.ppf, np.nan)
 
+    def test_isf(self):
+        rv = Bool(0.75)
+        h = 1e-12
+
+        q = np.array([0, 0.75 - h, 0.75, 0.75 + h, 1 - h, 1])
+        out = rv.isf(q)
+        # Output is lowest value `t` (within supp.) for which `P(X > t) <= q`
+        assert_array_equal(out, rv.ppf(1 - q))
+        assert out.dtype == np.dtype("bool")
+
     def test_rvs(self):
         """Tests for `.rvs()`"""
         rv = Bool(0.75)
