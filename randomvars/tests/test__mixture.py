@@ -475,6 +475,19 @@ class TestMixt:
 
         assert_array_equal(rv.sf(x_ref), 1 - rv.cdf(x_ref))
 
+    def test_logsf(self):
+        cont = Cont([0, 1], [1, 1])
+        disc = Disc([-1, 0.5], [0.25, 0.75])
+        weight_cont = 0.75
+        rv = Mixt(cont=cont, disc=disc, weight_cont=weight_cont)
+        h = 1e-12
+
+        _test_log_fun(
+            rv.logsf,
+            rv.sf,
+            x_ref=np.array([-1.1, -1 - h, -1, 0, 0.25, 0.5 - h, 0.5, 0.75, 1, 1.1]),
+        )
+
     def test_ppf(self):
         """Tests for `.ppf()` method"""
         # `ppf()` method should be inverse to `cdf()` for every sensible input

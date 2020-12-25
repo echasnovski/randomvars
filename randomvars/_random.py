@@ -78,6 +78,14 @@ class Rand:
         """Survival function"""
         return np.asarray(1.0 - self.cdf(x))
 
+    def logsf(self, x):
+        """Logarithm of survival function"""
+        # Do not throw warning if cdf at `x` is zero
+        with np.errstate(divide="ignore"):
+            # Using `np.asarray()` to ensure ndarray output in case of `x`
+            # originally was scalar
+            return np.asarray(np.log(self.sf(x)))
+
     def ppf(self, q):
         """Percent point (quantile, inverse of cdf) function"""
         raise NotImplementedError

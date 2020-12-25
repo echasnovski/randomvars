@@ -137,6 +137,27 @@ class TestRand:
         # One-value input
         _test_one_value_input(tmp_rv.sf, 1)
 
+    def test_logsf(self):
+        class TmpRand(Rand):
+            def sf(self, x):
+                return np.asarray(x)
+
+        tmp_rv = TmpRand()
+
+        # Regular checks
+        assert_array_equal(tmp_rv.logsf(np.exp([1, 2])), [1, 2])
+
+        # One-value input
+        _test_one_value_input(tmp_rv.logsf, 1)
+
+        # Giving zero sf values to `np.log` shouldn't result into `RuntimeWarning`
+        with pytest.warns(None):
+            assert_array_equal(tmp_rv.logsf([0]), np.array([-np.inf]))
+
+        # Giving negative sf values (for any reason) should result into warning
+        with pytest.warns(RuntimeWarning):
+            assert_array_equal(tmp_rv.logsf([-1]), np.nan)
+
     def test_ppf(self):
         with pytest.raises(NotImplementedError):
             Rand().ppf(0)

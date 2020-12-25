@@ -243,9 +243,15 @@ class TestBool:
         _test_log_fun(rv.logcdf, rv.cdf, x_ref=[-1, 0, 1, 3, np.inf, np.nan])
 
     def test_sf(self):
+        """Tests for `.sf()` method"""
         rv = Bool(0.75)
         x_ref = [-1, 0, 1, 3, np.inf, np.nan]
         assert_array_equal(rv.sf(x_ref), 1 - rv.cdf(x_ref))
+
+    def test_logsf(self):
+        """Tests for `.logsf()` method"""
+        rv = Bool(0.75)
+        _test_log_fun(rv.logsf, rv.sf, x_ref=[-1, 0, 1, 3, np.inf, np.nan])
 
     def test_ppf(self):
         """Tests for `.ppf()` method"""
