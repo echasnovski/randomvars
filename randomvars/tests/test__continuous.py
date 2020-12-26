@@ -218,7 +218,6 @@ class TestCont:
         assert str(rv) == "Continuous RV with 1 interval (support: [0.0, 1.0])"
 
     def test_properties(self):
-        """Tests for properties"""
         x = np.arange(11)
         y = np.repeat(0.1, 11)
         rv = Cont(x, y)
@@ -437,7 +436,6 @@ class TestCont:
             assert from_sample_cdf_max_error(zero_vec) <= 2e-4
 
     def test_pdf(self):
-        """Tests for `.pdf()` method"""
         rv = Cont([0, 1, 3], [0.5, 0.5, 0])
 
         # Regular checks
@@ -475,7 +473,6 @@ class TestCont:
         _test_one_value_input(rv.pdf, np.nan)
 
     def test_logpdf(self):
-        """Tests for `.logpdf()` method"""
         rv = Cont([0, 1, 3], [0.5, 0.5, 0])
         _test_log_fun(rv.logpdf, rv.pdf, x_ref=[-1, 0.1, 3, np.inf, np.nan])
 
@@ -490,7 +487,6 @@ class TestCont:
             rv.logpmf(0)
 
     def test_cdf(self):
-        """Tests for `.cdf()` method"""
         rv_1 = Cont([0, 1, 2], [0, 1, 0])
 
         # Regular checks
@@ -521,23 +517,19 @@ class TestCont:
         _test_one_value_input(rv_1.cdf, np.nan)
 
     def test_logcdf(self):
-        """Tests for `.logcdf()` method"""
         rv = Cont([0, 1, 3], [0.5, 0.5, 0])
         _test_log_fun(rv.logcdf, rv.cdf, x_ref=[-1, 0.1, 3, np.inf, np.nan])
 
     def test_sf(self):
-        """Tests for `.sf()` method"""
         rv = Cont([0, 1, 3], [0.5, 0.5, 0])
         x_ref = [-1, 0.1, 3, np.inf, np.nan]
         assert_array_equal(rv.sf(x_ref), 1 - rv.cdf(x_ref))
 
     def test_logsf(self):
-        """Tests for `.logsf()` method"""
         rv = Cont([0, 1, 3], [0.5, 0.5, 0])
         _test_log_fun(rv.logsf, rv.sf, x_ref=[-1, 0.1, 3, np.inf, np.nan])
 
     def test_ppf(self):
-        """Tests for `.ppf()` method"""
         # `ppf()` method should be inverse to `cdf()` for every sensible input
         rv_1 = Cont([0, 1, 2], [0, 1, 0])
 
@@ -584,7 +576,6 @@ class TestCont:
         assert_array_equal(rv.sf(rv.isf(q_ref)), q_ref)
 
     def test_rvs(self):
-        """Tests for `.rvs()`"""
         rv_1 = Cont([0, 1, 2], [0, 1, 0])
 
         _test_rvs_method(rv_1)

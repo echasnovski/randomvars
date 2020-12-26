@@ -122,7 +122,6 @@ class TestDisc:
         assert str(rv) == "Discrete RV with 1 value (support: [1.0, 1.0])"
 
     def test_properties(self):
-        """Tests for properties"""
         x = np.arange(10)
         p = np.repeat(0.1, 10)
         rv = Disc(x, p)
@@ -266,7 +265,6 @@ class TestDisc:
             rv.logpdf(0.5)
 
     def test_pmf(self):
-        """Tests for `.pmf()` method"""
         rv = Disc([0.5, 1, 3], [0.1, 0.2, 0.7])
         rtol, atol = op.get_option("tolerance")
 
@@ -301,12 +299,10 @@ class TestDisc:
         _test_one_value_input(rv.pmf, np.nan)
 
     def test_logpmf(self):
-        """Tests for `.logpmf()` method"""
         rv = Disc([0.5, 1, 3], [0.1, 0.2, 0.7])
         _test_log_fun(rv.logpmf, rv.pmf, x_ref=[-1, 0.5, 3, np.inf, np.nan])
 
     def test_cdf(self):
-        """Tests for `.cdf()` method"""
         rv = Disc([0.5, 1, 3], [0.1, 0.2, 0.7])
         h = 1e-12
 
@@ -337,23 +333,19 @@ class TestDisc:
         _test_one_value_input(rv.cdf, np.nan)
 
     def test_logcdf(self):
-        """Tests for `.logcdf()` method"""
         rv = Disc([0.5, 1, 3], [0.1, 0.2, 0.7])
         _test_log_fun(rv.logcdf, rv.cdf, x_ref=[-1, 0.5, 3, np.inf, np.nan])
 
     def test_sf(self):
-        """Tests for `.sf()` method"""
         rv = Disc([0.5, 1, 3], [0.1, 0.2, 0.7])
         x_ref = [-1, 0.5, 3, np.inf, np.nan]
         assert_array_equal(rv.sf(x_ref), 1 - rv.cdf(x_ref))
 
     def test_logsf(self):
-        """Tests for `.logsf()` method"""
         rv = Disc([0.5, 1, 3], [0.1, 0.2, 0.7])
         _test_log_fun(rv.logsf, rv.sf, x_ref=[-1, 0.5, 3, np.inf, np.nan])
 
     def test_ppf(self):
-        """Tests for `.ppf()` method"""
         rv = Disc([0.5, 1, 3], [0.1, 0.2, 0.7])
         h = 1e-12
 
@@ -389,7 +381,6 @@ class TestDisc:
         assert_array_equal(rv.isf(q_ref), rv.ppf(1 - q_ref))
 
     def test_rvs(self):
-        """Tests for `.rvs()`"""
         rv = Disc([0.5, 1, 3], [0.1, 0.2, 0.7])
 
         _test_rvs_method(rv)
