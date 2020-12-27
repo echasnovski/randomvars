@@ -19,7 +19,6 @@ _default_options = {
     "density_estimator": gaussian_kde,
     "density_mincoverage": 0.9999,
     "discrete_estimator": default_discrete_estimator,
-    "integr_tol": 1e-4,
     "metric": "L2",
     "n_grid": 1001,
     "small_prob": 1e-6,
@@ -59,9 +58,6 @@ _options_list = """
     - Tuple with two elements representing `x` and `prob` of discrete distribution.
     - Object of class `Disc` or `rv_frozen` (`rv_discrete` with all
       hyperparameters defined).
-- integr_tol : float, default 1e-4. Integral tolerance for maximum tolerance
-  downgridding. Used to ensure that difference of total integrals between input
-  and downgridded xy-grids is less than `integr_tol`.
 - metric : string, default "L2". Type of metric which measures distance between
   functions. Used in internal computations. Possible values:
     - "L1": metric is defined as integral of absolute difference between
