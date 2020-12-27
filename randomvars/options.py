@@ -20,6 +20,7 @@ _default_options = {
     "density_mincoverage": 0.9999,
     "discrete_estimator": default_discrete_estimator,
     "integr_tol": 1e-4,
+    "metric": "L2",
     "n_grid": 1001,
     "small_prob": 1e-6,
     "tolerance": (0.0, 1e-8),
@@ -61,6 +62,13 @@ _options_list = """
 - integr_tol : float, default 1e-4. Integral tolerance for maximum tolerance
   downgridding. Used to ensure that difference of total integrals between input
   and downgridded xy-grids is less than `integr_tol`.
+- metric : string, default "L2". Type of metric which measures distance between
+  functions. Used in internal computations. Possible values:
+    - "L1": metric is defined as integral of absolute difference between
+      functions. Usually corresponds to using some kind of "median values".
+    - "L2": metric is defined as square root of integral of square difference
+      between functions. Usually corresponds to using some kind of "mean
+      values".
 - n_grid : int, default 1001. Number of points in initial xy-grids when
   creating object of class `Cont`.
 - small_prob : float, default 1e-6. Probability value that can be considered

@@ -589,6 +589,58 @@ class TestCont:
         rv = Cont([0, 1, 2], [0, 1, 0])
         assert np.allclose(rv.integrate_cdf(-10, 10), quad(rv.cdf, -10, 10)[0])
 
+    def test_convert(self):
+        import randomvars._boolean as bool
+        import randomvars._discrete as disc
+        import randomvars._mixture as mixt
+
+        rv = Cont([0, 1, 2], [0, 1, 0])
+
+        # By default and supplying `None` should return self
+        assert rv.convert() is rv
+        assert rv.convert(None) is rv
+
+        # Converting to Bool should result into boolean with probability of
+        # `False` being 0 (because probability of continuous RV being exactly
+        # zero is 0).
+        out_bool = rv.convert("Bool")
+        assert isinstance(out_bool, bool.Bool)
+        assert out_bool.prob_true == 1.0
+
+        # Converting to own class should return self
+        out_cont = rv.convert("Cont")
+        assert out_cont is rv
+
+        # Converting to Disc should result into discrete RV with the same `x`
+        # values as in input's xy-grid
+        out_disc = rv.convert("Disc")
+        assert isinstance(out_disc, disc.Disc)
+        assert_array_equal(out_disc.x, rv.x)
+
+        # Converting to Mixt should result into degenerate mixture with only
+        # continuous component
+        out_mixt = rv.convert("Mixt")
+        assert isinstance(out_mixt, mixt.Mixt)
+        assert out_mixt.cont is rv
+        assert out_mixt.weight_cont == 1.0
+
+        # Any other target class should result into error
+        with pytest.raises(ValueError, match="one of"):
+            rv.convert("aaa")
+
+    def test_convert_options(self):
+        import randomvars._discrete as disc
+
+        rv = Cont([0, 1, 2], [0, 1, 0])
+
+        with option_context({"metric": "L1"}):
+            disc_l1 = rv.convert("Disc")
+        with option_context({"metric": "L2"}):
+            disc_l2 = rv.convert("Disc")
+
+        assert_array_equal(disc_l1.x, disc_l2.x)
+        assert np.any(disc_l1.p != disc_l2.p)
+
 
 class TestFromRVAccuracy:
     """Accuracy of `Cont.from_rv()`"""

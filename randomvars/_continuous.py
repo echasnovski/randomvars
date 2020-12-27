@@ -7,6 +7,7 @@ from scipy.interpolate import UnivariateSpline, splantider
 from scipy.stats.distributions import rv_frozen
 
 import randomvars._utils as utils
+import randomvars._utilsgrid as utilsgrid
 from randomvars.downgrid_maxtol import downgrid_maxtol
 from randomvars._random import Rand
 from randomvars.options import get_option
@@ -683,6 +684,69 @@ class Cont(Rand):
     def integrate_cdf(self, a, b):
         """Efficient version of CDF integration"""
         return self._cdf_spline.integrate(a=a, b=b)
+
+    def convert(self, to_class=None):
+        """Convert to different RV class
+
+        Conversion is done by the following logic depending on the value of
+        `to_class`:
+        - If it is `None` or `"Cont"`, `self` is returned.
+        - If it is `"Bool"`, boolean RV is returned with probability of `True`
+          equal to 1. That is because, following general Python agreement,
+          probability of `True` is computed as probability of all non-zero
+          values, which is 1 (probability of continuous RV being exactly zero
+          is always 0).
+        - If it is `"Disc"`, discrete RV is returned. Its xp-grid is computed
+          by the following algorithm:
+            - X-grid is taken the same as x-grid of `self`.
+            - P-grid is computed so that output discrete RV has the closest CDF
+              to `self`'s CDF. Closeness of CDFs is computed based on certain
+              metric (L2, default, or L1), which is controlled by a package
+              option `metric`.
+        - If it is `"Mixt"`, mixture RV with only continuous component equal to
+          `self` is returned.
+
+        Relevant package options: `metric`. See documentation of
+        `randomvars.options.get_option()` for more information. To temporarily
+        set options use `randomvars.options.option_context()` context manager.
+
+        Parameters
+        ----------
+        to_class : string or None, optional
+            Name of target class. If `None` (default) or `"Cont"`, `self` is
+            returned. Other options: "Bool", "Disc", "Mixt".
+
+        Raises
+        ------
+        ValueError:
+            In case not supported `to_class` is given.
+        """
+        # Use inline `import` statements to avoid circular import problems
+        if to_class == "Bool":
+            import randomvars._boolean as bool
+
+            # Probability of `True` is a probability of all non-zero elements,
+            # which is 1 because probability of continuous RV getting exactly
+            # zero is 0.
+            return bool.Bool(prob_true=1)
+        elif (to_class == "Cont") or (to_class is None):
+            return self
+        elif to_class == "Disc":
+            import randomvars._discrete as disc
+
+            # Convert xy-grid to xp-grid
+            metric = get_option("metric")
+            p = utilsgrid._p_from_xy(x=self._x, y=self._y, metric=metric)
+            return disc.Disc(x=self._x, p=p)
+        elif to_class == "Mixt":
+            import randomvars._mixture as mixt
+
+            # Output is a degenerate mixture with only continuous component
+            return mixt.Mixt(disc=None, cont=self, weight_cont=1.0)
+        else:
+            raise ValueError(
+                '`metric` should be one of "Bool", "Cont", "Disc", or "Mixt".'
+            )
 
 
 def _detect_finite_supp(rv, supp=None, small_prob=1e-6):
