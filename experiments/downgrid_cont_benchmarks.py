@@ -39,8 +39,9 @@ def downgrid_spline(x, y, n_grid, params=None):
     # Note: technically, condition should be checking number of knots in
     # derivative of `cdf_spline`, but this is the same as number of knots in
     # spline itself.
+    cur_s = cdf_spline.get_residual()
     while len(cdf_spline.get_knots()) < n_grid:
-        cur_s = cdf_spline.get_residual() * scale_factor
+        cur_s *= scale_factor
         # Ensure that there is no infinite loop
         if cur_s <= s_small:
             break
@@ -171,10 +172,6 @@ DISTRIBUTIONS_COMMON = {
     "laplace": distrs.laplace(),
     "lognorm": distrs.lognorm(s=0.5),
     "norm": distrs.norm(),
-    "norm2": distrs.norm(loc=10),
-    "norm3": distrs.norm(scale=0.1),
-    "norm4": distrs.norm(scale=10),
-    "norm5": distrs.norm(loc=10, scale=0.1),
     "t": distrs.t(df=10),
     "uniform": distrs.uniform(),
     "uniform2": distrs.uniform(loc=10, scale=0.1),
