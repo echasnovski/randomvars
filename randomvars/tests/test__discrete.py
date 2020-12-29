@@ -437,6 +437,14 @@ class TestFromRVAccuracy:
             rv_ref = Disc([0, 1], [0.875, 0.125])
             assert_equal_disc(rv_out, rv_ref)
 
+        # If last value cuts some right tail, all its probability should be
+        # transferred into last x-value
+        rv = distrs.rv_discrete(values=([0, 1, 2, 3], [0.625, 0.125, 0.125, 0.125]))
+        with op.option_context({"small_prob": 0.2}):
+            rv_out = Disc.from_rv(rv)
+            rv_ref = Disc([0, 2], [0.625, 0.375])
+            assert_equal_disc(rv_out, rv_ref)
+
     @staticmethod
     def is_from_rv_small_tails(rv):
         small_prob = op.get_option("small_prob")

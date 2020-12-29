@@ -208,6 +208,10 @@ class Disc(Rand):
 
             tot_prob = cur_tot_prob
 
+        # Transfer probability of the whole right tail to last value. This
+        # makes it symmetrical to what is done to left tail.
+        p[-1] += 1 - rv.cdf(x[-1])
+
         return cls(x=x, p=p)
 
     @classmethod
