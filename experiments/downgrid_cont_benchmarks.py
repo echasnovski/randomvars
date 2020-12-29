@@ -118,7 +118,7 @@ def bench(params, downgrid_name, n_timeit=10):
 
     downgrid_fun = DOWNGRID_FUNCTIONS[downgrid_name]
     xy_down = downgrid_fun(x, y, n_grid, params)
-    acc_down = fun_distance((x, y), xy_down)
+    err_down = fun_distance((x, y), xy_down)
     time_down = (
         timeit.timeit(
             lambda: downgrid_fun(x, y, n_grid, params=params), number=n_timeit
@@ -131,7 +131,7 @@ def bench(params, downgrid_name, n_timeit=10):
         "downgrid_name": downgrid_name,
         "n_grid_input": len(x),
         "n_grid": n_grid,
-        "accuracy": f"{acc_down:.2E}",
+        "error": f"{err_down:.2E}",
         "time_ms": np.round(1000 * time_down, decimals=5),
     }
 
@@ -173,8 +173,6 @@ DISTRIBUTIONS_COMMON = {
     "lognorm": distrs.lognorm(s=0.5),
     "norm": distrs.norm(),
     "t": distrs.t(df=10),
-    "uniform": distrs.uniform(),
-    "uniform2": distrs.uniform(loc=10, scale=0.1),
     "weibull_max": distrs.weibull_max(c=2),
     "weibull_min": distrs.weibull_min(c=2),
 }
@@ -244,7 +242,7 @@ with open(out_file, mode="w") as f:
         "downgrid_name",
         "n_grid_input",
         "n_grid",
-        "accuracy",
+        "error",
         "time_ms",
     ]
     writer = csv.DictWriter(f, fieldnames=fields)
