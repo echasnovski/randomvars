@@ -1,5 +1,5 @@
 """
-This file contains experimental versions with downgridding both xy- and xp-grids.
+This file contains experimental versions of downgridding xy-grids.
 Conclusions:
 - **Downgrid xy-grid**. It seems that usage of `UnivariateSpline` (combined
   with custom greedy downgridding based on probability penalty logic to ensure
@@ -8,7 +8,8 @@ Conclusions:
   However, some benchmarks are done in 'downgrid_cont_benchmarks.py'.
 - **Downgrid xp-grid**. Use iterative greedy removing of points based on
   penalty. Implemented in `downgrid_xp` (probably should be simplified to not
-  use `downgrid_metricpenalty()`).
+  use `downgrid_metricpenalty()`), as part of other approaches to
+  xy-downgridding.
 """
 import numpy as np
 from scipy.integrate import quad
@@ -769,137 +770,4 @@ ax.plot(*xy_down_ksi[best_ksi_ind], color="red")
 sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
 fig.colorbar(sm)
 
-plt.show()
-
-
-# %% Downgrid xp-grid
-def downgrid_xp(x, p, n_grid_out, metric="L2", plot_step=10):
-    c = np.concatenate(([0], np.cumsum(p)))
-    x_down, c_down = downgrid_metricpenalty(
-        x=x, c=c, n_grid_out=n_grid_out, metric=metric, plot_step=plot_step
-    )
-    p_down = np.diff(c_down)
-    return x_down, p_down
-
-
-def downgrid_metricpenalty(x, c, n_grid_out, metric="L2", plot_step=10):
-    """
-    Here `c` - constant values on intervals (-inf, x[0]), [x[0], x[1]), ...,
-    [x[-2], x[-1]), and [x[-1], +inf) between `x[:-1]` and `x[1:]` (this also
-    means that `len(c) == len(x) + 1`)
-    """
-    x_orig, c_orig = x, c
-    x_grid = np.linspace(x[0], x[-1], 1001)
-
-    for i in range(len(x) - n_grid_out):
-        penalty = compute_metricpenalty(x, c, metric)
-
-        # Pick best index as the one which delivers the smallest penalty
-        min_ind = np.argmin(penalty)
-
-        if (i + 1) % plot_step == 0:
-            plt.plot(x, penalty, "-o")
-            plt.plot(x[min_ind], penalty[min_ind], "or")
-            plt.title(f"Penalty. Length of x = {len(x)}")
-            plt.show()
-
-            plt.plot(
-                x_grid,
-                interp1d(x_orig, c_orig[1:], kind="previous")(x_grid),
-                label="original",
-            )
-            plt.plot(
-                x_grid,
-                interp1d(
-                    x,
-                    c[1:],
-                    kind="previous",
-                    bounds_error=False,
-                    fill_value=(c[0], c[-1]),
-                )(x_grid),
-                label="current",
-            )
-            plt.plot(x[min_ind], c[min_ind], "o", label="best index")
-            plt.title(f"Piecewise constant. Length of x = {len(x)}")
-            plt.legend()
-            plt.show()
-
-        # print(f"Delete x={x[min_ind]}")
-        x, c = delete_xc_index(x, c, min_ind, metric=metric)
-
-    return x, c
-
-
-def compute_metricpenalty(x, c, metric):
-    dc_abs = np.abs(np.diff(c))
-    dx = np.diff(x)
-
-    if metric == "L2":
-        inner_penalty = dx[:-1] * dx[1:] * dc_abs[1:-1] / (dx[:-1] + dx[1:])
-    if metric == "L1":
-        inner_penalty = dc_abs[1:-1] * np.minimum(dx[:-1], dx[1:])
-
-    res = np.concatenate(([dc_abs[0] * dx[0]], inner_penalty, [dc_abs[-1] * dx[-1]]))
-
-    return np.sqrt(2) * res if metric == "L2" else res
-
-
-def delete_xc_index(x, c, ind, metric):
-    if ind == 0:
-        c = np.delete(c, 1)
-    elif ind == (len(x) - 1):
-        c = np.delete(c, ind)
-    else:
-        if metric == "L2":
-            alpha = (x[ind] - x[ind - 1]) / (x[ind + 1] - x[ind - 1])
-        elif metric == "L1":
-            mid = 0.5 * (x[ind - 1] + x[ind + 1])
-            # alpha = 1 if x < mid; alpha = 0.5 if x = mid; alpha = 0 if x > mid
-            alpha = 0.5 * (0.0 + (mid < x[ind]) + (mid <= x[ind]))
-
-        # Avoid modifing original array
-        c_right = c[ind + 1]
-        c = np.delete(c, ind + 1)
-        c[ind] = alpha * c[ind] + (1 - alpha) * c_right
-
-    x = np.delete(x, ind)
-
-    return x, c
-
-
-x = np.array([0, 1, 2, 4])
-
-p = np.array([0.4, 0.3, 0.2, 0.1])
-p = p / np.sum(p)
-metric = "L2"
-
-c = np.concatenate(([0], np.cumsum(p)))
-
-n_grid_out = 11
-
-rv = ss.binom(n=1000, p=0.5)
-x = np.arange(1001)
-p = rv.pmf(x)
-c = np.concatenate(([0], np.cumsum(p)))
-
-downgrid_xp(x, p, n_grid_out, metric=metric, plot_step=10000)
-
-# Application of downgridding when values are slopes of piecewise-continuous
-# density
-# rv = ss.norm()
-# x = np.linspace(-4, 4, 101)
-rv = ss.expon()
-x = np.linspace(0, 10, 101)
-y = rv.pdf(x)
-y = y / trapez_integral(x, y)
-slopes = np.diff(y) / np.diff(x)
-c = np.concatenate(([0], slopes, [0]))
-
-x_down, c_down = downgrid_metricpenalty(x, c, n_grid_out=11)
-y0 = np.interp(x_down[0], x, y)
-y_down = np.concatenate(([y0], y0 + np.cumsum(c_down[1:-1] * np.diff(x_down))))
-
-plt.plot(x, y, label="input")
-plt.plot(x_down, y_down, label="downgridded")
-plt.legend()
 plt.show()
