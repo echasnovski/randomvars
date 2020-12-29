@@ -1,6 +1,8 @@
 """
 Code which creates benchmarking data for different values of hyperparameters of
 currently best downgridding approaches.
+
+There is an "Output analysis" section at the end of the file.
 """
 import csv
 import timeit
@@ -255,3 +257,85 @@ with open(out_file, mode="w") as f:
         print(f"#{i}: params={par}, downgrid_name={down_name}")
         bench_out = bench(params=par, downgrid_name=down_name)
         writer.writerow(bench_out)
+
+
+# %% Analysis
+"""
+# Output analysis
+
+Table with median values of key metrics ('error' and 'time_ms', for both less
+is better) for every combination of parameter of interest ('scale_factor',
+'removable_edges', 'downgrid_name'):
+                                               error    time_ms
+scale_factor removable_edges downgrid_name
+0.0001       False           penalty        0.001020   2.643210
+                             spline         0.001115   2.509245
+             True            penalty        0.000751   2.607375
+                             spline         0.000866   2.512420
+0.0010       False           penalty        0.001020   2.581000
+                             spline         0.000754   2.524830
+             True            penalty        0.000751   2.571280
+                             spline         0.000588   2.509385
+0.0100       False           penalty        0.001020   2.641380
+                             spline         0.000723   2.004895
+             True            penalty        0.000751   2.664345
+                             spline         0.000558   2.040635
+0.1000       False           penalty        0.001020   2.685730
+                             spline         0.000509   2.262510
+             True            penalty        0.000751   2.634475
+                             spline         0.000467   2.320145
+0.5000       False           penalty        0.001020   2.649790
+                             spline         0.000418   3.445035
+             True            penalty        0.000751   2.645015
+                             spline         0.000400   3.465155
+0.9000       False           penalty        0.001020   2.672520
+                             spline         0.000374  15.325980
+             True            penalty        0.000751   2.601495
+                             spline         0.000369  15.349155
+
+Conclusions:
+- Error for 'spline' is lower than for 'penalty' if `scale_factor > 1e-4`.
+- Error for `removable_edges = True` is always lower than for `False`.
+- Error lowers for 'spline' when `scale_factor` increases (as it enables more
+  accurate downgridding using on `UnivariateSpline` methods without manual
+  penalty adjustments).
+- Execution time for 'spline' decreases when 'scale_factor' progresses from
+  1e-4 to 1e-2 and then increases.
+
+**Recommended candidate values**:
+- Downgrid using "spline" approach.
+- Make edges removable.
+- Choose `scale_factor` to be 0.01 for maximum speed or 0.1 for a reasonable
+  trade-off between speed and accuracy.
+
+# Notes
+- There are 7 `NaN`s in 'error' column of the output file. All of them
+  correspond to "heavy_cauchy" distribution with `cdf_tolerance = 1e-5`,
+  `n_grid_frac = 0.01`, `removable_edges = True`. Six of them are for "penalty"
+  approach with all 'scale_factor' values, one - for "spline" with 1e-4
+  'scale_factor'. This happend because integral computation inside
+  `fun_distance()` returned negative value which produced `NaN` after applying
+  `np.sqrt()`.
+- Downgridding of heavy-tailed distribution to a very small grid (around 2-5)
+  points might result into a very big error due to renormalization. This
+  usually holds for both methods when edges are *not removable* and even for
+  "spline" method *with* removable edges. Apparently, this happens when
+  downgridding failed to remove edges to somewhere closer to the RV center.
+  This, together with higher speed when few points are needed to be removed,
+  seems to be the only pros of penalty with removable edges approach.
+
+# Analysis code
+import numpy as np
+import pandas as pd
+
+df = pd.read_csv("experiments/downgrid_cont_benchmarks_output.csv")
+df["error"] = df["error"].astype("float64")
+
+# Median summary
+df.groupby(["scale_factor", "removable_edges", "downgrid_name"])[
+    ["error", "time_ms"]
+].median()
+
+# `NaN` values
+df.loc[lambda df: np.isnan(df["error"]), :]
+"""
