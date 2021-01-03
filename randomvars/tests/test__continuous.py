@@ -628,19 +628,6 @@ class TestCont:
         with pytest.raises(ValueError, match="one of"):
             rv.convert("aaa")
 
-    def test_convert_options(self):
-        import randomvars._discrete as disc
-
-        rv = Cont([0, 1, 2], [0, 1, 0])
-
-        with option_context({"metric": "L1"}):
-            disc_l1 = rv.convert("Disc")
-        with option_context({"metric": "L2"}):
-            disc_l2 = rv.convert("Disc")
-
-        assert_array_equal(disc_l1.x, disc_l2.x)
-        assert np.any(disc_l1.p != disc_l2.p)
-
 
 class TestFromRVAccuracy:
     """Accuracy of `Cont.from_rv()`"""

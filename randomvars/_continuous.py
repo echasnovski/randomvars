@@ -699,16 +699,11 @@ class Cont(Rand):
         - If it is `"Disc"`, discrete RV is returned. Its xp-grid is computed
           by the following algorithm:
             - X-grid is taken the same as x-grid of `self`.
-            - P-grid is computed so that output discrete RV has the closest CDF
-              to `self`'s CDF. Closeness of CDFs is computed based on certain
-              metric (L2, default, or L1), which is controlled by a package
-              option `metric`.
+            - P-grid is computed so that input continuous RV is a maximum
+              likelihood estimation of output discrete RV. This approach is
+              taken to be inverse of discrete-to-continuous conversion.
         - If it is `"Mixt"`, mixture RV with only continuous component equal to
           `self` is returned.
-
-        Relevant package options: `metric`. See documentation of
-        `randomvars.options.get_option()` for more information. To temporarily
-        set options use `randomvars.options.option_context()` context manager.
 
         Parameters
         ----------
@@ -735,8 +730,7 @@ class Cont(Rand):
             import randomvars._discrete as disc
 
             # Convert xy-grid to xp-grid
-            metric = get_option("metric")
-            p = utilsgrid._p_from_xy(x=self._x, y=self._y, metric=metric)
+            p = utilsgrid._p_from_xy(x=self._x, y=self._y)
             return disc.Disc(x=self._x, p=p)
         elif to_class == "Mixt":
             import randomvars._mixture as mixt
