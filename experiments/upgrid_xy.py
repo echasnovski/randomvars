@@ -113,3 +113,102 @@ n_points = 100 * len(p)
 divvec = divvec_find(p, n_points)
 print(f"{divvec=}")
 # %timeit divvec_find(p, n_points)
+
+
+# %% Explore naive upgridding using conversion
+import numpy as np
+import scipy.stats as ss
+from scipy.interpolate import interp1d, UnivariateSpline
+import matplotlib.pyplot as plt
+import randomvars._utilsgrid as utilsgrid
+
+
+def upgrid_xp_manual(x, p, x_new):
+    y = utilsgrid._y_from_xp(x, p)
+    density = interp1d(x, y)
+    y_new = density(x_new)
+    p_new = utilsgrid._p_from_xy(x_new, y_new)
+    return x_new, p_new
+
+
+def upgrid_xp_naive(x, p, n_inner_points):
+    x_new = augment_grid(x, n_inner_points)
+    return upgrid_xp_manual(x, p, x_new)
+
+
+def insert_x(x, x_to_add):
+    return np.sort(np.concatenate((x, x_to_add)))
+
+
+def augment_grid(x, n_inner_points):
+    x_new = [
+        np.linspace(x[i], x[i + 1], n_inner_points + 1, endpoint=False)
+        for i in np.arange(len(x) - 1)
+    ]
+    x_new.append([x[-1]])
+    return np.concatenate(x_new)
+
+
+def xp_to_cdf(x, p):
+    cump = np.cumsum(p)
+    return interp1d(x, cump, kind="previous", bounds_error=False, fill_value=(0, 1))
+
+
+def xy_to_cdf(x, y):
+    dens_spline = UnivariateSpline(x=x, y=y, k=1, s=0)
+    cdf_spline_raw = dens_spline.antiderivative()
+
+    def cdf_spline(t):
+        t = np.atleast_1d(t)
+        res = np.zeros(len(t))
+        t_is_in = (x[0] < t) & (t <= x[-1])
+        res[t_is_in] = cdf_spline_raw(t[t_is_in])
+        res[x[-1] < t] = 1
+        return res
+
+    cdf_spline.get_knots = lambda: cdf_spline_raw.get_knots()
+
+    return cdf_spline
+
+
+x = np.array([0.03032502, 0.26397697, 0.42297539, 0.78702054])
+p = np.array([0.30726725, 0.07676467, 0.18088069, 0.43508739])
+y = utilsgrid._y_from_xp(x, p)
+interval_p = 0.5 * np.diff(x) * (y[:-1] + y[1:])
+
+plt.plot(x, y, "-o")
+plt.show()
+
+x_grid = np.linspace(x[0], x[-1], 1001)
+xp_cdf = xp_to_cdf(x, p)
+xy_cdf = xy_to_cdf(x, y)
+plt.plot(x_grid, xp_cdf(x_grid))
+plt.plot(x_grid, xy_cdf(x_grid))
+plt.show()
+
+x_up, p_up = upgrid_xp_naive(x, p, 1)
+xp_cdf = xp_to_cdf(x, p)
+xp_up_cdf = xp_to_cdf(x_up, p_up)
+plt.plot(x_grid, xp_cdf(x_grid), label="input")
+plt.plot(x_grid, xp_up_cdf(x_grid), label="upgrid")
+plt.legend()
+plt.show()
+
+# Manual upgridding
+x_grid = np.linspace(x[0], x[-1], 1001)
+for x_to_add in np.linspace(x[2], x[3], 11)[1:-1]:
+    x_new = insert_x(x, [x_to_add])
+
+    x_up, p_up = upgrid_xp_manual(x, p, x_new)
+
+    # plt.plot(x, p, "o", label="input")
+    # plt.plot(x_up, p_up, "o", label="upgrid")
+    # plt.legend()
+    # plt.show()
+
+    xp_cdf = xp_to_cdf(x, p)
+    xp_up_cdf = xp_to_cdf(x_up, p_up)
+    plt.plot(x_grid, xp_cdf(x_grid), label="input")
+    plt.plot(x_grid, xp_up_cdf(x_grid), label="upgrid")
+    plt.legend()
+    plt.show()
