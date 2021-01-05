@@ -691,11 +691,11 @@ class Cont(Rand):
         Conversion is done by the following logic depending on the value of
         `to_class`:
         - If it is `None` or `"Cont"`, `self` is returned.
-        - If it is `"Bool"`, boolean RV is returned with probability of `True`
-          equal to 1. That is because, following general Python agreement,
-          probability of `True` is computed as probability of all non-zero
-          values, which is 1 (probability of continuous RV being exactly zero
-          is always 0).
+        - If it is `"Bool"`, boolean RV is returned with probability of `False`
+          equal to 0. That is because, following general Python agreement, the
+          only numerical value converted to `False` is zero, which probability
+          is exactly 0 (probability of continuous RV being exactly to some
+          number is always 0).
         - If it is `"Disc"`, discrete RV is returned. Its xp-grid is computed
           by the following algorithm:
             - X-grid is taken the same as x-grid of `self`.
@@ -708,8 +708,8 @@ class Cont(Rand):
         Parameters
         ----------
         to_class : string or None, optional
-            Name of target class. If `None` (default) or `"Cont"`, `self` is
-            returned. Other options: "Bool", "Disc", "Mixt".
+            Name of target class. Can be one of: `"Bool"`, `"Cont"`, `"Disc"`,
+            `"Mixt"`, or `None`.
 
         Raises
         ------

@@ -7,6 +7,7 @@ from scipy.stats.distributions import rv_frozen
 from randomvars._random import Rand
 import randomvars.options as op
 import randomvars._utils as utils
+import randomvars._utilsgrid as utilsgrid
 
 
 class Disc(Rand):
@@ -376,3 +377,56 @@ class Disc(Rand):
     def integrate_cdf(self, a, b):
         """Efficient version of CDF integration"""
         return self._cdf_spline.integrate(a=a, b=b)
+
+    def convert(self, to_class=None):
+        """Convert to different RV class
+
+        Conversion is done by the following logic depending on the value of
+        `to_class`:
+        - If it is `None` or `"Disc"`, `self` is returned.
+        - If it is `"Bool"`, boolean RV is returned with probability of `False`
+          equal to probability of zero. That is because, following general
+          Python agreement, the only numerical value converted to `False` is
+          zero.
+        - If it is `"Cont"`, continuous RV is returned. Its xy-grid is computed
+          by the following algorithm:
+            - X-grid is taken the same as x-grid of `self`.
+            - Y-grid is computed so that output continuous RV is a maximum
+              likelihood estimation of input discrete RV.
+        - If it is `"Mixt"`, mixture RV with only discrete component equal to
+          `self` is returned.
+
+        Parameters
+        ----------
+        to_class : string or None, optional
+            Name of target class. Can be one of: `"Bool"`, `"Cont"`, `"Disc"`,
+            `"Mixt"`, or `None`.
+
+        Raises
+        ------
+        ValueError:
+            In case not supported `to_class` is given.
+        """
+        # Use inline `import` statements to avoid circular import problems
+        if to_class == "Bool":
+            import randomvars._boolean as bool
+
+            # Probability of `True` is a probability of all non-zero elements
+            return bool.Bool(prob_true=1 - self.pmf(0.0))
+        elif to_class == "Cont":
+            import randomvars._continuous as cont
+
+            # Convert xp-grid to xy-grid
+            y = utilsgrid._y_from_xp(x=self._x, p=self._p)
+            return cont.Cont(x=self._x, y=y)
+        elif (to_class == "Disc") or (to_class is None):
+            return self
+        elif to_class == "Mixt":
+            import randomvars._mixture as mixt
+
+            # Output is a degenerate mixture with only continuous component
+            return mixt.Mixt(disc=self, cont=None, weight_cont=0.0)
+        else:
+            raise ValueError(
+                '`metric` should be one of "Bool", "Cont", "Disc", or "Mixt".'
+            )

@@ -199,10 +199,7 @@ class TestDisc:
         x = np.array([0.1, -100, 1, np.pi, np.pi, 1, 3, 0.1])
 
         rv = Disc.from_sample(x)
-        rv_ref = Disc(
-            x=[-100, 0.1, 1, 3, np.pi],
-            p=[0.125, 0.25, 0.25, 0.125, 0.25],
-        )
+        rv_ref = Disc(x=[-100, 0.1, 1, 3, np.pi], p=[0.125, 0.25, 0.25, 0.125, 0.25])
         assert isinstance(rv, Disc)
         assert_equal_disc(rv, rv_ref)
 
@@ -394,6 +391,44 @@ class TestDisc:
     def test_integrate_cdf(self):
         rv = Disc([0.5, 1, 3], [0.1, 0.2, 0.7])
         assert np.allclose(rv.integrate_cdf(-10, 10), 0.1 * 0.5 + 0.3 * 2 + 1 * 7)
+
+    def test_convert(self):
+        import randomvars._boolean as bool
+        import randomvars._continuous as cont
+        import randomvars._mixture as mixt
+
+        rv = Disc([0.0, 0.5, 1, 3], [0.05, 0.05, 0.2, 0.7])
+
+        # By default and supplying `None` should return self
+        assert rv.convert() is rv
+        assert rv.convert(None) is rv
+
+        # Converting to Bool should result into boolean with probability of
+        # `False` being probability of 0
+        out_bool = rv.convert("Bool")
+        assert isinstance(out_bool, bool.Bool)
+        assert_array_almost_equal(out_bool.prob_false, rv.pmf(0.0), decimal=15)
+
+        # Converting to Cont should result into continuous RV with the same `x`
+        # values as in input's xp-grid
+        out_cont = rv.convert("Cont")
+        assert isinstance(out_cont, cont.Cont)
+        assert_array_equal(out_cont.x, rv.x)
+
+        # Converting to own class should return self
+        out_disc = rv.convert("Disc")
+        assert out_disc is rv
+
+        # Converting to Mixt should result into degenerate mixture with only
+        # discrete component
+        out_mixt = rv.convert("Mixt")
+        assert isinstance(out_mixt, mixt.Mixt)
+        assert out_mixt.disc is rv
+        assert out_mixt.weight_disc == 1.0
+
+        # Any other target class should result into error
+        with pytest.raises(ValueError, match="one of"):
+            rv.convert("aaa")
 
 
 class TestFromRVAccuracy:
