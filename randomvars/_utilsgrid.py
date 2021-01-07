@@ -1,6 +1,26 @@
 import numpy as np
 
 # %% Conversion
+# There were different other approaches to Cont-Disc conversion, which were
+# decided to be less appropriate:
+# - In Cont-Disc construct discrete distribution with the same x-grid to be the
+#   closest to input continuous CDF in terms of some metric ("L1" or "L2").
+#   These were discarded because they were not invertible and hence not really
+#   possible to create appropriate Disc-Cont conversion. The problem was that
+#   during inverse conversion there were negative values in y-grid, which is an
+#   additional problem. For example, `x = [0, 1]`, `p = [0.9, 0.1]`.
+# - Another idea of Cont-Disc conversion was along the following lines:
+#     - Assume there are many elements sampled from input distribution.
+#     - For every sample element find the closest one among input x-grid.
+#     - Take sample probability of x-grid elements as ratio of number of times
+#       it was the closest and number of all points.
+#     - Probability of element in x-grid is a limit of sample probabilities. Those
+#       can be computed directly by computing probability of Voronoi intervals
+#       (with ends at midpoints of adjacent intervals).
+#   This turned out to be a previous approach with "L1" metric, which is not
+#   invertible.
+
+
 def _y_from_xp(x, p):
     """Compute y-grid from xp-grid
 
