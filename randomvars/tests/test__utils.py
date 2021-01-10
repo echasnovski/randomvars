@@ -16,7 +16,7 @@ from randomvars._utils import (
     _is_zero,
     BSplineConstExtrapolate,
 )
-from .commontests import h
+from randomvars.tests.commontests import h
 import randomvars.options as op
 
 

@@ -6,7 +6,7 @@ import scipy.stats.distributions as distrs
 import pytest
 
 from randomvars._discrete import Disc
-from .commontests import (
+from randomvars.tests.commontests import (
     DECIMAL,
     h,
     _test_equal_seq,
@@ -42,10 +42,10 @@ DISTRIBUTIONS = {
 }
 
 
-def assert_equal_disc(rv_1, rv_2):
-    grid_1 = rv_1.x, rv_1.p
-    grid_2 = rv_2.x, rv_2.p
-    _test_equal_seq(grid_1, grid_2)
+def assert_equal_disc(rv_1, rv_2, decimal=None):
+    xp1 = rv_1.x, rv_1.p
+    xp2 = rv_2.x, rv_2.p
+    _test_equal_seq(xp1, xp2, decimal=decimal)
 
 
 class TestDisc:

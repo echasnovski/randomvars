@@ -5,7 +5,7 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal
 import pytest
 
 from randomvars._random import Rand
-from .commontests import _test_one_value_input
+from randomvars.tests.commontests import _test_one_value_input
 
 
 class TestRand:

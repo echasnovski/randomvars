@@ -8,7 +8,7 @@ from scipy.integrate import quad
 import pytest
 
 from randomvars._continuous import Cont
-from .commontests import (
+from randomvars.tests.commontests import (
     DECIMAL,
     h,
     _test_equal_seq,
@@ -62,15 +62,10 @@ DISTRIBUTIONS = {
 }
 
 
-def assert_equal_cont(rv_1, rv_2):
-    grid_1 = rv_1.x, rv_1.y
-    grid_2 = rv_2.x, rv_2.y
-    _test_equal_seq(grid_1, grid_2)
-
-
-def assert_almost_equal_cont(rv_1, rv_2, decimal=DECIMAL):
-    assert_array_almost_equal(rv_1.x, rv_2.x, decimal=decimal)
-    assert_array_almost_equal(rv_1.y, rv_2.y, decimal=decimal)
+def assert_equal_cont(rv_1, rv_2, decimal=None):
+    xy1 = rv_1.x, rv_1.y
+    xy2 = rv_2.x, rv_2.y
+    _test_equal_seq(xy1, xy2, decimal=decimal)
 
 
 def augment_grid(x, n_inner_points):
@@ -275,7 +270,7 @@ class TestCont:
         # Basic usage
         rv_unif = Cont.from_rv(uniform)
         rv_unif_test = Cont(x=[0, 1], y=[1, 1])
-        assert_almost_equal_cont(rv_unif, rv_unif_test, decimal=DECIMAL)
+        assert_equal_cont(rv_unif, rv_unif_test, decimal=DECIMAL)
 
         # Object of `Cont` class should be returned untouched
         rv = Cont.from_rv(uniform)
@@ -287,15 +282,15 @@ class TestCont:
         # Forced support edges
         rv_right = Cont.from_rv(uniform, supp=(0.5, None))
         rv_right_test = Cont([0.5, 1], [2, 2])
-        assert_almost_equal_cont(rv_right, rv_right_test, decimal=DECIMAL)
+        assert_equal_cont(rv_right, rv_right_test, decimal=DECIMAL)
 
         rv_left = Cont.from_rv(uniform, supp=(None, 0.5))
         rv_left_test = Cont([0, 0.5], [2, 2])
-        assert_almost_equal_cont(rv_left, rv_left_test, decimal=DECIMAL)
+        assert_equal_cont(rv_left, rv_left_test, decimal=DECIMAL)
 
         rv_mid = Cont.from_rv(uniform, supp=(0.25, 0.75))
         rv_mid_test = Cont([0.25, 0.75], [2, 2])
-        assert_almost_equal_cont(rv_mid, rv_mid_test, decimal=DECIMAL)
+        assert_equal_cont(rv_mid, rv_mid_test, decimal=DECIMAL)
 
     def test_from_rv_errors(self):
         # Absence of either `cdf` or `ppf` method should result intro error
@@ -318,15 +313,21 @@ class TestCont:
         # Finite support detection and usage of `small_prob` option
         with option_context({"small_prob": 1e-6}):
             rv_norm = Cont.from_rv(norm)
-            assert_array_almost_equal(rv_norm.support(), norm.ppf([1e-6, 1 - 1e-6]))
+            assert_array_almost_equal(
+                rv_norm.support(), norm.ppf([1e-6, 1 - 1e-6]), decimal=DECIMAL
+            )
 
         with option_context({"small_prob": 1e-6}):
             rv_norm_right = Cont.from_rv(norm, supp=(-1, None))
-            assert_array_almost_equal(rv_norm_right.support(), [-1, norm.ppf(1 - 1e-6)])
+            assert_array_almost_equal(
+                rv_norm_right.support(), [-1, norm.ppf(1 - 1e-6)], decimal=DECIMAL
+            )
 
         with option_context({"small_prob": 1e-6}):
             rv_norm_left = Cont.from_rv(norm, supp=(None, 1))
-            assert_array_almost_equal(rv_norm_left.support(), [norm.ppf(1e-6), 1])
+            assert_array_almost_equal(
+                rv_norm_left.support(), [norm.ppf(1e-6), 1], decimal=DECIMAL
+            )
 
         # Usage of `n_grid` option
         with option_context({"n_grid": 11}):

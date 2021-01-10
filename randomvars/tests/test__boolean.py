@@ -7,7 +7,7 @@ import pytest
 
 from randomvars._boolean import Bool
 from randomvars._discrete import Disc
-from .commontests import (
+from randomvars.tests.commontests import (
     h,
     _test_equal_seq,
     _test_input_coercion,
@@ -18,10 +18,10 @@ from .commontests import (
 import randomvars.options as op
 
 
-def assert_equal_bool(rv_1, rv_2):
+def assert_equal_bool(rv_1, rv_2, decimal=None):
     grid_1 = rv_1.prob_false, rv_1.prob_true
     grid_2 = rv_2.prob_false, rv_2.prob_true
-    _test_equal_seq(grid_1, grid_2)
+    _test_equal_seq(grid_1, grid_2, decimal=decimal)
 
 
 class TestBool:

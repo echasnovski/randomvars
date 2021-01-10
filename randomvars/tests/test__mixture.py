@@ -8,7 +8,7 @@ import pytest
 from randomvars._continuous import Cont
 from randomvars._discrete import Disc
 from randomvars._mixture import Mixt
-from .commontests import (
+from randomvars.tests.commontests import (
     DECIMAL,
     h,
     _test_equal_seq,
@@ -19,7 +19,7 @@ from .commontests import (
 )
 
 
-def assert_equal_mixt(rv_1, rv_2):
+def assert_equal_mixt(rv_1, rv_2, decimal=None):
     # Check weights
     assert rv_1.weight_cont == rv_2.weight_cont
     assert rv_1.weight_disc == rv_2.weight_disc
@@ -27,9 +27,9 @@ def assert_equal_mixt(rv_1, rv_2):
     # Check continuous parts
     if rv_1.cont is not None:
         if rv_2.cont is not None:
-            grid_1 = rv_1.cont.x, rv_1.cont.y
-            grid_2 = rv_2.cont.x, rv_2.cont.y
-            _test_equal_seq(grid_1, grid_2)
+            xy1 = rv_1.cont.x, rv_1.cont.y
+            xy2 = rv_2.cont.x, rv_2.cont.y
+            _test_equal_seq(xy1, xy2, decimal=decimal)
         else:
             raise ValueError("`rv_2.cont` is `None` while `rv_1.cont` is not.")
     else:
@@ -39,9 +39,9 @@ def assert_equal_mixt(rv_1, rv_2):
     # Check discrete parts
     if rv_1.disc is not None:
         if rv_2.disc is not None:
-            grid_1 = rv_1.disc.x, rv_1.disc.p
-            grid_2 = rv_2.disc.x, rv_2.disc.p
-            _test_equal_seq(grid_1, grid_2)
+            xp1 = rv_1.disc.x, rv_1.disc.p
+            xp2 = rv_2.disc.x, rv_2.disc.p
+            _test_equal_seq(xp1, xp2)
         else:
             raise ValueError("`rv_2.disc` is `None` while `rv_1.disc` is not.")
     else:

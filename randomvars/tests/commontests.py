@@ -1,5 +1,5 @@
 import numpy as np
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 import pytest
 
@@ -14,10 +14,13 @@ DECIMAL = np.ceil(-np.log10(atol)).astype("int64")
 h = op.get_option("small_width")
 
 
-def _test_equal_seq(first, second, *args, **kwargs):
+def _test_equal_seq(first, second, decimal=None):
     assert len(first) == len(second)
     for el1, el2 in zip(first, second):
-        np.testing.assert_array_equal(el1, el2, *args, **kwargs)
+        if decimal is None:
+            assert_array_equal(el1, el2)
+        else:
+            assert_array_almost_equal(el1, el2, decimal=decimal)
 
 
 def _test_input_coercion(func, arr):
