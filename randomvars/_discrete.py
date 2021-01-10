@@ -294,11 +294,10 @@ class Disc(Rand):
         """
         x = np.asarray(x, "float64")
 
-        rtol, atol = op.get_option("tolerance")
-
         inds = utils._find_nearest_ind(x, self._x)
 
-        x_is_matched = np.isclose(x, self._x[inds], rtol=rtol, atol=atol)
+        # This uses "tolerance" package option
+        x_is_matched = utils._is_close(x, self._x[inds])
 
         res = np.where(x_is_matched, self._p[inds], 0)
 

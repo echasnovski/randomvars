@@ -644,8 +644,8 @@ class Cont(Rand):
         x, y, cump = grid
         _, slope = coeffs
 
-        is_quad = ~np.isclose(slope, 0)
-        is_lin = ~(is_quad | np.isclose(y, 0))
+        is_quad = ~utils._is_zero(slope)
+        is_lin = ~(is_quad | utils._is_zero(y))
         is_const = ~(is_quad | is_lin)
 
         # Case of quadratic CDF curve (density is a line not aligned to x axis)

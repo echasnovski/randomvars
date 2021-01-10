@@ -12,6 +12,7 @@ from randomvars._utils import (
     _trapez_integral,
     _trapez_integral_cum,
     _quad_silent,
+    _is_close,
     _is_zero,
     _minmax,
     _assert_positive,
@@ -220,6 +221,13 @@ def test__quad_silent():
     with pytest.warns(None) as record:
         _quad_silent(np.tan, 0, np.pi / 2.0 + 0.0001)
     assert len(record) == 0
+
+
+def test__is_close():
+    assert_array_equal(_is_close([1, 0, -1], [-1, 0, 1]), [False, True, False])
+
+    with op.option_context({"tolerance": (0.0, 0.1)}):
+        assert_array_equal(_is_close([0.15, 0.05], [0.0, 0.0]), [False, True])
 
 
 def test__is_zero():

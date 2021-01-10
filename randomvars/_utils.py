@@ -251,9 +251,13 @@ def _quad_silent(f, a, b):
         return quad(f, a, b, limit=100)[0]
 
 
-def _is_zero(x):
+def _is_close(x, y):
     rtol, atol = op.get_option("tolerance")
-    return np.isclose(x, 0.0, rtol=rtol, atol=atol)
+    return np.isclose(x, y, rtol=rtol, atol=atol)
+
+
+def _is_zero(x):
+    return _is_close(x, 0.0)
 
 
 def _minmax(x):
