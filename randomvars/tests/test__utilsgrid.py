@@ -1,9 +1,16 @@
 import numpy as np
+from numpy.testing import assert_array_equal
 import pytest
 
 from randomvars._continuous import Cont
 from randomvars._discrete import Disc
-from randomvars._utilsgrid import _y_from_xp, _p_from_xy, _ground_xy
+from randomvars._utilsgrid import (
+    _y_from_xp,
+    _p_from_xy,
+    _stack_xy,
+    _compute_stack_ground_dir,
+    _ground_xy,
+)
 import randomvars.options as op
 from randomvars.tests.commontests import DECIMAL, _test_equal_seq
 
@@ -33,6 +40,102 @@ def test__p_from_xy():
     assert np.sum(p) == 1
     # Zero y-elements result into zero p-elements
     assert np.all(p[y == 0] == 0)
+
+
+class TestStackXY:
+    def test_basic(self):
+        w = op.get_option("small_width")
+
+        xy_seq1 = [([0, 1], [1, 1]), ([0.25, 1.25], [1, 1]), ([0.5, 1.5], [1, 1])]
+        _test_equal_seq(
+            _stack_xy(xy_seq1),
+            (
+                [
+                    0,
+                    0.25 - w,
+                    0.25,
+                    0.25 + w,
+                    0.5 - w,
+                    0.5,
+                    0.5 + w,
+                    1 - w,
+                    1,
+                    1 + w,
+                    1.25 - w,
+                    1.25,
+                    1.25 + w,
+                    1.5,
+                ],
+                [1, 1, 1.5, 2, 2, 2.5, 3, 3, 2.5, 2, 2, 1.5, 1, 1],
+            ),
+        )
+
+        xy_seq2 = [([0, 1], [1, 1]), ([0.25, 0.75], [1, 1])]
+        _test_equal_seq(
+            _stack_xy(xy_seq2),
+            (
+                [0, 0.25 - w, 0.25, 0.25 + w, 0.75 - w, 0.75, 0.75 + w, 1],
+                [1, 1, 1.5, 2, 2, 1.5, 1, 1],
+            ),
+        )
+
+        xy_seq3 = [([0, 1], [1, 1]), ([0, 0.5], [1, 1]), ([0.5, 1], [1, 1])]
+        _test_equal_seq(
+            _stack_xy(xy_seq3), ([0, 0.5 - w, 0.5, 0.5 + w, 1], [2, 2, 2, 2, 2])
+        )
+
+    def test_touching_supports(self):
+        w = op.get_option("small_width")
+
+        # Touching supports should lead to linear change between y-values
+        xy_seq = [([0, 1], [1, 1]), ([1, 2], [2, 2])]
+        _test_equal_seq(_stack_xy(xy_seq), ([0, 1 - w, 1, 1 + w, 2], [1, 1, 1.5, 2, 2]))
+
+        ## **Note** that this is currently only the case if there is no "very
+        ## close inner neighborhood points". Like, for example, here:
+        ##   xy_seq = [([0, 1 - 0.25 * w, 1], [1, 1, 1]), ([1, 2], [2, 2])]
+        ## In practice this can be resolved by lowering "small_width" option so
+        ## that it is smaller than the smallest difference between edge
+        ## neighbors.
+
+    def test_zero_edge(self):
+        w = op.get_option("small_width")
+        xy_seq = [([0, 1, 2], [0, 1, 0]), ([1, 2, 3], [0, 1, 1])]
+        _test_equal_seq(_stack_xy(xy_seq), ([0, 1, 2, 3], [0.0, 1.0, 1.0, 1.0]))
+
+    def test_options(self):
+        xy_seq = [([0, 1], [1, 1]), ([0.25, 0.75], [1, 1])]
+        with op.option_context({"small_width": 0.01}):
+            w = op.get_option("small_width")
+            _test_equal_seq(
+                _stack_xy(xy_seq),
+                (
+                    [0, 0.25 - w, 0.25, 0.25 + w, 0.75 - w, 0.75, 0.75 + w, 1],
+                    [1, 1, 1.5, 2, 2, 1.5, 1, 1],
+                ),
+            )
+
+
+def test__compute_ground_direction():
+    assert_array_equal(
+        _compute_stack_ground_dir([([0, 1], [1, 1]), ([0.5, 1.5], [1, 1])]),
+        ["right", "left"],
+    )
+    assert_array_equal(
+        _compute_stack_ground_dir([([0, 1], [1, 1]), ([0.5, 0.75], [1, 1])]),
+        ["none", "both"],
+    )
+    assert_array_equal(
+        _compute_stack_ground_dir(
+            [
+                ([0, 1], [1, 1]),
+                ([0, 0.5], [1, 1]),
+                ([0.25, 0.75], [1, 1]),
+                ([0.5, 1], [1, 1]),
+            ]
+        ),
+        ["none", "right", "both", "left"],
+    )
 
 
 class TestGroundXY:

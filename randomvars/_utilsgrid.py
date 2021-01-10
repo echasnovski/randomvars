@@ -67,6 +67,62 @@ def _convert_coeffs(x):
 
 
 # %% Stacking
+def _stack_xy(xy_seq):
+    """Stack xy-grids
+
+    Here "stack xy-grids" means "compute xy-grid which represents sum of all
+    input xy-grids".
+
+    Compute xy-grid representing piecewise-linear function which is a sum of
+    input xy-grids. As every xy-grid (possibly) has discontinuities at edges
+    (if y-value is not zero) output uses "grounded" versions of xy-grids: the
+    ones which represent explicit piecewise-linear on the whole real line.
+    Grounding is done only where it is necessary: if certain edge will be an
+    edge of output xy-grid, it is not grounded (this also helps sustaining the
+    exact support of output).
+
+    Output x-grid consists of all unique values from all input x-grids. Output
+    y-grid is computed as sum of interpolations at output x-grid for all input
+    y-grids.
+
+    Parameters
+    ----------
+    xy_seq : sequence
+        Sequence of xy-grids.
+    """
+    # Determine grounding direction for every xy-grid so that resulting edges
+    # of output don't get unnecessary grounding
+    ground_dir = _compute_stack_ground_dir(xy_seq)
+
+    # Grounding is needed to ensure that `x_tbl` doesn't affect its outside
+    xy_grounded_seq = [_ground_xy(xy, dir) for xy, dir in zip(xy_seq, ground_dir)]
+
+    # Compute stacked x-grid as unique values of all grounded x-grids
+    ## This relies on fact that `np.unique()` returns sorted output
+    x = np.unique(np.concatenate([xy[0] for xy in xy_grounded_seq]))
+
+    # Stack xy-grids by evaluating grounded versions at output x-grid
+    y_list = [np.interp(x, x_in, y_in) for x_in, y_in in xy_grounded_seq]
+    y = np.array(y_list).sum(axis=0)
+
+    return x, y
+
+
+def _compute_stack_ground_dir(xy_seq):
+    output_range = utils._minmax(np.concatenate([xy[0] for xy in xy_seq]))
+    ground_left = [~utils._is_close(x[0], output_range[0]) for x, _ in xy_seq]
+    ground_right = [~utils._is_close(x[-1], output_range[-1]) for x, _ in xy_seq]
+
+    ground_dict = {
+        (False, False): "none",
+        (True, False): "left",
+        (False, True): "right",
+        (True, True): "both",
+    }
+
+    return [ground_dict[gr] for gr in zip(ground_left, ground_right)]
+
+
 def _ground_xy(xy, direction=None):
     """Update xy-grid to represent explicit piecewise-linear function
 
