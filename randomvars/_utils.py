@@ -4,6 +4,8 @@ import numpy as np
 from scipy.integrate import quad
 from scipy.interpolate import BSpline
 
+import randomvars.options as op
+
 
 # %% User-facing functions
 ## Currently exported in `options.py`
@@ -255,6 +257,11 @@ def _assert_positive(x, x_name):
         raise ValueError(f"`{x_name}` has negative values.")
     if not np.any(x > 0):
         raise ValueError(f"`{x_name}` has no positive values.")
+
+
+def _is_zero(x):
+    rtol, atol = op.get_option("tolerance")
+    return np.isclose(x, 0.0, rtol=rtol, atol=atol)
 
 
 # %% Custom classes
