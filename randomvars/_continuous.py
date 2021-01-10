@@ -828,7 +828,7 @@ def _estimate_density_range(density, sample, density_mincoverage):
 
 
 def _init_range(sample, density):
-    x_left, x_right = sample.min(), sample.max()
+    x_left, x_right = utils._minmax(sample)
 
     if x_left == x_right:
         x, y = x_left, density(x_left)

@@ -12,8 +12,9 @@ from randomvars._utils import (
     _trapez_integral,
     _trapez_integral_cum,
     _quad_silent,
-    _assert_positive,
     _is_zero,
+    _minmax,
+    _assert_positive,
     BSplineConstExtrapolate,
 )
 from randomvars.tests.commontests import h
@@ -221,18 +222,23 @@ def test__quad_silent():
     assert len(record) == 0
 
 
-def test__assert_positive():
-    with pytest.raises(ValueError, match="`tmp_name`.*negative"):
-        _assert_positive(np.array([-1, 0, 1]), x_name="tmp_name")
-    with pytest.raises(ValueError, match="`tmp_name`.*no positive"):
-        _assert_positive(np.array([0, 0, 0]), x_name="tmp_name")
-
-
 def test__is_zero():
     assert_array_equal(_is_zero([1, 0, -1]), [False, True, False])
 
     with op.option_context({"tolerance": (0.0, 0.1)}):
         assert_array_equal(_is_zero([0.15, 0.05]), [False, True])
+
+
+def test__minmax():
+    assert _minmax([0, 9, 10, -1, np.nan]) == (-1, 10)
+    assert _minmax([-np.inf, 10, np.inf, 20, np.nan]) == (-np.inf, np.inf)
+
+
+def test__assert_positive():
+    with pytest.raises(ValueError, match="`tmp_name`.*negative"):
+        _assert_positive(np.array([-1, 0, 1]), x_name="tmp_name")
+    with pytest.raises(ValueError, match="`tmp_name`.*no positive"):
+        _assert_positive(np.array([0, 0, 0]), x_name="tmp_name")
 
 
 class TestBSplineConstExtrapolate:

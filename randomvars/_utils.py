@@ -251,17 +251,21 @@ def _quad_silent(f, a, b):
         return quad(f, a, b, limit=100)[0]
 
 
+def _is_zero(x):
+    rtol, atol = op.get_option("tolerance")
+    return np.isclose(x, 0.0, rtol=rtol, atol=atol)
+
+
+def _minmax(x):
+    return np.nanmin(x), np.nanmax(x)
+
+
 # %% Package assertions
 def _assert_positive(x, x_name):
     if np.any(x < 0):
         raise ValueError(f"`{x_name}` has negative values.")
     if not np.any(x > 0):
         raise ValueError(f"`{x_name}` has no positive values.")
-
-
-def _is_zero(x):
-    rtol, atol = op.get_option("tolerance")
-    return np.isclose(x, 0.0, rtol=rtol, atol=atol)
 
 
 # %% Custom classes
