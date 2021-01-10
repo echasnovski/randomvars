@@ -7,6 +7,7 @@ import pytest
 
 from randomvars._discrete import Disc
 from .commontests import (
+    DECIMAL,
     _test_equal_seq,
     _test_input_coercion,
     _test_log_fun,
@@ -308,7 +309,7 @@ class TestDisc:
         assert_array_almost_equal(
             rv.cdf(x),
             np.array([0, 0, 0.1, 0.1, 0.1, 0.3, 0.3, 0.3, 1, 1, 1]),
-            decimal=12,
+            decimal=DECIMAL,
         )
 
         # Coercion of not ndarray input
@@ -321,7 +322,7 @@ class TestDisc:
         # Broadcasting
         x = np.array([[-1, 0.5], [2, 4]])
         assert_array_almost_equal(
-            rv.cdf(x), np.array([[0.0, 0.1], [0.3, 1.0]]), decimal=12
+            rv.cdf(x), np.array([[0.0, 0.1], [0.3, 1.0]]), decimal=DECIMAL
         )
 
         # One value input
@@ -407,7 +408,7 @@ class TestDisc:
         # `False` being probability of 0
         out_bool = rv.convert("Bool")
         assert isinstance(out_bool, bool.Bool)
-        assert_array_almost_equal(out_bool.prob_false, rv.pmf(0.0), decimal=15)
+        assert_array_almost_equal(out_bool.prob_false, rv.pmf(0.0), decimal=DECIMAL)
 
         # Converting to Cont should result into continuous RV with the same `x`
         # values as in input's xp-grid

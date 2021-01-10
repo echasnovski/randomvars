@@ -22,7 +22,7 @@ _default_options = {
     "metric": "L2",
     "n_grid": 1001,
     "small_prob": 1e-6,
-    "tolerance": (0.0, 1e-8),
+    "tolerance": (0.0, 1e-12),
 }
 _options = _default_options.copy()
 
@@ -69,10 +69,11 @@ _options_list = """
   creating object of class `Cont`.
 - small_prob : float, default 1e-6. Probability value that can be considered
   "small" during approximations.
-- tolerance : tuple with two elements, default (0.0, 1e-8). Tuple with
+- tolerance : tuple with two elements, default (0.0, 1e-12). Tuple with
   relative and absolute tolerance to be used as `rtol` and `atol` arguments in
-  `numpy.isclose()` and similar functions. **Note** that default values are
-  different than in `numpy.isclose()`.
+  `numpy.isclose()` and similar functions when testing not exact equality of
+  two numbers. **Note** that default values are different than in
+  `numpy.isclose()`.
 """
 
 

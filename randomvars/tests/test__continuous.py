@@ -9,6 +9,7 @@ import pytest
 
 from randomvars._continuous import Cont
 from .commontests import (
+    DECIMAL,
     _test_equal_seq,
     _test_input_coercion,
     _test_log_fun,
@@ -66,7 +67,7 @@ def assert_equal_cont(rv_1, rv_2):
     _test_equal_seq(grid_1, grid_2)
 
 
-def assert_almost_equal_cont(rv_1, rv_2, decimal=10):
+def assert_almost_equal_cont(rv_1, rv_2, decimal=DECIMAL):
     assert_array_almost_equal(rv_1.x, rv_2.x, decimal=decimal)
     assert_array_almost_equal(rv_1.y, rv_2.y, decimal=decimal)
 
@@ -273,7 +274,7 @@ class TestCont:
         # Basic usage
         rv_unif = Cont.from_rv(uniform)
         rv_unif_test = Cont(x=[0, 1], y=[1, 1])
-        assert_almost_equal_cont(rv_unif, rv_unif_test, decimal=12)
+        assert_almost_equal_cont(rv_unif, rv_unif_test, decimal=DECIMAL)
 
         # Object of `Cont` class should be returned untouched
         rv = Cont.from_rv(uniform)
@@ -285,15 +286,15 @@ class TestCont:
         # Forced support edges
         rv_right = Cont.from_rv(uniform, supp=(0.5, None))
         rv_right_test = Cont([0.5, 1], [2, 2])
-        assert_almost_equal_cont(rv_right, rv_right_test, decimal=12)
+        assert_almost_equal_cont(rv_right, rv_right_test, decimal=DECIMAL)
 
         rv_left = Cont.from_rv(uniform, supp=(None, 0.5))
         rv_left_test = Cont([0, 0.5], [2, 2])
-        assert_almost_equal_cont(rv_left, rv_left_test, decimal=12)
+        assert_almost_equal_cont(rv_left, rv_left_test, decimal=DECIMAL)
 
         rv_mid = Cont.from_rv(uniform, supp=(0.25, 0.75))
         rv_mid_test = Cont([0.25, 0.75], [2, 2])
-        assert_almost_equal_cont(rv_mid, rv_mid_test, decimal=12)
+        assert_almost_equal_cont(rv_mid, rv_mid_test, decimal=DECIMAL)
 
     def test_from_rv_errors(self):
         # Absence of either `cdf` or `ppf` method should result intro error
@@ -448,7 +449,7 @@ class TestCont:
         # Input around edges
         x = np.array([0 - 1e-10, 0 + 1e-10, 3 - 1e-10, 3 + 1e-10])
         assert_array_almost_equal(
-            rv.pdf(x), np.array([0, 0.5, 0.25e-10, 0]), decimal=12
+            rv.pdf(x), np.array([0, 0.5, 0.25e-10, 0]), decimal=DECIMAL
         )
 
         # Bad input
@@ -504,7 +505,7 @@ class TestCont:
         rv_dirac = Cont([10 - 1e-8, 10, 10 + 1e-8], [0, 1, 0])
         x = np.array([10 - 1e-8, 10 - 0.5e-8, 10, 10 + 0.5e-8, 10 + 1e-8])
         assert_array_almost_equal(
-            rv_dirac.cdf(x), np.array([0, 0.125, 0.5, 0.875, 1]), decimal=7
+            rv_dirac.cdf(x), np.array([0, 0.125, 0.5, 0.875, 1]), decimal=DECIMAL
         )
 
         # Broadcasting
@@ -552,7 +553,7 @@ class TestCont:
         assert_array_almost_equal(
             rv_dirac.ppf(q),
             np.array([10 - 1e-8, 10 - 0.5e-8, 10, 10 + 0.5e-8, 10 + 1e-8]),
-            decimal=9,
+            decimal=DECIMAL,
         )
 
         # Broadcasting

@@ -9,6 +9,7 @@ from randomvars._continuous import Cont
 from randomvars._discrete import Disc
 from randomvars._mixture import Mixt
 from .commontests import (
+    DECIMAL,
     _test_equal_seq,
     _test_input_coercion,
     _test_log_fun,
@@ -82,7 +83,7 @@ def assert_ppf(cont, disc, weight_cont):
     # Check equality at cumulative probability intervals coming from continuous
     # part
     x_cont = np.setdiff1d(np.linspace(cont.a, cont.b, 1001), disc.x)[1:-1]
-    assert_array_almost_equal(rv.ppf(rv.cdf(x_cont)), x_cont, decimal=12)
+    assert_array_almost_equal(rv.ppf(rv.cdf(x_cont)), x_cont, decimal=DECIMAL)
 
     # Check extreme cumulative probabilities
     assert_array_equal(rv.ppf([0, 1]), list(rv.support()))
