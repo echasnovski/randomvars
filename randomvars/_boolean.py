@@ -286,3 +286,46 @@ class Bool(Rand):
         )
 
         return cdf_spline.integrate(a=a, b=b)
+
+    def convert(self, to_class=None):
+        """Convert to different RV class
+
+        Conversion is done by the following logic depending on the value of
+        `to_class`:
+        - If it is `None` or `"Bool"`, `self` is returned.
+        - If it is `"Cont"`, continuous RV is returned. Input is first
+          converted to discrete RV, which then is converted to continuous RV.
+        - If it is `"Disc"`, discrete RV is returned. Its x-grid is equal to
+          `[0, 1]` and p-grid is `[self.prob_false, self.prob_true]`.
+        - If it is `"Mixt"`, mixture RV with only discrete component (equal to
+          conversion of `self` to discrete RV) is returned.
+
+        Parameters
+        ----------
+        to_class : string or None, optional
+            Name of target class. Can be one of: `"Bool"`, `"Cont"`, `"Disc"`,
+            `"Mixt"`, or `None`.
+
+        Raises
+        ------
+        ValueError:
+            In case not supported `to_class` is given.
+        """
+        # Use inline `import` statements to avoid circular import problems
+        if (to_class == "Bool") or (to_class is None):
+            return self
+        elif to_class == "Cont":
+            return self.convert("Disc").convert("Cont")
+        elif to_class == "Disc":
+            import randomvars._discrete as disc
+
+            return disc.Disc(x=[0, 1], p=[self._prob_false, self._prob_true])
+        elif to_class == "Mixt":
+            import randomvars._mixture as mixt
+
+            # Output is a degenerate mixture with only continuous component
+            return mixt.Mixt(disc=self.convert("Disc"), cont=None, weight_cont=0.0)
+        else:
+            raise ValueError(
+                '`metric` should be one of "Bool", "Cont", "Disc", or "Mixt".'
+            )

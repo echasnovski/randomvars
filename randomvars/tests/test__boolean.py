@@ -300,3 +300,45 @@ class TestBool:
     def test_integrate_cdf(self):
         rv = Bool(prob_true=0.75)
         assert np.allclose(rv.integrate_cdf(-10, 10), 0.25 * 1 + 1 * 9)
+
+    def test_convert(self):
+        import randomvars._continuous as cont
+        import randomvars._discrete as disc
+        import randomvars._mixture as mixt
+
+        rv = Bool(prob_true=0.75)
+
+        # By default and supplying `None` should return self
+        assert rv.convert() is rv
+        assert rv.convert(None) is rv
+
+        # Converting to own class should return self
+        out_bool = rv.convert("Bool")
+        assert out_bool is rv
+
+        # Converting to Cont should result into conversion to Disc and then to Cont
+        out_cont = rv.convert("Cont")
+        out_ref = rv.convert("Disc").convert("Cont")
+        assert isinstance(out_cont, cont.Cont)
+        assert_array_equal(out_cont.x, out_ref.x)
+        assert_array_equal(out_cont.y, out_ref.y)
+
+        # Converting to Disc should result into discrete RV with `x=[0, 1],
+        # p=[prob_false, prob_true]`
+        out_disc = rv.convert("Disc")
+        assert isinstance(out_disc, disc.Disc)
+        assert_array_equal(out_disc.x, [0, 1])
+        assert_array_equal(out_disc.p, [rv.prob_false, rv.prob_true])
+
+        # Converting to Mixt should result into degenerate mixture with only
+        # discrete component (which is a conversion of input to Disc)
+        out_mixt = rv.convert("Mixt")
+        out_disc_ref = rv.convert("Disc")
+        assert isinstance(out_mixt, mixt.Mixt)
+        assert_array_equal(out_mixt.disc.x, out_disc_ref.x)
+        assert_array_equal(out_mixt.disc.p, out_disc_ref.p)
+        assert out_mixt.weight_disc == 1.0
+
+        # Any other target class should result into error
+        with pytest.raises(ValueError, match="one of"):
+            rv.convert("aaa")
