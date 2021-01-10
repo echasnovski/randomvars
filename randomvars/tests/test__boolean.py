@@ -6,7 +6,6 @@ import scipy.stats.distributions as distrs
 import pytest
 
 from randomvars._boolean import Bool
-from randomvars._discrete import Disc
 from randomvars.tests.commontests import (
     h,
     _test_equal_seq,
@@ -140,26 +139,31 @@ class TestBool:
             assert_equal_bool(rv, Bool(prob_true=0))
 
         # "boolean_estimator" which returns allowed classes
-        ## `Bool` object should be returned untouched
-        rv_estimation = Bool(prob_true=1)
-        rv_estimation.aaa = "Extra method"
-        with op.option_context({"boolean_estimator": lambda x: rv_estimation}):
-            rv = Bool.from_sample(x)
-            assert "aaa" in dir(rv)
+        ## `Rand` class should be forwarded to `Bool.from_rv()`
+        import randomvars._continuous as cont
+        import randomvars._discrete as disc
+        import randomvars._mixture as mixt
 
-        ## `Disc` and "scipy" distribution should be forwarded to
-        ## `Bool.from_rv()`
-        rv_disc = Disc(x=[0, 1], p=[0.125, 0.875])
+        rv_bool = Bool(prob_true=0.5)
+        with op.option_context({"boolean_estimator": lambda x: rv_bool}):
+            assert_equal_bool(Bool.from_sample(x), Bool.from_rv(rv_bool))
+
+        rv_cont = cont.Cont(x=[0, 1], y=[1, 1])
+        with op.option_context({"boolean_estimator": lambda x: rv_cont}):
+            assert_equal_bool(Bool.from_sample(x), Bool.from_rv(rv_cont))
+
+        rv_disc = disc.Disc(x=[0, 1], p=[0.125, 0.875])
         with op.option_context({"boolean_estimator": lambda x: rv_disc}):
-            rv = Bool.from_sample(x)
-            rv_ref = Bool.from_rv(rv_disc)
-            assert_equal_bool(rv, rv_ref)
+            assert_equal_bool(Bool.from_sample(x), Bool.from_rv(rv_disc))
 
+        rv_mixt = mixt.Mixt(rv_cont, rv_disc, 0.5)
+        with op.option_context({"boolean_estimator": lambda x: rv_mixt}):
+            assert_equal_bool(Bool.from_sample(x), Bool.from_rv(rv_mixt))
+
+        ## "Scipy" distributions should be forwarded to `Bool.from_rv()`
         rv_bernoulli = distrs.bernoulli(p=0.625)
         with op.option_context({"boolean_estimator": lambda x: rv_bernoulli}):
-            rv = Bool.from_sample(x)
-            rv_ref = Bool.from_rv(rv_bernoulli)
-            assert_equal_bool(rv, rv_ref)
+            assert_equal_bool(Bool.from_sample(x), Bool.from_rv(rv_bernoulli))
 
     def test_pdf(self):
         rv = Bool(0.75)

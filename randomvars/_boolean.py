@@ -4,7 +4,6 @@
 import numpy as np
 from scipy.stats.distributions import rv_frozen
 
-from randomvars._discrete import Disc
 from randomvars._random import Rand
 import randomvars.options as op
 import randomvars._utils as utils
@@ -156,10 +155,9 @@ class Bool(Rand):
         Boolean RV is created by the following algorithm:
         - **Estimate distribution** with boolean estimator (taken from package
           option "boolean_estimator") in the form `estimate =
-          boolean_estimator(sample)`. If `estimator` is object of class `Bool`,
-          it is returned untouched. If it is object of `Disc` or `rv_frozen`
-          (`rv_discrete` with all hyperparameters defined), it is forwarded to
-          `Bool.from_rv()`.
+          boolean_estimator(sample)`. If `estimator` is an object of class
+          `Rand` or `rv_frozen` (`rv_discrete` with all hyperparameters
+          defined), it is forwarded to `Bool.from_rv()`.
         - **Create random variable** with `Bool(prob_true=estimate)`.
 
         Relevant package options: `boolean_estimator`. See documentation of
@@ -188,9 +186,7 @@ class Bool(Rand):
         estimate = boolean_estimator(sample)
 
         # Make early return if `estimate` is random variable
-        if isinstance(estimate, Bool):
-            return estimate
-        if isinstance(estimate, (Disc, rv_frozen)):
+        if isinstance(estimate, (Rand, rv_frozen)):
             return Bool.from_rv(estimate)
 
         return cls(prob_true=estimate)
