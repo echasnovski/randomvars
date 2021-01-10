@@ -10,6 +10,9 @@ rtol, atol = op.get_option("tolerance")
 # Value that is used to test almost exact equality of two numpy arrays
 DECIMAL = np.ceil(-np.log10(atol)).astype("int64")
 
+# Difference of x-values that is considered "small" during approximations
+h = op.get_option("small_width")
+
 
 def _test_equal_seq(first, second, *args, **kwargs):
     assert len(first) == len(second)

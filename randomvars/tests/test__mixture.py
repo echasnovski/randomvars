@@ -10,6 +10,7 @@ from randomvars._discrete import Disc
 from randomvars._mixture import Mixt
 from .commontests import (
     DECIMAL,
+    h,
     _test_equal_seq,
     _test_input_coercion,
     _test_log_fun,
@@ -50,7 +51,6 @@ def assert_equal_mixt(rv_1, rv_2):
 
 def assert_ppf(cont, disc, weight_cont):
     rv = Mixt(cont=cont, disc=disc, weight_cont=weight_cont)
-    h = 1e-12
     q = np.linspace(0, 1, 1001)[1:-1]
     x = np.linspace(rv.a, rv.b, 1001)[1:-1]
 
@@ -393,7 +393,6 @@ class TestMixt:
         disc = Disc([-1, 0.5], [0.25, 0.75])
         weight_cont = 0.75
         rv = Mixt(cont=cont, disc=disc, weight_cont=weight_cont)
-        h = 1e-12
         ref_x = np.array([-1.1, -1 - h, -1, 0, 0.25, 0.5 - h, 0.5, 0.75, 1, 1.1])
 
         # Regular checks
@@ -427,9 +426,9 @@ class TestMixt:
         _test_one_value_input(rv.cdf, np.nan)
 
         # Dirac-like continuous random variable
-        cont_dirac = Cont([10 - 1e-8, 10, 10 + 1e-8], [0, 1, 0])
+        cont_dirac = Cont([10 - h, 10, 10 + h], [0, 1, 0])
         rv_dirac = Mixt(cont=cont_dirac, disc=disc, weight_cont=0.75)
-        x = np.array([10 - 1e-8, 10 - 0.5e-8, 10, 10 + 0.5e-8, 10 + 1e-8])
+        x = np.array([10 - h, 10 - 0.5e-8, 10, 10 + 0.5e-8, 10 + h])
         assert_array_equal(
             rv_dirac.cdf(x),
             rv_dirac.weight_cont * rv_dirac.cont.cdf(x)
@@ -456,7 +455,6 @@ class TestMixt:
         disc = Disc([-1, 0.5], [0.25, 0.75])
         weight_cont = 0.75
         rv = Mixt(cont=cont, disc=disc, weight_cont=weight_cont)
-        h = 1e-12
 
         _test_log_fun(
             rv.logcdf,
@@ -469,7 +467,6 @@ class TestMixt:
         disc = Disc([-1, 0.5], [0.25, 0.75])
         weight_cont = 0.75
         rv = Mixt(cont=cont, disc=disc, weight_cont=weight_cont)
-        h = 1e-12
         x_ref = np.array([-1.1, -1 - h, -1, 0, 0.25, 0.5 - h, 0.5, 0.75, 1, 1.1])
 
         assert_array_equal(rv.sf(x_ref), 1 - rv.cdf(x_ref))
@@ -479,7 +476,6 @@ class TestMixt:
         disc = Disc([-1, 0.5], [0.25, 0.75])
         weight_cont = 0.75
         rv = Mixt(cont=cont, disc=disc, weight_cont=weight_cont)
-        h = 1e-12
 
         _test_log_fun(
             rv.logsf,
@@ -493,7 +489,6 @@ class TestMixt:
         disc = Disc([-1, 0.5], [0.25, 0.75])
         weight_cont = 0.75
         rv = Mixt(cont=cont, disc=disc, weight_cont=weight_cont)
-        h = 1e-12
         ref_x = np.array([-1.1, -1 - h, -1, 0, 0.25, 0.5 - h, 0.5, 0.75, 1, 1.1])
         ref_q = rv.cdf(ref_x)
         prob = [0.25, 0.75]
@@ -580,7 +575,6 @@ class TestMixt:
         disc = Disc([-1, 0.5], [0.25, 0.75])
         weight_cont = 0.75
         rv = Mixt(cont=cont, disc=disc, weight_cont=weight_cont)
-        h = 1e-12
         x_ref = np.array([-1.1, -1 - h, -1, 0, 0.25, 0.5 - h, 0.5, 0.75, 1, 1.1])
         q_ref = rv.cdf(x_ref)
         assert_array_equal(rv.isf(q_ref), rv.ppf(1 - q_ref))

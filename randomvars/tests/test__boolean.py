@@ -8,6 +8,7 @@ import pytest
 from randomvars._boolean import Bool
 from randomvars._discrete import Disc
 from .commontests import (
+    h,
     _test_equal_seq,
     _test_input_coercion,
     _test_log_fun,
@@ -248,7 +249,6 @@ class TestBool:
 
     def test_ppf(self):
         rv = Bool(0.75)
-        h = 1e-12
 
         # Normal usage
         q = np.array([0, 0.25 - h, 0.25, 0.25 + h, 1 - h, 1])
@@ -279,7 +279,6 @@ class TestBool:
 
     def test_isf(self):
         rv = Bool(0.75)
-        h = 1e-12
 
         q = np.array([0, 0.75 - h, 0.75, 0.75 + h, 1 - h, 1])
         out = rv.isf(q)

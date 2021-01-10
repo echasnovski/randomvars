@@ -15,6 +15,7 @@ from randomvars._utils import (
     _assert_positive,
     BSplineConstExtrapolate,
 )
+from .commontests import h
 
 
 # `default_discrete_estimator()` is tested in `options` module
@@ -227,8 +228,6 @@ def test__assert_positive():
 
 class TestBSplineConstExtrapolate:
     def test_init(self):
-        h = 1e-8
-
         # Constant spline with values -0.5 in [-3, -2) and 0.5 in [-2, -1]
         # Extrapolates as -1 on (-inf, -3) and as 1 on (-1, inf)
         spline = BSplineConstExtrapolate(
@@ -294,7 +293,6 @@ class TestBSplineConstExtrapolate:
         assert np.allclose(spline.integrate(10, -10), -(-1 * 7 + (-1 / 6) + 2 * 12))
 
     def test_derivative(self):
-        h = 1e-8
         # Quadratic spline inside [-3, -2] (integration of linear spline with
         # one segment from (-3, -1) to (-2, 1)).
         # Extrapolates as -1 in (-inf, -3) and 2 in (-2, inf)

@@ -8,6 +8,7 @@ import pytest
 from randomvars._discrete import Disc
 from .commontests import (
     DECIMAL,
+    h,
     _test_equal_seq,
     _test_input_coercion,
     _test_log_fun,
@@ -191,7 +192,7 @@ class TestDisc:
         p = [0.5, 0.125, 0.375]
         rv = distrs.rv_discrete(values=(x, p))
 
-        with op.option_context({"small_prob": 0.125 + 1e-8}):
+        with op.option_context({"small_prob": 0.125 + 1e-5}):
             rv_out = Disc.from_rv(rv)
             rv_ref = Disc([1, 3], [0.5, 0.5])
             assert_equal_disc(rv_out, rv_ref)
@@ -302,7 +303,6 @@ class TestDisc:
 
     def test_cdf(self):
         rv = Disc([0.5, 1, 3], [0.1, 0.2, 0.7])
-        h = 1e-12
 
         # Regular checks
         x = np.array([-10, 0.5 - h, 0.5, 0.5 + h, 1 - h, 1, 1 + h, 3 - h, 3, 3 + h, 10])
@@ -345,7 +345,6 @@ class TestDisc:
 
     def test_ppf(self):
         rv = Disc([0.5, 1, 3], [0.1, 0.2, 0.7])
-        h = 1e-12
 
         # Regular checks
         ## Outputs for q=0 and q=1 should be equal to minimum and maximum elements
@@ -372,7 +371,6 @@ class TestDisc:
 
     def test_isf(self):
         rv = Disc([0.5, 1, 3], [0.1, 0.2, 0.7])
-        h = 1e-12
         q_ref = np.array([0, 0.7 - h, 0.7, 0.7 + h, 0.9 - h, 0.9, 0.9 + h, 1 - h, 1])
 
         # Output is lowest value `t` (within supp.) for which `P(X > t) <= q`
@@ -385,7 +383,6 @@ class TestDisc:
 
     def test__cdf_spline(self):
         rv = Disc([0.5, 1, 3], [0.1, 0.2, 0.7])
-        h = 1e-12
         x = np.array([-10, 0.5 - h, 0.5, 0.5 + h, 1 - h, 1, 1 + h, 3 - h, 3, 3 + h, 10])
         assert_array_equal(rv._cdf_spline(x), rv.cdf(x))
 
@@ -450,7 +447,7 @@ class TestFromRVAccuracy:
         # If small probability element is not detected, its probability is
         # "squashed" to the next (bigger) detected element
         rv_1 = distrs.rv_discrete(values=([1, 2, 3], [0.5, 0.125, 0.375]))
-        with op.option_context({"small_prob": 0.125 + 1e-8}):
+        with op.option_context({"small_prob": 0.125 + 1e-5}):
             rv_1_out = Disc.from_rv(rv_1)
             rv_1_ref = Disc([1, 3], [0.5, 0.5])
             assert_equal_disc(rv_1_out, rv_1_ref)

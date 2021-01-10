@@ -10,6 +10,7 @@ import pytest
 from randomvars._continuous import Cont
 from .commontests import (
     DECIMAL,
+    h,
     _test_equal_seq,
     _test_input_coercion,
     _test_log_fun,
@@ -457,8 +458,8 @@ class TestCont:
         assert_array_equal(rv.pdf(x), np.array([0, np.nan, 0]))
 
         # Dirac-like random variable
-        rv_dirac = Cont([10 - 1e-8, 10, 10 + 1e-8], [0, 1, 0])
-        x = np.array([10 - 1e-8, 10 - 0.5e-8, 10, 10 + 0.5e-8, 10 + 1e-8])
+        rv_dirac = Cont([10 - h, 10, 10 + h], [0, 1, 0])
+        x = np.array([10 - h, 10 - 0.5e-8, 10, 10 + 0.5e-8, 10 + h])
         ## Accuracy is of order of 10 due to extreme magnitudes of values
         assert_array_almost_equal(
             rv_dirac.pdf(x), np.array([0, 0.5e8, 1e8, 0.5e8, 0]), decimal=-1
@@ -502,8 +503,8 @@ class TestCont:
         assert_array_equal(rv_1.cdf(x), np.array([0, np.nan, 1]))
 
         # Dirac-like random variable
-        rv_dirac = Cont([10 - 1e-8, 10, 10 + 1e-8], [0, 1, 0])
-        x = np.array([10 - 1e-8, 10 - 0.5e-8, 10, 10 + 0.5e-8, 10 + 1e-8])
+        rv_dirac = Cont([10 - h, 10, 10 + h], [0, 1, 0])
+        x = np.array([10 - h, 10 - 0.5e-8, 10, 10 + 0.5e-8, 10 + h])
         assert_array_almost_equal(
             rv_dirac.cdf(x), np.array([0, 0.125, 0.5, 0.875, 1]), decimal=DECIMAL
         )
@@ -542,17 +543,17 @@ class TestCont:
         _test_input_coercion(rv_1.ppf, q)
 
         # Bad input
-        q = np.array([-np.inf, -1e-8, np.nan, 1 + 1e-8, np.inf])
+        q = np.array([-np.inf, -h, np.nan, 1 + h, np.inf])
         assert_array_equal(
             rv_1.ppf(q), np.array([np.nan, np.nan, np.nan, np.nan, np.nan])
         )
 
         # Dirac-like random variable
-        rv_dirac = Cont([10 - 1e-8, 10, 10 + 1e-8], [0, 1, 0])
+        rv_dirac = Cont([10 - h, 10, 10 + h], [0, 1, 0])
         q = np.array([0, 0.125, 0.5, 0.875, 1])
         assert_array_almost_equal(
             rv_dirac.ppf(q),
-            np.array([10 - 1e-8, 10 - 0.5e-8, 10, 10 + 0.5e-8, 10 + 1e-8]),
+            np.array([10 - h, 10 - 0.5e-8, 10, 10 + 0.5e-8, 10 + h]),
             decimal=DECIMAL,
         )
 
