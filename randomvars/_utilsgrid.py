@@ -1,5 +1,8 @@
 import numpy as np
 
+import randomvars._utils as utils
+import randomvars.options as op
+
 # %% Conversion
 # There were different other approaches to Cont-Disc conversion, which were
 # decided to be less appropriate:
@@ -61,3 +64,74 @@ def _convert_coeffs(x):
     trapezoidal rule"""
     x_ext = np.concatenate(([x[0]], x, [x[-1]]))
     return 0.5 * (x_ext[2:] - x_ext[:-2])
+
+
+# %% Stacking
+def _ground_xy(xy, direction=None):
+    """Update xy-grid to represent explicit piecewise-linear function
+
+    Implicitly xy-grid represents piecewise-linear function in the following way:
+    - For points inside `[x[0]; x[-1]]` (support) output is a linear
+      interpolation.
+    - For points outside support output is zero.
+
+    This function transforms xy-grid so that output can be computed as a direct
+    linear interpolation. This is done by possibly approximating "jumps" at the
+    edge(s) of support. Approximation is performed by introducing a linear
+    smoothing of a jump: one point close to edge is added outside of support
+    and, in case there isn't a "close" one present, one on the inside.
+    Closeness is determined via "small_width" option. Y-values are: zero for
+    outside, respective density value for inside. Then y-value of edge knot is
+    modified so as to preserve total probability.
+
+    Notes:
+    - If edge is already zero, then no grounding is done.
+
+    Parameters
+    ----------
+    xy : tuple with two elements
+    direction : string or None
+        Can be one of `"both"`, `"left"`, `"right"`, `"none"` or `None`.
+        Controls which edge(s) should be grounded (if any).
+    """
+    if (direction is None) or (direction == "none"):
+        return xy
+
+    x, y = xy
+    w = op.get_option("small_width")
+
+    ground_left = (direction in ["left", "both"]) and (not utils._is_zero(y[0]))
+    ground_right = (direction in ["right", "both"]) and (not utils._is_zero(y[-1]))
+
+    xy_fun = lambda t: np.interp(t, x, y, left=0.0, right=0.0)
+    x_res, y_res = x, y
+
+    if ground_left:
+        x_diff = x[1] - x[0]
+
+        # Using `2*w` instead of `w` to avoid numerical representation issues
+        if x_diff > 2 * w:
+            # Case when inner point should be added because there is no "close"
+            # knot in input data
+            x_res = np.concatenate(([x[0] - w, x[0], x[0] + w], x_res[1:]))
+            y_res = np.concatenate(([0.0, 0.5 * y[0], xy_fun(x[0] + w)], y_res[1:]))
+        else:
+            # Case when inner point shouldn't be added
+            x_res = np.concatenate(([x[0] - w, x[0]], x_res[1:]))
+            y_res = np.concatenate(([0.0, y[0] * x_diff / (x_diff + w)], y_res[1:]))
+
+    if ground_right:
+        x_diff = x[-1] - x[-2]
+
+        # Using `2*w` instead of `w` to avoid numerical representation issues
+        if x_diff > 2 * w:
+            # Case when inner point should be added because there is no "close"
+            # knot in input data
+            x_res = np.concatenate((x_res[:-1], [x[-1] - w, x[-1], x[-1] + w]))
+            y_res = np.concatenate((y_res[:-1], [xy_fun(x[-1] - w), 0.5 * y[-1], 0.0]))
+        else:
+            # Case when inner point shouldn't be added
+            x_res = np.concatenate((x_res[:-1], [x[-1], x[-1] + w]))
+            y_res = np.concatenate((y_res[:-1], [y[-1] * x_diff / (x_diff + w), 0.0]))
+
+    return x_res, y_res
