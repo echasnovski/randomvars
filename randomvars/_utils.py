@@ -252,8 +252,49 @@ def _quad_silent(f, a, b):
 
 
 def _is_close(x, y):
+    """Check element-wise closeness
+
+    This is similar to `numpy.isclose()` but with logic taken from builtin
+    `math.isclose()`. The primary reason for this is the lack of symmetry in
+    `numpy.isclose()`:
+    - `numpy.isclose(x, y, rtol, atol)` is equivalent to `abs(x - y) <= atol +
+      rtol * abs(y)`.
+    - `math.isclose(x, y, rtol, atol)` is equivalent to `abs(x - y) <=
+      max(atol, rtol * max(abs(x), abs(y)))`
+
+    Notes:
+    - Tolerance values are taken from "tolerance" package option.
+    - Non-finite values (`-np.inf`, `np.inf`, and `np.nan`) are processed as in
+      both `math.isclose()` and `numpy.isclose()` (with defaults): `np.nan` is
+      never equal to anything, `-np.inf` and `np.inf` are equal only to self.
+    """
     rtol, atol = op.get_option("tolerance")
-    return np.isclose(x, y, rtol=rtol, atol=atol)
+
+    x, y = np.broadcast_arrays(x, y)
+    res = np.empty_like(x, dtype="bool")
+
+    # Finite and infinite (`-np.inf`, `np.inf`, and `np.nan`) values should be
+    # processed separately
+    xy_is_fin = np.isfinite(x) & np.isfinite(y)
+
+    # Branch code for speed reasons as the most common use case is when all
+    # values are finite
+    if np.all(xy_is_fin):
+        magnitude = np.maximum(np.absolute(x), np.absolute(y))
+        return np.absolute(x - y) <= np.maximum(rtol * magnitude, atol)
+    else:
+        # Process pairs with finite values
+        x_fin, y_fin = x[xy_is_fin], y[xy_is_fin]
+        magnitude = np.maximum(np.absolute(x_fin), np.absolute(y_fin))
+        res[xy_is_fin] = np.absolute(x_fin - y_fin) <= np.maximum(
+            rtol * magnitude, atol
+        )
+
+        # Process pairs with at least one infinite value
+        xy_isnt_fin = ~xy_is_fin
+        res[xy_isnt_fin] = x[xy_isnt_fin] == y[xy_isnt_fin]
+
+        return res
 
 
 def _is_zero(x):

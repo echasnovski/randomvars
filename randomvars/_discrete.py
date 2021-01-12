@@ -279,10 +279,15 @@ class Disc(Rand):
 
         **Note** that probability is taken from object probabilities if input
         value is "close enough" to the corresponding value of object's `x`.
-        Function `numpy.isclose()` is used for that, with relative and absolute
-        tolerance values taken from `tolerance` package option. See
-        documentation of `randomvars.options.get_option()` for more
-        information.
+        Analogue of builtin `math.isclose()` is used for that, with relative
+        and absolute tolerance values taken from `tolerance` package option.
+        The `numpy.isclose()` is not used due to its lack of symmetry
+        (`numpy.isclose(a, b)` is not necessary equal to `numpy.isclose(b,
+        a)`).
+
+        Relevant package options: `tolerance`. See documentation of
+        `randomvars.options.get_option()` for more information. To temporarily
+        set options use `randomvars.options.option_context()` context manager.
 
         Parameters
         ----------

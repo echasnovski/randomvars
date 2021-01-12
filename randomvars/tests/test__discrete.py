@@ -268,7 +268,7 @@ class TestDisc:
         rtol, atol = op.get_option("tolerance")
 
         # Regular checks
-        x = np.array([0, 0.5, 1, 3, (1 + rtol) * 3 + 0.5 * atol])
+        x = np.array([0, 0.5, 1, 3, 3 + max(rtol * 3, 0.5 * atol)])
         assert_array_equal(rv.pmf(x), np.array([0, 0.1, 0.2, 0.7, 0.7]))
 
         # Coercion of not ndarray input
@@ -282,11 +282,8 @@ class TestDisc:
         with op.option_context({"tolerance": (0, 1e-10)}):
             assert_array_equal(rv.pmf([1 + 1.01e-10, 1 + 0.9e-10]), [0.0, 0.2])
 
-        with op.option_context({"tolerance": (1e-2, 1e-10)}):
-            assert_array_equal(
-                rv.pmf([(1 + 1e-2) * 1 + 1.01e-10, (1 + 1e-2) * 1 + 0.99e-10]),
-                [0.0, 0.2],
-            )
+        with op.option_context({"tolerance": (1e-2, 0)}):
+            assert_array_equal(rv.pmf([1 - 1.5e-2 * 1, 1 - 0.5e-2 * 1]), [0.0, 0.2])
 
         # Broadcasting
         x = np.array([[-1, 0.5], [2, 4]])

@@ -229,6 +229,22 @@ def test__is_close():
     with op.option_context({"tolerance": (0.0, 0.1)}):
         assert_array_equal(_is_close([0.15, 0.05], [0.0, 0.0]), [False, True])
 
+    # Symmetry
+    with op.option_context({"tolerance": (1e-4, 2e-5)}):
+        # Here `numpy.isclose(0.141592, 0.141558, rtol=1e-4, atol=2e-5)`
+        # returns `True`
+        assert_array_equal(_is_close(0.141592, 0.141558), False)
+
+    # Bad input
+    bad_input = [1.0, np.nan, -np.inf, np.inf]
+    assert_array_equal(_is_close(bad_input, 1), [True, False, False, False])
+    assert_array_equal(_is_close(bad_input, np.nan), [False, False, False, False])
+    assert_array_equal(_is_close(bad_input, -np.inf), [False, False, True, False])
+    assert_array_equal(_is_close(bad_input, np.inf), [False, False, False, True])
+
+    # Broadcasting
+    assert_array_equal(_is_close([[1, 2]], [[1], [2]]), [[True, False], [False, True]])
+
 
 def test__is_zero():
     assert_array_equal(_is_zero([1, 0, -1]), [False, True, False])
