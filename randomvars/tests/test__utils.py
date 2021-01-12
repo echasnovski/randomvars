@@ -14,6 +14,7 @@ from randomvars._utils import (
     _quad_silent,
     _is_close,
     _is_zero,
+    _tolerance,
     _minmax,
     _assert_positive,
     BSplineConstExtrapolate,
@@ -226,14 +227,8 @@ def test__quad_silent():
 def test__is_close():
     assert_array_equal(_is_close([1, 0, -1], [-1, 0, 1]), [False, True, False])
 
-    with op.option_context({"tolerance": (0.0, 0.1)}):
+    with op.option_context({"base_tolerance": 0.1}):
         assert_array_equal(_is_close([0.15, 0.05], [0.0, 0.0]), [False, True])
-
-    # Symmetry
-    with op.option_context({"tolerance": (1e-4, 2e-5)}):
-        # Here `numpy.isclose(0.141592, 0.141558, rtol=1e-4, atol=2e-5)`
-        # returns `True`
-        assert_array_equal(_is_close(0.141592, 0.141558), False)
 
     # Bad input
     bad_input = [1.0, np.nan, -np.inf, np.inf]
@@ -246,10 +241,22 @@ def test__is_close():
     assert_array_equal(_is_close([[1, 2]], [[1], [2]]), [[True, False], [False, True]])
 
 
+def test__tolerance():
+    with op.option_context({"base_tolerance": 0.1}):
+        # Tolerance for values inside [-1, 1] should be base tolerance
+        assert_array_equal(_tolerance([-1, 0.5, 1e-15, 0, 1e-15, 0.5, 1]), 0.1)
+
+        # Tolerance for values outside [-1, 1] should be increased
+        # proportionally to spacing
+        cutoffs = 2 ** np.arange(10)
+        assert_array_equal(_tolerance(cutoffs) / _tolerance(1), cutoffs)
+        assert_array_equal(_tolerance(-cutoffs) / _tolerance(1), cutoffs)
+
+
 def test__is_zero():
     assert_array_equal(_is_zero([1, 0, -1]), [False, True, False])
 
-    with op.option_context({"tolerance": (0.0, 0.1)}):
+    with op.option_context({"base_tolerance": 0.1}):
         assert_array_equal(_is_zero([0.15, 0.05]), [False, True])
 
 

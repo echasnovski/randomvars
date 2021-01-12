@@ -279,13 +279,12 @@ class Disc(Rand):
 
         **Note** that probability is taken from object probabilities if input
         value is "close enough" to the corresponding value of object's `x`.
-        Analogue of builtin `math.isclose()` is used for that, with relative
-        and absolute tolerance values taken from `tolerance` package option.
-        The `numpy.isclose()` is not used due to its lack of symmetry
-        (`numpy.isclose(a, b)` is not necessary equal to `numpy.isclose(b,
-        a)`).
+        Whether two numbers are "close enough" is computed by comparing their
+        absolute difference with maximum of tolerances associated with them.
+        For algorithm of "tolerance associated with a number" see documentation
+        of `base_tolerance` option.
 
-        Relevant package options: `tolerance`. See documentation of
+        Relevant package options: `base_tolerance`. See documentation of
         `randomvars.options.get_option()` for more information. To temporarily
         set options use `randomvars.options.option_context()` context manager.
 
@@ -301,7 +300,7 @@ class Disc(Rand):
 
         inds = utils._find_nearest_ind(x, self._x)
 
-        # This uses "tolerance" package option
+        # This uses "base_tolerance" package option
         x_is_matched = utils._is_close(x, self._x[inds])
 
         res = np.where(x_is_matched, self._p[inds], 0)

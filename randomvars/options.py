@@ -14,6 +14,7 @@ __all__ = [
 ]
 
 _default_options = {
+    "base_tolerance": 1e-12,
     "boolean_estimator": default_boolean_estimator,
     "cdf_tolerance": 1e-4,
     "density_estimator": gaussian_kde,
@@ -28,6 +29,16 @@ _default_options = {
 _options = _default_options.copy()
 
 _options_list = """
+- base_tolerance : float, default 1e-12. Tolerance to be used for testing
+  approximate equality of two numbers. It is used to compute tolerance
+  associated with any number `x`:
+    - If `abs(x) <= 1`, tolerance is equal to `base_tolerance`. Based on this,
+      `base_tolerance` can be viewed as an absolute tolerance for "small"
+      numbers.
+    - If `abs(x) > 1`, tolerance increases proportionally to the spacing
+      between floating point numbers at `x` (see `numpy.spacing()`). This
+      approach is chosen in order to find compromise between relative and
+      absolute tolerance.
 - boolean_estimator : callable, default
   randomvars.options.default_boolean_estimator. Function which takes sample as
   input and returns one of:

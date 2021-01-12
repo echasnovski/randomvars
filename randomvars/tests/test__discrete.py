@@ -6,6 +6,7 @@ import scipy.stats.distributions as distrs
 import pytest
 
 from randomvars._discrete import Disc
+from randomvars._utils import _tolerance
 from randomvars.tests.commontests import (
     DECIMAL,
     h,
@@ -265,11 +266,10 @@ class TestDisc:
 
     def test_pmf(self):
         rv = Disc([0.5, 1, 3], [0.1, 0.2, 0.7])
-        rtol, atol = op.get_option("tolerance")
 
         # Regular checks
-        x = np.array([0, 0.5, 1, 3, 3 + max(rtol * 3, 0.5 * atol)])
-        assert_array_equal(rv.pmf(x), np.array([0, 0.1, 0.2, 0.7, 0.7]))
+        x = np.array([0, 0.5, 1, 3, 3 + 0.5 * _tolerance(3), 3 + 1.5 * _tolerance(3)])
+        assert_array_equal(rv.pmf(x), np.array([0.0, 0.1, 0.2, 0.7, 0.7, 0.0]))
 
         # Coercion of not ndarray input
         _test_input_coercion(rv.pmf, x)
@@ -278,12 +278,9 @@ class TestDisc:
         x = np.array([-np.inf, np.nan, np.inf])
         assert_array_equal(rv.pmf(x), np.array([0, np.nan, 0]))
 
-        # Using tolerance option
-        with op.option_context({"tolerance": (0, 1e-10)}):
-            assert_array_equal(rv.pmf([1 + 1.01e-10, 1 + 0.9e-10]), [0.0, 0.2])
-
-        with op.option_context({"tolerance": (1e-2, 0)}):
-            assert_array_equal(rv.pmf([1 - 1.5e-2 * 1, 1 - 0.5e-2 * 1]), [0.0, 0.2])
+        # Using different tolerance
+        with op.option_context({"base_tolerance": 0.1}):
+            assert_array_equal(rv.pmf([1 + 0.11, 1 + 0.09]), [0.0, 0.2])
 
         # Broadcasting
         x = np.array([[-1, 0.5], [2, 4]])
