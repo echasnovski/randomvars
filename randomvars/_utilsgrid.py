@@ -73,13 +73,13 @@ def _stack_xy(xy_seq):
     Here "stack xy-grids" means "compute xy-grid which represents sum of all
     input xy-grids".
 
-    Compute xy-grid representing piecewise-linear function which is a sum of
-    input xy-grids. As every xy-grid (possibly) has discontinuities at edges
-    (if y-value is not zero) output uses "grounded" versions of xy-grids: the
-    ones which represent explicit piecewise-linear on the whole real line.
-    Grounding is done only where it is necessary: if certain edge will be an
-    edge of output xy-grid, it is not grounded (this also helps sustaining the
-    exact support of output).
+    As every xy-grid (possibly) has discontinuities at edges (if y-value is not
+    zero) output uses "grounded" versions of xy-grids: the ones which represent
+    explicit piecewise-linear function on the whole real line. Grounding width
+    is chosen to be the minimum of `small_width` option and neighbor distances
+    (distance between edge and nearest point in xy-grid) for all edges where
+    grounding actually happens. This way ensures smooth behavior when stacking
+    xy-grids with "touching supports".
 
     Output x-grid consists of all unique values from all input x-grids. Output
     y-grid is computed as sum of interpolations at output x-grid for all input
@@ -92,10 +92,10 @@ def _stack_xy(xy_seq):
     """
     # Determine grounding direction for every xy-grid so that resulting edges
     # of output don't get unnecessary grounding
-    ground_dir = _compute_stack_ground_dir(xy_seq)
+    ground_dir, w = _compute_stack_ground_info(xy_seq)
 
     # Grounding is needed to ensure that `x_tbl` doesn't affect its outside
-    xy_grounded_seq = [_ground_xy(xy, dir) for xy, dir in zip(xy_seq, ground_dir)]
+    xy_grounded_seq = [_ground_xy(xy, w, dir) for xy, dir in zip(xy_seq, ground_dir)]
 
     # Compute stacked x-grid as unique values of all grounded x-grids
     ## This relies on fact that `np.unique()` returns sorted output
@@ -108,8 +108,9 @@ def _stack_xy(xy_seq):
     return x, y
 
 
-def _compute_stack_ground_dir(xy_seq):
-    output_range = utils._minmax(np.concatenate([xy[0] for xy in xy_seq]))
+def _compute_stack_ground_info(xy_seq):
+    # Direction
+    output_range = utils._minmax(np.concatenate([x for x, _ in xy_seq]))
     ground_left = [~utils._is_close(x[0], output_range[0]) for x, _ in xy_seq]
     ground_right = [~utils._is_close(x[-1], output_range[-1]) for x, _ in xy_seq]
 
@@ -120,10 +121,26 @@ def _compute_stack_ground_dir(xy_seq):
         (True, True): "both",
     }
 
-    return [ground_dict[gr] for gr in zip(ground_left, ground_right)]
+    ground_dir = [ground_dict[gr] for gr in zip(ground_left, ground_right)]
+
+    # Width
+    left_neigh = [x[1] - x[0] for gr, (x, _) in zip(ground_left, xy_seq) if gr]
+    right_neigh = [x[-1] - x[-2] for gr, (x, _) in zip(ground_right, xy_seq) if gr]
+    w = min(
+        op.get_option("small_width"),
+        # Using `default=np.inf` accounts for possible empty input list. This
+        # can happen if, for example, all xy-grids have the same left edge.
+        # Using `min(t, default=np.inf)` instead of `np.min(t, initial=np.inf)`
+        # here because of an issue when using integer values in `xy_seq`. Try
+        # `np.min([1], initial=np.inf)`
+        min(left_neigh, default=np.inf),
+        min(right_neigh, default=np.inf),
+    )
+
+    return ground_dir, w
 
 
-def _ground_xy(xy, direction=None):
+def _ground_xy(xy, w, direction=None):
     """Update xy-grid to represent explicit piecewise-linear function
 
     Implicitly xy-grid represents piecewise-linear function in the following way:
@@ -133,19 +150,29 @@ def _ground_xy(xy, direction=None):
 
     This function transforms xy-grid so that output can be computed as a direct
     linear interpolation. This is done by possibly approximating "jumps" at the
-    edge(s) of support. Approximation is performed by introducing a linear
-    smoothing of a jump: one point close to edge is added outside of support
-    and, in case there isn't a "close" one present, one on the inside.
-    Closeness is determined via "small_width" option. Y-values are: zero for
-    outside, respective density value for inside. Then y-value of edge knot is
-    modified so as to preserve total probability.
+    edge(s) of support. Approximation at edge `(x_e, y_e)` is performed by
+    introducing a linear smoothing of a jump:
+      - Add outside point (x_e +/- w, 0) (sign depends on whether edge is right
+        or left).
+      - Possibly add inner point `(x_e -/+ w, f(x_e -/+ w))` (`f(x)` - function
+        xy-grid represents). It is done only if distance between closest to
+        edge point (neighbor) and edge is strictly greater than `w`.
+      - Adjust edge y-value to preserve total probability.
 
     Notes:
     - If edge is already zero, then no grounding is done.
+    - This might lead to a very close points on x-grid: in case distance
+      between edge and neighbor is `w + eps` with `eps` being very small.
+    - If there is a neighbor strictly closer than `w`, slopes of jump
+      approximation depend on input neighbor distance. In case of stacking this
+      might lead to an undesirable not smooth transition between y-values. To
+      avoid this, `w` should be chosen the same for all stacked xy-grids and be
+      not strictly bigger than any neighbor distance.
 
     Parameters
     ----------
     xy : tuple with two elements
+    w : float
     direction : string or None
         Can be one of `"both"`, `"left"`, `"right"`, `"none"` or `None`.
         Controls which edge(s) should be grounded (if any).
@@ -154,7 +181,6 @@ def _ground_xy(xy, direction=None):
         return xy
 
     x, y = xy
-    w = op.get_option("small_width")
 
     ground_left = (direction in ["left", "both"]) and (not utils._is_zero(y[0]))
     ground_right = (direction in ["right", "both"]) and (not utils._is_zero(y[-1]))
@@ -165,8 +191,7 @@ def _ground_xy(xy, direction=None):
     if ground_left:
         x_diff = x[1] - x[0]
 
-        # Using `2*w` instead of `w` to avoid numerical representation issues
-        if x_diff > 2 * w:
+        if x_diff > w:
             # Case when inner point should be added because there is no "close"
             # knot in input data
             x_res = np.concatenate(([x[0] - w, x[0], x[0] + w], x_res[1:]))
@@ -179,8 +204,7 @@ def _ground_xy(xy, direction=None):
     if ground_right:
         x_diff = x[-1] - x[-2]
 
-        # Using `2*w` instead of `w` to avoid numerical representation issues
-        if x_diff > 2 * w:
+        if x_diff > w:
             # Case when inner point should be added because there is no "close"
             # knot in input data
             x_res = np.concatenate((x_res[:-1], [x[-1] - w, x[-1], x[-1] + w]))

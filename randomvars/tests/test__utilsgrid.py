@@ -1,5 +1,5 @@
 import numpy as np
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_equal, assert_array_almost_equal
 import pytest
 
 from randomvars._continuous import Cont
@@ -8,7 +8,7 @@ from randomvars._utilsgrid import (
     _y_from_xp,
     _p_from_xy,
     _stack_xy,
-    _compute_stack_ground_dir,
+    _compute_stack_ground_info,
     _ground_xy,
 )
 import randomvars.options as op
@@ -84,6 +84,38 @@ class TestStackXY:
             _stack_xy(xy_seq3), ([0, 0.5 - w, 0.5, 0.5 + w, 1], [2, 2, 2, 2, 2])
         )
 
+        # Case when there should be no grounding
+        xy_seq4 = [([0, 1], [1, 1]), ([0, 1], [1, 1])]
+        _test_equal_seq(_stack_xy(xy_seq4), ([0, 1], [2, 2]))
+
+    def test_width(self):
+        w = op.get_option("small_width")
+
+        # Width should be computed as maximum value not bigger than
+        # `small_width` option that ensures identical jumping slopes
+        xy_seq = [([0, 0.5 * w, 1 - 0.25 * w, 1], [1, 1, 1, 1]), ([-1, 2], [1, 1])]
+        W = 0.25 * w
+        _test_equal_seq(
+            _stack_xy(xy_seq),
+            (
+                [-1, -W, 0, W, 0.5 * w, 1 - W, 1, 1 + W, 2],
+                [1, 1, 1.5, 2, 2, 2, 1.5, 1, 1],
+            ),
+            decimal=DECIMAL,
+        )
+
+        # Neighboring points for edges where grounding doesn't happen shouldn't
+        # affect the output width
+        xy_seq = [([0, 0.1 * w, 1], [1, 1, 1]), ([0.25, 0.75], [1, 1])]
+        W = w
+        _test_equal_seq(
+            _stack_xy(xy_seq),
+            (
+                [0, 0.1 * w, 0.25 - W, 0.25, 0.25 + W, 0.75 - W, 0.75, 0.75 + W, 1],
+                [1, 1, 1, 1.5, 2, 2, 1.5, 1, 1],
+            ),
+        )
+
     def test_touching_supports(self):
         w = op.get_option("small_width")
 
@@ -91,12 +123,12 @@ class TestStackXY:
         xy_seq = [([0, 1], [1, 1]), ([1, 2], [2, 2])]
         _test_equal_seq(_stack_xy(xy_seq), ([0, 1 - w, 1, 1 + w, 2], [1, 1, 1.5, 2, 2]))
 
-        ## **Note** that this is currently only the case if there is no "very
-        ## close inner neighborhood points". Like, for example, here:
-        ##   xy_seq = [([0, 1 - 0.25 * w, 1], [1, 1, 1]), ([1, 2], [2, 2])]
-        ## In practice this can be resolved by lowering "small_width" option so
-        ## that it is smaller than the smallest difference between edge
-        ## neighbors.
+        # Even in case of close edge neighbors
+        xy_seq = [([0, 1 - 0.25 * w, 1], [1, 1, 1]), ([1, 2], [2, 2])]
+        _test_equal_seq(
+            _stack_xy(xy_seq),
+            ([0, 1 - 0.25 * w, 1, 1 + 0.25 * w, 2], [1, 1, 1.5, 2, 2]),
+        )
 
     def test_zero_edge(self):
         w = op.get_option("small_width")
@@ -116,26 +148,58 @@ class TestStackXY:
             )
 
 
-def test__compute_ground_direction():
-    assert_array_equal(
-        _compute_stack_ground_dir([([0, 1], [1, 1]), ([0.5, 1.5], [1, 1])]),
-        ["right", "left"],
-    )
-    assert_array_equal(
-        _compute_stack_ground_dir([([0, 1], [1, 1]), ([0.5, 0.75], [1, 1])]),
-        ["none", "both"],
-    )
-    assert_array_equal(
-        _compute_stack_ground_dir(
-            [
-                ([0, 1], [1, 1]),
-                ([0, 0.5], [1, 1]),
-                ([0.25, 0.75], [1, 1]),
-                ([0.5, 1], [1, 1]),
-            ]
-        ),
-        ["none", "right", "both", "left"],
-    )
+class TestGroundInfo:
+    def test_direction(self):
+        _test_equal_seq(
+            _compute_stack_ground_info([([0, 1], [1, 1]), ([0.5, 1.5], [1, 1])])[0],
+            ["right", "left"],
+        )
+        _test_equal_seq(
+            _compute_stack_ground_info([([0, 1], [1, 1]), ([0.5, 0.75], [1, 1])])[0],
+            ["none", "both"],
+        )
+        _test_equal_seq(
+            _compute_stack_ground_info(
+                [
+                    ([0, 1], [1, 1]),
+                    ([0, 0.5], [1, 1]),
+                    ([0.25, 0.75], [1, 1]),
+                    ([0.5, 1], [1, 1]),
+                ]
+            )[0],
+            ["none", "right", "both", "left"],
+        )
+        _test_equal_seq(
+            _compute_stack_ground_info([([0, 1], [1, 1]), ([0, 1], [1, 1])])[0],
+            ["none", "none"],
+        )
+
+    def test_width(self):
+        w = op.get_option("small_width")
+
+        # Basic usage should return `small_width`
+        assert_array_equal(
+            _compute_stack_ground_info([([0, 1], [1, 1]), ([0.5, 1.5], [1, 1])])[1], w
+        )
+
+        # In case of close neighbors, minimum distance should be returned but
+        # only using edges where grounding actually happens
+        base_xy = ([0, 0.1 * w, 1 - 0.2 * w, 1], [1, 1, 1, 1])
+        assert_array_almost_equal(
+            _compute_stack_ground_info([base_xy, ([-1, 2], [1, 1])])[1],
+            0.1 * w,
+            decimal=DECIMAL,
+        )
+        assert_array_almost_equal(
+            _compute_stack_ground_info([base_xy, ([0, 2], [1, 1])])[1],
+            0.2 * w,
+            decimal=DECIMAL,
+        )
+        assert_array_almost_equal(
+            _compute_stack_ground_info([base_xy, ([0, 1], [1, 1])])[1],
+            w,
+            decimal=DECIMAL,
+        )
 
 
 class TestGroundXY:
@@ -144,23 +208,23 @@ class TestGroundXY:
         xy = np.array([0.0, 1.0]), np.array([1.0, 1.0])
 
         # By default and with `direction=None` should return input
-        _test_equal_seq(_ground_xy(xy), xy)
-        _test_equal_seq(_ground_xy(xy, direction=None), xy)
+        _test_equal_seq(_ground_xy(xy, w), xy)
+        _test_equal_seq(_ground_xy(xy, w, direction=None), xy)
 
         # Basic usage
         _test_equal_seq(
-            _ground_xy(xy, direction="both"),
+            _ground_xy(xy, w, direction="both"),
             ([-w, 0, w, 1 - w, 1, 1 + w], [0, 0.5, 1, 1, 0.5, 0]),
         )
         _test_equal_seq(
-            _ground_xy(xy, direction="left"), ([-w, 0, w, 1], [0, 0.5, 1, 1])
+            _ground_xy(xy, w, direction="left"), ([-w, 0, w, 1], [0, 0.5, 1, 1])
         )
         _test_equal_seq(
-            _ground_xy(xy, direction="right"), ([0, 1 - w, 1, 1 + w], [1, 1, 0.5, 0])
+            _ground_xy(xy, w, direction="right"), ([0, 1 - w, 1, 1 + w], [1, 1, 0.5, 0])
         )
 
     def test_close_neighbor(self):
-        # Big "small_width" is due to numerical representation issues
+        # Using big "small_width" to mitigate possible floating points issues
         with op.option_context({"small_width": 0.1}):
             w = op.get_option("small_width")
             neigh = 0.25 * w
@@ -169,36 +233,37 @@ class TestGroundXY:
 
             xy = np.array([0.0, neigh, 1 - neigh, 1.0]), np.array([1.0, 1.0, 1.0, 1.0])
 
-            # No extra inner point should be added if there is close neighbor
+            # No inner point should be added if there is close neighbor
             _test_equal_seq(
-                _ground_xy(xy, direction="both"),
+                _ground_xy(xy, w, direction="both"),
                 ([-w, 0, neigh, 1 - neigh, 1, 1 + w], [0, edge_val, 1, 1, edge_val, 0]),
                 decimal=DECIMAL,
             )
             _test_equal_seq(
-                _ground_xy(xy, direction="left"),
+                _ground_xy(xy, w, direction="left"),
                 ([-w, 0, neigh, 1 - neigh, 1], [0, edge_val, 1, 1, 1]),
                 decimal=DECIMAL,
             )
             _test_equal_seq(
-                _ground_xy(xy, direction="right"),
+                _ground_xy(xy, w, direction="right"),
                 ([0, neigh, 1 - neigh, 1, 1 + w], [1, 1, 1, edge_val, 0]),
                 decimal=DECIMAL,
             )
 
     def test_zero_edge(self):
+        w = op.get_option("small_width")
         xy = np.array([0.0, 1.0, 2.0]), np.array([0.0, 1.0, 0.0])
 
         # No grounding should be done if edge has zero y-value
-        _test_equal_seq(_ground_xy(xy, direction="both"), xy)
-        _test_equal_seq(_ground_xy(xy, direction="left"), xy)
-        _test_equal_seq(_ground_xy(xy, direction="right"), xy)
+        _test_equal_seq(_ground_xy(xy, w, direction="both"), xy)
+        _test_equal_seq(_ground_xy(xy, w, direction="left"), xy)
+        _test_equal_seq(_ground_xy(xy, w, direction="right"), xy)
 
     def test_options(self):
         with op.option_context({"small_width": 0.1}):
             w = op.get_option("small_width")
             xy = np.array([0.0, 1.0]), np.array([1.0, 1.0])
             _test_equal_seq(
-                _ground_xy(xy, direction="both"),
+                _ground_xy(xy, w, direction="both"),
                 ([-w, 0, w, 1 - w, 1, 1 + w], [0, 0.5, 1, 1, 0.5, 0]),
             )
