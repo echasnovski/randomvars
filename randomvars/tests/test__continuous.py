@@ -228,6 +228,58 @@ class TestCont:
         rv = Cont([0.5, 1.5, 4.5], [0, 0.5, 0])
         assert rv.support() == (0.5, 4.5)
 
+    def test_ground(self):
+        w = op.get_option("small_width")
+
+        # Basic usage
+        rv = Cont([0, 1], [1, 1])
+        assert_equal_cont(
+            rv.ground(), Cont([-w, 0, w, 1 - w, 1, 1 + w], [0, 0.5, 1, 1, 0.5, 0])
+        )
+
+        # Argument `direction`
+        assert_equal_cont(
+            rv.ground(direction="both"),
+            Cont([-w, 0, w, 1 - w, 1, 1 + w], [0, 0.5, 1, 1, 0.5, 0]),
+        )
+        assert_equal_cont(
+            rv.ground(direction="left"), Cont([-w, 0, w, 1], [0, 0.5, 1, 1])
+        )
+        assert_equal_cont(
+            rv.ground(direction="right"), Cont([0, 1 - w, 1, 1 + w], [1, 1, 0.5, 0])
+        )
+        assert_equal_cont(rv.ground(direction="none"), rv)
+
+        # Argument `w`
+        w2 = 0.1
+        assert_equal_cont(
+            rv.ground(w=w2, direction="both"),
+            Cont([-w2, 0, w2, 1 - w2, 1, 1 + w2], [0, 0.5, 1, 1, 0.5, 0]),
+        )
+
+        # Close neighbors
+        rv2 = Cont([0, 0.25 * w, 0.5, 1 - 0.1 * w, 1], [1, 1, 1, 1, 1])
+        rv2_grounded = rv2.ground(direction="both")
+        ## Check that only outer points were added
+        assert_array_equal(rv2_grounded.x[1:-1], rv2.x)
+        ## Check that grounded actually happend
+        assert_array_equal(rv2_grounded.y[[0, -1]], 0.0)
+        ## Check that non-edge x-values havae same y-values
+        assert_array_equal(rv2_grounded.pdf(rv2.x[1:-1]), rv2.pdf(rv2.x[1:-1]))
+
+    def test_ground_options(self):
+        rv = Cont([0, 1], [1, 1])
+        with op.option_context({"small_width": 0.1}):
+            w = op.get_option("small_width")
+            assert_equal_cont(
+                rv.ground(), Cont([-w, 0, w, 1 - w, 1, 1 + w], [0, 0.5, 1, 1, 0.5, 0])
+            )
+
+    def test_ground_errors(self):
+        rv = Cont([0, 1], [1, 1])
+        with pytest.raises(ValueError, match="one of"):
+            rv.ground(direction="aaa")
+
     def test__coeffs_by_ind(self):
         # All coefficients are returned if no `ind` is specified
         rv = Cont([0, 1, 2], [0, 1, 0])

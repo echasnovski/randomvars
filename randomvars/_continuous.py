@@ -115,6 +115,62 @@ class Cont(Rand):
 
     # `support()` is inherited from `Rand`
 
+    def ground(self, w=None, direction="both"):
+        """Update xy-grid to represent explicit piecewise-linear function
+
+        Implicitly xy-grid represents piecewise-linear density in the following way:
+        - For points inside `[x[0]; x[-1]]` (support) output is a linear
+          interpolation.
+        - For points outside support output is zero.
+
+        This function returns new `Cont` object with transformed xy-grid so
+        that density can be computed as a direct linear interpolation on the
+        whole real line. This is done by possibly approximating "jumps" at the
+        edge(s) of support. Approximation at edge `(x_e, y_e)` is performed by
+        introducing a linear smoothing of a jump:
+          - Add outside point (x_e +/- w, 0) (sign depends on whether edge is right
+            or left). Here `w` is width of approximation controlled by input
+            argument `w`.
+          - Possibly add inner point `(x_e -/+ w, f(x_e -/+ w))` (`f(x)` - function
+            xy-grid represents). It is done only if distance between closest to
+            edge point (neighbor) and edge is strictly greater than `w`.
+          - Adjust edge y-value to preserve total probability.
+
+        Grounding can be done partially:
+          - If `direction="left"` or `direction="right"`, edge jump is
+            approximated only on left/right edge respectively.
+          - If `direction="none"`, no grounding is done.
+
+        Notes:
+        - If edge is already zero, then no grounding is done.
+        - This might lead to a very close points on x-grid: in case distance
+          between edge and neighbor is `w + eps` with `eps` being very small.
+        - If there is a neighbor strictly closer than `w`, slopes of jump
+          approximation depend on input neighbor distance.
+
+        Relevant package options: `small_width`.  See documentation of
+        `randomvars.options.get_option()` for more information. To temporarily
+        set options use `randomvars.options.option_context()` context manager.
+
+        Parameters
+        ----------
+        w : float or None
+            Width of jump approximation. If `None`, `small_width` package
+            option is used.
+        direction : string
+            Can be one of `"both"`, `"left"`, `"right"`, or `"none"`. Controls
+            which edge(s) should be grounded (if any).
+        """
+        if direction not in ["both", "left", "right", "none"]:
+            raise ValueError(
+                '`direction` should be one of "both", "left", "right", "none".'
+            )
+        if w is None:
+            w = op.get_option("small_width")
+
+        x, y = utilsgrid._ground_xy(xy=(self._x, self._y), w=w, direction=direction)
+        return Cont(x=x, y=y)
+
     def _coeffs_by_ind(self, ind=None):
         """Compute density linear coefficients based on index of interval.
 

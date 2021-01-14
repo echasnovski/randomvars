@@ -207,10 +207,6 @@ class TestGroundXY:
         w = op.get_option("small_width")
         xy = np.array([0.0, 1.0]), np.array([1.0, 1.0])
 
-        # By default and with `direction=None` should return input
-        _test_equal_seq(_ground_xy(xy, w), xy)
-        _test_equal_seq(_ground_xy(xy, w, direction=None), xy)
-
         # Basic usage
         _test_equal_seq(
             _ground_xy(xy, w, direction="both"),
@@ -222,6 +218,7 @@ class TestGroundXY:
         _test_equal_seq(
             _ground_xy(xy, w, direction="right"), ([0, 1 - w, 1, 1 + w], [1, 1, 0.5, 0])
         )
+        _test_equal_seq(_ground_xy(xy, w, direction="none"), xy)
 
     def test_close_neighbor(self):
         # Using big "small_width" to mitigate possible floating points issues

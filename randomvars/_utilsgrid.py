@@ -78,7 +78,7 @@ def _stack_xy(xy_seq):
     explicit piecewise-linear function on the whole real line. Grounding width
     is chosen to be the minimum of `small_width` option and neighbor distances
     (distance between edge and nearest point in xy-grid) for all edges where
-    grounding actually happens. This way ensures smooth behavior when stacking
+    grounding actually happens. This ensures smooth behavior when stacking
     xy-grids with "touching supports".
 
     Output x-grid consists of all unique values from all input x-grids. Output
@@ -140,52 +140,27 @@ def _compute_stack_ground_info(xy_seq):
     return ground_dir, w
 
 
-def _ground_xy(xy, w, direction=None):
+def _ground_xy(xy, w, direction):
     """Update xy-grid to represent explicit piecewise-linear function
 
-    Implicitly xy-grid represents piecewise-linear function in the following way:
-    - For points inside `[x[0]; x[-1]]` (support) output is a linear
-      interpolation.
-    - For points outside support output is zero.
-
-    This function transforms xy-grid so that output can be computed as a direct
-    linear interpolation. This is done by possibly approximating "jumps" at the
-    edge(s) of support. Approximation at edge `(x_e, y_e)` is performed by
-    introducing a linear smoothing of a jump:
-      - Add outside point (x_e +/- w, 0) (sign depends on whether edge is right
-        or left).
-      - Possibly add inner point `(x_e -/+ w, f(x_e -/+ w))` (`f(x)` - function
-        xy-grid represents). It is done only if distance between closest to
-        edge point (neighbor) and edge is strictly greater than `w`.
-      - Adjust edge y-value to preserve total probability.
+    For more information see `Cont.ground()`.
 
     Notes:
-    - If edge is already zero, then no grounding is done.
-    - This might lead to a very close points on x-grid: in case distance
-      between edge and neighbor is `w + eps` with `eps` being very small.
     - If there is a neighbor strictly closer than `w`, slopes of jump
       approximation depend on input neighbor distance. In case of stacking this
       might lead to an undesirable not smooth transition between y-values. To
       avoid this, `w` should be chosen the same for all stacked xy-grids and be
       not strictly bigger than any neighbor distance.
-
-    Parameters
-    ----------
-    xy : tuple with two elements
-    w : float
-    direction : string or None
-        Can be one of `"both"`, `"left"`, `"right"`, `"none"` or `None`.
-        Controls which edge(s) should be grounded (if any).
     """
-    if (direction is None) or (direction == "none"):
+    if direction == "none":
         return xy
 
     x, y = xy
+    xy_fun = lambda t: np.interp(t, x, y, left=0.0, right=0.0)
 
     ground_left = (direction in ["left", "both"]) and (not utils._is_zero(y[0]))
     ground_right = (direction in ["right", "both"]) and (not utils._is_zero(y[-1]))
 
-    xy_fun = lambda t: np.interp(t, x, y, left=0.0, right=0.0)
     x_res, y_res = x, y
 
     if ground_left:
