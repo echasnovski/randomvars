@@ -10,7 +10,7 @@ import randomvars._utils as utils
 import randomvars._utilsgrid as utilsgrid
 from randomvars.downgrid_maxtol import downgrid_maxtol
 from randomvars._random import Rand
-from randomvars.options import get_option
+import randomvars.options as op
 
 
 class Cont(Rand):
@@ -346,9 +346,9 @@ class Cont(Rand):
             raise ValueError("`rv` should have methods `cdf()` and `ppf()`.")
 
         # Get options
-        n_grid = get_option("n_grid")
-        small_prob = get_option("small_prob")
-        cdf_tolerance = get_option("cdf_tolerance")
+        n_grid = op.get_option("n_grid")
+        small_prob = op.get_option("small_prob")
+        cdf_tolerance = op.get_option("cdf_tolerance")
 
         # Detect effective support of `rv`
         finite_supp = _detect_finite_supp(rv, supp, small_prob)
@@ -452,10 +452,10 @@ class Cont(Rand):
         sample = utils._as_1d_numpy(sample, "sample", chkfinite=False, dtype="float64")
 
         # Get options
-        density_estimator = get_option("density_estimator")
-        density_mincoverage = get_option("density_mincoverage")
-        n_grid = get_option("n_grid")
-        cdf_tolerance = get_option("cdf_tolerance")
+        density_estimator = op.get_option("density_estimator")
+        density_mincoverage = op.get_option("density_mincoverage")
+        n_grid = op.get_option("n_grid")
+        cdf_tolerance = op.get_option("cdf_tolerance")
 
         # Estimate density
         density = density_estimator(sample)

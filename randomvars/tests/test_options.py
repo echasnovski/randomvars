@@ -4,8 +4,16 @@ import numpy as np
 from numpy.testing import assert_array_equal
 import pytest
 
-from randomvars.options import *
-from randomvars.options import _default_options
+from randomvars.options import (
+    OptionError,
+    default_boolean_estimator,
+    default_discrete_estimator,
+    get_option,
+    option_context,
+    reset_option,
+    set_option,
+    _default_options,
+)
 
 
 def test_default_discrete_estimator():

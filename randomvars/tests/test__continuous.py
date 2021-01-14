@@ -17,7 +17,7 @@ from randomvars.tests.commontests import (
     _test_one_value_input,
     _test_rvs_method,
 )
-from randomvars.options import get_option, option_context
+import randomvars.options as op
 
 
 DISTRIBUTIONS_COMMON = {
@@ -79,7 +79,7 @@ def augment_grid(x, n_inner_points):
 
 def from_sample_cdf_max_error(x):
     rv = Cont.from_sample(x)
-    density = get_option("density_estimator")(x)
+    density = op.get_option("density_estimator")(x)
 
     x_grid = augment_grid(rv.x, 10)
 
@@ -311,33 +311,33 @@ class TestCont:
         norm = distrs.norm
 
         # Finite support detection and usage of `small_prob` option
-        with option_context({"small_prob": 1e-6}):
+        with op.option_context({"small_prob": 1e-6}):
             rv_norm = Cont.from_rv(norm)
             assert_array_almost_equal(
                 rv_norm.support(), norm.ppf([1e-6, 1 - 1e-6]), decimal=DECIMAL
             )
 
-        with option_context({"small_prob": 1e-6}):
+        with op.option_context({"small_prob": 1e-6}):
             rv_norm_right = Cont.from_rv(norm, supp=(-1, None))
             assert_array_almost_equal(
                 rv_norm_right.support(), [-1, norm.ppf(1 - 1e-6)], decimal=DECIMAL
             )
 
-        with option_context({"small_prob": 1e-6}):
+        with op.option_context({"small_prob": 1e-6}):
             rv_norm_left = Cont.from_rv(norm, supp=(None, 1))
             assert_array_almost_equal(
                 rv_norm_left.support(), [norm.ppf(1e-6), 1], decimal=DECIMAL
             )
 
         # Usage of `n_grid` option
-        with option_context({"n_grid": 11}):
+        with op.option_context({"n_grid": 11}):
             rv_norm_small = Cont.from_rv(norm)
         assert len(rv_norm_small.x) <= 20
 
         # Usage of `cdf_tolerance` option
-        with option_context({"cdf_tolerance": 1e-4}):
+        with op.option_context({"cdf_tolerance": 1e-4}):
             rv_norm_1 = Cont.from_rv(norm)
-        with option_context({"cdf_tolerance": 1e-1}):
+        with op.option_context({"cdf_tolerance": 1e-1}):
             rv_norm_2 = Cont.from_rv(norm)
         ## Increasing CDF tolerance should lead to decrease of density grid
         assert len(rv_norm_1.x) > len(rv_norm_2.x)
@@ -372,7 +372,7 @@ class TestCont:
 
             return res
 
-        with option_context({"density_estimator": uniform_estimator}):
+        with op.option_context({"density_estimator": uniform_estimator}):
             rv = Cont.from_sample(x)
         assert len(rv.y) == 2
         assert np.allclose(rv.y, rv.y[0], atol=1e-13)
@@ -381,31 +381,31 @@ class TestCont:
         ## `Cont` object should be returned untouched
         rv_estimation = Cont([0, 1], [1, 1])
         rv_estimation.aaa = "Extra method"
-        with option_context({"density_estimator": lambda x: rv_estimation}):
+        with op.option_context({"density_estimator": lambda x: rv_estimation}):
             rv = Cont.from_sample(np.asarray([0, 1, 2]))
             assert "aaa" in dir(rv)
 
         ## "Scipy" distribution should be forwarded to `Cont.from_rv()`
         rv_norm = distrs.norm()
-        with option_context({"density_estimator": lambda x: rv_norm}):
+        with op.option_context({"density_estimator": lambda x: rv_norm}):
             rv = Cont.from_sample(np.asarray([0, 1, 2]))
             rv_ref = Cont.from_rv(rv_norm)
             assert_equal_cont(rv, rv_ref)
 
         # "density_mincoverage"
-        with option_context({"density_mincoverage": 0}):
+        with op.option_context({"density_mincoverage": 0}):
             rv = Cont.from_sample(x)
         ## With minimal density mincoverage output range should be equal to
         ## sample range
         assert_array_equal(rv.x[[0, -1]], [x.min(), x.max()])
 
         # "n_grid"
-        with option_context({"n_grid": 11}):
+        with op.option_context({"n_grid": 11}):
             rv = Cont.from_sample(x)
         assert len(rv.x) <= 22
 
         # "cdf_tolerance"
-        with option_context({"cdf_tolerance": 2}):
+        with op.option_context({"cdf_tolerance": 2}):
             rv = Cont.from_sample(x)
         ## With very high CDF tolerance downgridding should result into grid
         ## with three elements. That is because CDF is approximated with
@@ -427,12 +427,16 @@ class TestCont:
 
         # Case when sample width is zero but density is not zero
         density_centered_interval = make_circ_density([(-1, 1)])
-        with option_context({"density_estimator": lambda x: density_centered_interval}):
+        with op.option_context(
+            {"density_estimator": lambda x: density_centered_interval}
+        ):
             assert from_sample_cdf_max_error(zero_vec) <= 1e-4
 
         # Case when both sample width and density are zero
         density_shifted_interval = make_circ_density([(10, 20)])
-        with option_context({"density_estimator": lambda x: density_shifted_interval}):
+        with op.option_context(
+            {"density_estimator": lambda x: density_shifted_interval}
+        ):
             # Here currently the problem is that support is estimated way to
             # wide with very small (~1e-9) non-zero density outside of [10,
             # 20]. However, CDFs are still close.
@@ -687,8 +691,8 @@ class TestFromSampleAccuracy:
 
     @pytest.mark.slow
     def test_density_range(self):
-        density_estimator = get_option("density_estimator")
-        density_mincoverage = get_option("density_mincoverage")
+        density_estimator = op.get_option("density_estimator")
+        density_mincoverage = op.get_option("density_mincoverage")
         rng = np.random.default_rng(101)
 
         def generate_density_coverage(distr):
@@ -711,9 +715,9 @@ class TestFromSampleAccuracy:
         # Testing with `gaussian_kde` as the most used density estimator. This
         # also enables to use rather fast way of computing CDF of estimated
         # density via `integrate_box_1d` method.
-        with option_context({"density_estimator": gaussian_kde}):
+        with op.option_context({"density_estimator": gaussian_kde}):
             rv = Cont.from_sample(x)
-            density = get_option("density_estimator")(x)
+            density = op.get_option("density_estimator")(x)
 
         x_grid = augment_grid(rv.x, 10)
 
@@ -748,7 +752,7 @@ def test__extend_range():
     rng = np.random.default_rng(101)
     x = norm.rvs(100, random_state=rng)
 
-    with option_context({"density_estimator": extra_estimator}):
+    with op.option_context({"density_estimator": extra_estimator}):
         rv = Cont.from_sample(x)
 
     assert (rv.x[0] <= x.min()) and (rv.x[-1] >= x.max())
