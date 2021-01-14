@@ -7,62 +7,6 @@ from scipy.interpolate import BSpline
 import randomvars.options as op
 
 
-# %% User-facing functions
-## Currently exported in `options.py`
-def default_discrete_estimator(sample):
-    """Default estimator of discrete distribution
-
-    This estimator returns unique values of input as distributions values.
-    Their probabilities are proportional to number of their occurrences in input.
-
-    Parameters
-    ----------
-    sample : array_like
-        This should be a valid input to `np.asarray()` so that its output is
-        numeric.
-
-    Returns
-    -------
-    x, prob : tuple with two elements
-        Here `x` represents estimated values of distribution and `prob` -
-        estimated probabilities.
-    """
-    sample = np.asarray(sample, dtype="float64")
-
-    sample_is_finite = np.isfinite(sample)
-    if not np.all(sample_is_finite):
-        if not np.any(sample_is_finite):
-            raise ValueError(
-                "Input sample in discrete estimator doesn't have finite values."
-            )
-        else:
-            warnings.warn("Input sample in discrete estimator has non-finite values.")
-            sample = sample[sample_is_finite]
-
-    vals, counts = np.unique(sample, return_counts=True)
-    return vals, counts / np.sum(counts)
-
-
-def default_boolean_estimator(sample):
-    """Default estimator of boolean distribution
-
-    This estimator returns proportion of `True` values after converting input
-    to boolean Numpy array.
-
-    Parameters
-    ----------
-    sample : array_like
-        This should be a valid input to `np.asarray()` so that its output is
-        boolean.
-
-    Returns
-    -------
-    prob_true : number
-    """
-    sample = np.asarray(sample, dtype="bool")
-    return np.mean(sample)
-
-
 # %% Array manipulations
 def _as_1d_numpy(x, x_name, chkfinite=True, dtype="float64"):
     """Convert input to one-dimensional numpy array

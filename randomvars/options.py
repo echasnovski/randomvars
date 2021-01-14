@@ -1,6 +1,7 @@
-from scipy.stats.kde import gaussian_kde
+import warnings
 
-from randomvars._utils import default_discrete_estimator, default_boolean_estimator
+import numpy as np
+from scipy.stats.kde import gaussian_kde
 
 
 __all__ = [
@@ -13,6 +14,63 @@ __all__ = [
     "set_option",
 ]
 
+
+# %% Default estimators
+def default_boolean_estimator(sample):
+    """Default estimator of boolean distribution
+
+    This estimator returns proportion of `True` values after converting input
+    to boolean Numpy array.
+
+    Parameters
+    ----------
+    sample : array_like
+        This should be a valid input to `np.asarray()` so that its output is
+        boolean.
+
+    Returns
+    -------
+    prob_true : number
+    """
+    sample = np.asarray(sample, dtype="bool")
+    return np.mean(sample)
+
+
+def default_discrete_estimator(sample):
+    """Default estimator of discrete distribution
+
+    This estimator returns unique values of input as distributions values.
+    Their probabilities are proportional to number of their occurrences in input.
+
+    Parameters
+    ----------
+    sample : array_like
+        This should be a valid input to `np.asarray()` so that its output is
+        numeric.
+
+    Returns
+    -------
+    x, prob : tuple with two elements
+        Here `x` represents estimated values of distribution and `prob` -
+        estimated probabilities.
+    """
+    sample = np.asarray(sample, dtype="float64")
+
+    sample_is_finite = np.isfinite(sample)
+    if not np.all(sample_is_finite):
+        if not np.any(sample_is_finite):
+            raise ValueError(
+                "Input sample in discrete estimator doesn't have finite values."
+            )
+        else:
+            warnings.warn("Input sample in discrete estimator has non-finite values.")
+            sample = sample[sample_is_finite]
+
+    vals, counts = np.unique(sample, return_counts=True)
+    return vals, counts / np.sum(counts)
+
+
+# %% Options
 _default_options = {
     "base_tolerance": 1e-12,
     "boolean_estimator": default_boolean_estimator,
