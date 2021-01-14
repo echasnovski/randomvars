@@ -7,6 +7,7 @@ from randomvars._discrete import Disc
 from randomvars._utilsgrid import (
     _y_from_xp,
     _p_from_xy,
+    _stack_xp,
     _stack_xy,
     _compute_stack_ground_info,
     _ground_xy,
@@ -40,6 +41,11 @@ def test__p_from_xy():
     assert np.sum(p) == 1
     # Zero y-elements result into zero p-elements
     assert np.all(p[y == 0] == 0)
+
+
+def test__stack_xp():
+    xp_seq = [([0, 1], [0.1, 0.2]), ([0, 2], [0.5, 0.7])]
+    assert_array_equal(_stack_xp(xp_seq), ([0, 1, 2], [0.6, 0.2, 0.7]))
 
 
 class TestStackXY:

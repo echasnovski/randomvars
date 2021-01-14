@@ -67,6 +67,33 @@ def _convert_coeffs(x):
 
 
 # %% Stacking
+def _stack_xp(xp_seq):
+    """Stack xp-grids
+
+    Here "stack xp-grids" means "compute xp-grid which represents sum of all
+    input xp-grids".
+
+    Output x-grid consists of all unique values from all input x-grids. Output
+    p-grid is computed as sum of all p-values at corresponding x-value of
+    output x-grid (if x-value is not in xp-grid, 0 p-value is taken).
+
+    TODO: It seems to be reasonable to use not strictly unique x-values but
+    rather "unique with tolerance".
+
+    Parameters
+    ----------
+    xp_seq : sequence
+        Sequence of xp-grids.
+    """
+    x_raw, p_raw = [np.concatenate(t) for t in zip(*xp_seq)]
+
+    # This relies on the fact that `np.unique()` returns sorted array
+    x, inds = np.unique(x_raw, return_inverse=True)
+    p = np.bincount(inds, weights=p_raw)
+
+    return x, p
+
+
 def _stack_xy(xy_seq):
     """Stack xy-grids
 
@@ -84,6 +111,9 @@ def _stack_xy(xy_seq):
     Output x-grid consists of all unique values from all input x-grids. Output
     y-grid is computed as sum of interpolations at output x-grid for all input
     y-grids.
+
+    TODO: It seems to be reasonable to use not strictly unique x-values but
+    rather "unique with tolerance".
 
     Parameters
     ----------
@@ -140,6 +170,7 @@ def _compute_stack_ground_info(xy_seq):
     return ground_dir, w
 
 
+# %% Grounding
 def _ground_xy(xy, w, direction):
     """Update xy-grid to represent explicit piecewise-linear function
 
