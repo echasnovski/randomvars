@@ -94,18 +94,18 @@ class TestBool:
             Bool.from_rv(tmp)
 
     def test_from_rv_options(self):
-        # Usage of `tolerance` option
+        # Usage of `base_tolerance` option
         x = [-1e-2, 0, 1e-3]
         prob = [0.125, 0.5, 0.375]
         rv = distrs.rv_discrete(values=(x, prob))
 
-        with op.option_context({"tolerance": (0, 1e-4)}):
+        with op.option_context({"base_tolerance": 1e-4}):
             assert_equal_bool(Bool.from_rv(rv), Bool(prob_true=1 - 0.5))
-        with op.option_context({"tolerance": (0, 5e-3)}):
+        with op.option_context({"base_tolerance": 5e-3}):
             # Close positive values shouldn't affect output, because it is
-            # computed using `cdf(0) - cdf(-atol)`
+            # computed using `cdf(0) - cdf(-base_tol)`
             assert_equal_bool(Bool.from_rv(rv), Bool(prob_true=1 - 0.5))
-        with op.option_context({"tolerance": (0, 5e-2)}):
+        with op.option_context({"base_tolerance": 5e-2}):
             assert_equal_bool(Bool.from_rv(rv), Bool(prob_true=1 - 0.625))
 
     def test_from_sample_basic(self):

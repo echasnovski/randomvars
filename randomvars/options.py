@@ -24,7 +24,6 @@ _default_options = {
     "n_grid": 1001,
     "small_prob": 1e-6,
     "small_width": 1e-8,
-    "tolerance": (0.0, 1e-12),
 }
 _options = _default_options.copy()
 
@@ -83,20 +82,6 @@ _options_list = """
   "small" during approximations.
 - small_width : float, default 1e-8. Difference between x-values that can be
   considered "small" during approximations.
-- tolerance : tuple with two elements, default (0.0, 1e-12). Tuple with
-  relative and absolute tolerance to be used for testing approximate equality
-  of two numbers. Testing is done following logic of builtin `math.isclose()`:
-    - `rtol` is a maximum difference for being considered "close", relative to
-      the magnitude of the input values.
-    - `atol` is a maximum difference for being considered "close", regardless
-      of the magnitude of the input values (needed to )
-    - For the values to be considered close, the difference between them must
-      be smaller than at least one of the tolerances.
-  **Notes**:
-    - Default values are different than in `math.isclose()`. This is done to
-      account for the possibility to do approximate equality to zero.
-    - The `numpy.isclose()` is not used due to its lack of symmetry:
-      `numpy.isclose(a, b)` is not necessary equal to `numpy.isclose(b, a)`.
 """
 
 

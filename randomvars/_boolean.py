@@ -104,9 +104,10 @@ class Bool(Rand):
         value from input random variable. Following general Python agreement,
         probability of `True` is computed as probability of all non-zero
         elements, which in turn is one minus probability of zero. Probability
-        of zero is computed using `tolerance` package option by calculating
-        difference between values of cumulative distribution function at zero
-        and `-atol` (minus second element of `tolerance` option).
+        of zero is computed using `base_tolerance` package option by
+        calculating difference between values of cumulative distribution
+        function at zero and `-base_tolerance` (minus value of `base_tolerance`
+        option).
 
         **Notes**:
         - If `rv` is already an object of class `Bool`, it is returned
@@ -115,7 +116,7 @@ class Bool(Rand):
           very small probability of `False`, which doesn't quite align with
           expected theoretical result of 0.
 
-        Relevant package options: `tolerance`. See documentation of
+        Relevant package options: `base_tolerance`. See documentation of
         `randomvars.options.get_option()` for more information. To temporarily
         set options use `randomvars.options.option_context()` context manager.
 
@@ -141,10 +142,10 @@ class Bool(Rand):
             raise ValueError("`rv` should have method `cdf()`.")
 
         # Get options
-        _, atol = op.get_option("tolerance")
+        base_tol = op.get_option("base_tolerance")
 
         # Compute probability of `False`
-        prob_false = rv.cdf(0) - rv.cdf(-atol)
+        prob_false = rv.cdf(0) - rv.cdf(-base_tol)
 
         return cls(prob_true=1 - prob_false)
 

@@ -6,9 +6,9 @@ import pytest
 import randomvars.options as op
 
 
-rtol, atol = op.get_option("tolerance")
+base_tol = op.get_option("base_tolerance")
 # Value that is used to test almost exact equality of two numpy arrays
-DECIMAL = np.ceil(-np.log10(atol)).astype("int64")
+DECIMAL = np.ceil(-np.log10(base_tol)).astype("int64")
 
 # Difference of x-values that is considered "small" during approximations
 h = op.get_option("small_width")
