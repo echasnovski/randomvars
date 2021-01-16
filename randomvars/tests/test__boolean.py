@@ -10,6 +10,7 @@ from randomvars.tests.commontests import (
     h,
     _test_equal_seq,
     _test_input_coercion,
+    _test_from_rv_rand,
     _test_log_fun,
     _test_one_value_input,
     _test_rvs_method,
@@ -73,12 +74,8 @@ class TestBool:
         rv_ref = Bool(prob_true=prob_true)
         assert_equal_bool(rv_out, rv_ref)
 
-        # Object of `Bool` class should be returned untouched
-        rv = Bool(prob_true)
-        rv.aaa = "Extra method"
-        rv2 = Bool.from_rv(rv)
-        assert_equal_bool(rv, rv2)
-        assert "aaa" in dir(rv2)
+        # Objects of `Rand` class should be `convert()`ed
+        _test_from_rv_rand(cls=Bool, to_class="Bool", assert_equal=assert_equal_bool)
 
         # Works with rv with not only 0 and 1 values
         rv_many = distrs.rv_discrete(values=([-1, 0, 1], [0.5, 0.375, 0.125]))

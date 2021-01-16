@@ -110,8 +110,8 @@ class Bool(Rand):
         option).
 
         **Notes**:
-        - If `rv` is already an object of class `Bool`, it is returned
-          untouched.
+        - If `rv` is an object of class `Rand`, it is converted to
+          `Bool` via `rv.convert("Bool")`.
         - If `rv` represents continuous random variable, output might have a
           very small probability of `False`, which doesn't quite align with
           expected theoretical result of 0.
@@ -134,8 +134,8 @@ class Bool(Rand):
             of input `rv`.
         """
         # Make early return
-        if isinstance(rv, Bool):
-            return rv
+        if isinstance(rv, Rand):
+            return rv.convert("Bool")
 
         # Check input
         if not ("cdf" in dir(rv)):

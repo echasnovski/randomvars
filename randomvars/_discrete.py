@@ -138,8 +138,8 @@ class Disc(Rand):
         surpasses `1 - small_prob`.
 
         **Notes**:
-        - If `rv` is already an object of class `Disc`, it is returned
-          untouched.
+        - If `rv` is an object of class `Rand`, it is converted to
+          `Disc` via `rv.convert("Disc")`.
         - By the nature of "stepping" procedure, output random variable will
           automatically have "trimmed tails" if they consist from x-values
           with small probabilities. This might result into fewer elements in
@@ -171,8 +171,8 @@ class Disc(Rand):
             input `rv`.
         """
         # Make early return
-        if isinstance(rv, Disc):
-            return rv
+        if isinstance(rv, Rand):
+            return rv.convert("Disc")
 
         # Check input
         rv_dir = dir(rv)

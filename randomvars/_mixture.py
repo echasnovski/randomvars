@@ -230,24 +230,19 @@ class Mixt(Rand):
         """Create mixture RV from two general Rvs
 
         This is mostly a wrapper for `Mixt(cont=Cont.from_rv(rv[0]),
-        disc=Disc.from_rv(rv[1]), weight_cont=weight_cont)`. It has special
-        treatment for degenerate cases (when one part of mixture is `None`):
-        - If input `rv` is object of `Cont` or `Disc` it is transformed into
-          tuple with other part being `None`.
-        - If one of `rv` element is `None` and other part has full weight (or
-          weight is `None`), mixture random variable with only one part is
-          created.
+        disc=Disc.from_rv(rv[1]), weight_cont=weight_cont)` which allows `None`
+        as one element: if other part has full weight (or weight is `None`),
+        mixture random variable with only one part is created.
 
-        **Note** that if `rv` is already an object of class `Mixt`, it is
-        returned untouched.
+        **Note** that if `rv` is an object of class `Rand`, it is converted to
+        `Mixt` via `rv.convert("Mixt")` (regardless of what `weight_cont` is
+        supplied).
 
         Parameters
         ----------
-        rv : tuple with two elements or object of `Cont`, `Disc`, or `Mixt`
+        rv : tuple with two elements or object of `Rand`
             First element should be a valid input for `Cont.from_rv()` or
-            `None`. Second - for `Disc.from_rv()` or `None`. Objects of `Cont`
-            and `Disc` are transformed into tuples with other part being
-            `None`. If object of `Mixt`, returned untouched.
+            `None`. Second - for `Disc.from_rv()` or `None`.
         weight_cont : number or `None` (default)
             Weight of continuous part. Can be `None` if one of input tuple's
             element is `None`.
@@ -258,15 +253,8 @@ class Mixt(Rand):
             Mixture random variable with parts created from input random
             variables.
         """
-        if isinstance(rv, Mixt):
-            # `Mixt` should be returned untouched
-            return rv
-        elif isinstance(rv, Cont):
-            # Allow `Mixt.from_rv(rv)` if `rv` is object of `Cont`
-            rv = (rv, None)
-        elif isinstance(rv, Disc):
-            # Allow `Mixt.from_rv(rv)` if `rv` is object of `Disc`
-            rv = (None, rv)
+        if isinstance(rv, Rand):
+            return rv.convert("Mixt")
 
         _assert_two_tuple(rv, "rv")
         if (weight_cont is None) and (rv[0] is not None) and (rv[1] is not None):
@@ -286,9 +274,7 @@ class Mixt(Rand):
             return cls(cont=Cont.from_rv(rv[0]), disc=None, weight_cont=weight_cont)
 
         return cls(
-            cont=Cont.from_rv(rv[0]),
-            disc=Disc.from_rv(rv[1]),
-            weight_cont=weight_cont,
+            cont=Cont.from_rv(rv[0]), disc=Disc.from_rv(rv[1]), weight_cont=weight_cont
         )
 
     @classmethod

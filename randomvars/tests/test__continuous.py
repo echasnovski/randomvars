@@ -13,6 +13,7 @@ from randomvars.tests.commontests import (
     h,
     _test_equal_seq,
     _test_input_coercion,
+    _test_from_rv_rand,
     _test_log_fun,
     _test_one_value_input,
     _test_rvs_method,
@@ -324,12 +325,8 @@ class TestCont:
         rv_unif_test = Cont(x=[0, 1], y=[1, 1])
         assert_equal_cont(rv_unif, rv_unif_test, decimal=DECIMAL)
 
-        # Object of `Cont` class should be returned untouched
-        rv = Cont.from_rv(uniform)
-        rv.aaa = "Extra method"
-        rv2 = Cont.from_rv(rv)
-        assert_equal_cont(rv, rv2)
-        assert "aaa" in dir(rv2)
+        # Objects of `Rand` class should be `convert()`ed
+        _test_from_rv_rand(cls=Cont, to_class="Cont", assert_equal=assert_equal_cont)
 
         # Forced support edges
         rv_right = Cont.from_rv(uniform, supp=(0.5, None))

@@ -12,6 +12,7 @@ from randomvars.tests.commontests import (
     h,
     _test_equal_seq,
     _test_input_coercion,
+    _test_from_rv_rand,
     _test_log_fun,
     _test_one_value_input,
     _test_rvs_method,
@@ -146,12 +147,8 @@ class TestDisc:
         rv_ref = Disc(x=x, p=p)
         assert_equal_disc(rv_out, rv_ref)
 
-        # Object of `Disc` class should be returned untouched
-        rv = Disc([0, 1], [0.1, 0.9])
-        rv.aaa = "Extra method"
-        rv2 = Disc.from_rv(rv)
-        assert_equal_disc(rv, rv2)
-        assert "aaa" in dir(rv2)
+        # Objects of `Rand` class should be `convert()`ed
+        _test_from_rv_rand(cls=Disc, to_class="Disc", assert_equal=assert_equal_disc)
 
         # Works with single-valued rv
         rv_single = distrs.rv_discrete(values=(2, 1))

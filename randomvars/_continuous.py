@@ -364,8 +364,8 @@ class Cont(Rand):
           negative values can occur if CDF approximation is allowed to be loose
           (either `n_grid` is low or `cdf_tolerance` is high).
 
-        **Note** that if `rv` is already an object of class `Cont`, it is
-        returned untouched.
+        **Note** that if `rv` is an object of class `Rand`, it is converted to
+        `Cont` via `rv.convert("Cont")`.
 
         Relevant package options: `n_grid`, `small_prob`, `cdf_tolerance`.
         See documentation of `randomvars.options.get_option()` for more
@@ -393,8 +393,8 @@ class Cont(Rand):
             which approximates density of input `rv`.
         """
         # Make early return
-        if isinstance(rv, Cont):
-            return rv
+        if isinstance(rv, Rand):
+            return rv.convert("Cont")
 
         # Check input
         rv_dir = dir(rv)

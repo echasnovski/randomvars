@@ -33,14 +33,12 @@ class TestRand:
         assert tmp_rv.support() == (0, 1)
 
     def test_from_rv(self):
+        # Objects of `Rand` class should be `convert()`ed
+        rv = Rand()
+        assert Rand.from_rv(rv) is rv.convert("Rand")
+
         with pytest.raises(NotImplementedError):
             Rand().from_rv("a")
-
-        # Object of class `Rand` should be returned untouched
-        rv = Rand()
-        rv.aaa = "Extra method"
-        rv2 = Rand.from_rv(rv)
-        assert rv2.aaa == "Extra method"
 
     def test_from_sample(self):
         with pytest.raises(NotImplementedError):
@@ -198,6 +196,9 @@ class TestRand:
         # By default and supplying `None` should return self
         assert rv.convert() is rv
         assert rv.convert(None) is rv
+
+        # Converting to own class should return self
+        assert rv.convert("Rand") is rv
 
         # Otherwise method is not implemented
         with pytest.raises(NotImplementedError):

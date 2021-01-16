@@ -29,7 +29,7 @@ class Rand:
     def from_rv(cls, rv):
         """Create RV from different RV"""
         if isinstance(rv, Rand):
-            return rv
+            return rv.convert("Rand")
 
         raise NotImplementedError
 
@@ -129,7 +129,7 @@ class Rand:
 
     def convert(self, to_class=None):
         """Convert to different RV class"""
-        if to_class is None:
+        if (to_class == "Rand") or (to_class is None):
             return self
 
         raise NotImplementedError

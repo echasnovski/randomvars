@@ -13,6 +13,7 @@ from randomvars.tests.commontests import (
     h,
     _test_equal_seq,
     _test_input_coercion,
+    _test_from_rv_rand,
     _test_log_fun,
     _test_one_value_input,
     _test_rvs_method,
@@ -252,22 +253,10 @@ class TestMixt:
         )
         assert_equal_mixt(out, out_ref)
 
-        # `Mixt` should be returned untouched
-        rv_mixt = Mixt(cont, disc, 0.5)
-        rv_mixt.aaa = "Extra method"
-        out = Mixt.from_rv(rv_mixt)
-        assert out.aaa == "Extra method"
+        # Objects of `Rand` class should be `convert()`ed
+        _test_from_rv_rand(cls=Mixt, to_class="Mixt", assert_equal=assert_equal_mixt)
 
         # Degenerate cases
-        ## Allow `rv` to be an object of `Cont` or `Disc`
-        ### `weight_cont` can be `None`
-        assert_equal_mixt(Mixt.from_rv(cont), Mixt(cont, None, 1))
-        assert_equal_mixt(Mixt.from_rv(disc), Mixt(None, disc, 0))
-
-        ### `weight_cont` can represent full weight of non-`None` part
-        assert_equal_mixt(Mixt.from_rv(cont, weight_cont=1), Mixt(cont, None, 1))
-        assert_equal_mixt(Mixt.from_rv(disc, weight_cont=0), Mixt(None, disc, 0))
-
         ## Allow degenerate cases with tuple `rv`
         mixt_nonedisc_ref = Mixt(Cont.from_rv(cont_scipy), None, 1)
         mixt_nonecont_ref = Mixt(None, Disc.from_rv(disc_scipy), 0)
