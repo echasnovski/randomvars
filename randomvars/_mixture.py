@@ -8,6 +8,7 @@ from randomvars._continuous import Cont
 from randomvars._discrete import Disc
 from randomvars._random import Rand
 import randomvars._utils as utils
+import randomvars._utilsgrid as utilsgrid
 
 
 class Mixt(Rand):
@@ -473,6 +474,88 @@ class Mixt(Rand):
         return self._weight_cont * self._cont.integrate_cdf(
             a, b
         ) + self._weight_disc * self._disc.integrate_cdf(a, b)
+
+    def convert(self, to_class=None):
+        """Convert to different RV class
+
+        Conversion is done by the following logic depending on the value of
+        `to_class`:
+        - If it is `None` or `"Mixt"`, `self` is returned.
+        - If it is `"Bool"`, boolean RV is returned by converting to to Disc
+          and Bool consecutively.
+        - If it is `"Disc"`, discrete RV is returned. Its xp-grid is computed
+          by the following algorithm:
+            - Convert continuous part (if present) to discrete.
+            - Return mixture of discrete variables: x-grid is union of two
+              x-grids, p-grid is a weighted sum of probabilities at points of
+              output x-grid.
+        - If it is `"Cont"`, continuous RV is returned. Its xy-grid is computed
+          by the following algorithm:
+            - Convert discrete part (if present) to continuous.
+            - Return mixture of continuous variables: x-grid is union of two
+              x-grids, y-grid is a weighted sum of densities at points of
+              output x-grid.
+          **Note** that before creating mixture of continuous variables, they
+          are "grounded" (see `Cont.ground()`) to create a proper mixture.
+          Also:
+            - Grounding is not done at points close (in terms of "closeness
+              with tolerance", see `base_tolerance` package option) to what
+              will be edges of mixture.
+            - Grounding width is chosen to be the minimum of `small_width`
+              package option and neighbor distances (distance between edge and
+              nearest point in xy-grid) for all edges where grounding actually
+              happens. This ensures smooth behavior in case of "touching
+              supports".
+
+        Relevant package options: `base_tolerance`, `small_width` (only if
+        `to_class` is `"Cont"`). See documentation of
+        `randomvars.options.get_option()` for more information. To temporarily
+        set options use `randomvars.options.option_context()` context manager.
+
+        Parameters
+        ----------
+        to_class : string or None, optional
+            Name of target class. Can be one of: `"Bool"`, `"Cont"`, `"Disc"`,
+            `"Mixt"`, or `None`.
+
+        Raises
+        ------
+        ValueError:
+            In case not supported `to_class` is given.
+        """
+        # Use inline `import` statements to avoid circular import problems
+        if to_class == "Bool":
+            return self.convert("Disc").convert("Bool")
+        elif to_class == "Cont":
+            if self._missing_cont():
+                return self.disc.convert("Cont")
+            if self._missing_disc():
+                return self.cont
+
+            disc_converted = self.disc.convert("Cont")
+            xy_disc = disc_converted.x, disc_converted.y * self._weight_disc
+            xy_cont = self.cont.x, self.cont.y * self._weight_cont
+
+            x, y = utilsgrid._stack_xy((xy_disc, xy_cont))
+            return Cont(x=x, y=y)
+        elif to_class == "Disc":
+            if self._missing_cont():
+                return self.disc
+            if self._missing_disc():
+                return self.cont.convert("Disc")
+
+            xp_disc = self.disc.x, self.disc.p * self._weight_disc
+            cont_converted = self.cont.convert("Disc")
+            xp_cont = cont_converted.x, cont_converted.p * self._weight_cont
+
+            x, p = utilsgrid._stack_xp((xp_disc, xp_cont))
+            return Disc(x=x, p=p)
+        elif (to_class == "Mixt") or (to_class is None):
+            return self
+        else:
+            raise ValueError(
+                '`metric` should be one of "Bool", "Cont", "Disc", or "Mixt".'
+            )
 
 
 def _assert_two_tuple(x, x_name):

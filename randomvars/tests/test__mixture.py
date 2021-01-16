@@ -17,6 +17,7 @@ from randomvars.tests.commontests import (
     _test_one_value_input,
     _test_rvs_method,
 )
+import randomvars.options as op
 
 
 def assert_equal_mixt(rv_1, rv_2, decimal=None):
@@ -616,3 +617,124 @@ class TestMixt:
 
         rv_weight_1 = Mixt(cont=cont, disc=disc, weight_cont=1)
         assert_array_equal(rv_weight_1.integrate_cdf(a, b), cont.integrate_cdf(a, b))
+
+    def test_convert(self):
+        import randomvars._boolean as bool
+
+        w = op.get_option("small_width")
+
+        cont = Cont([0, 1], [1, 1])
+        disc = Disc([-1, 0.5], [0.25, 0.75])
+        weight_cont = 0.75
+        rv = Mixt(cont=cont, disc=disc, weight_cont=weight_cont)
+
+        x_ref = np.linspace(rv.a, rv.b, 10001)
+
+        # By default and supplying `None` should return self
+        assert rv.convert() is rv
+        assert rv.convert(None) is rv
+
+        # Converting to Bool should result into consecutive conversion to Disc
+        # and Bool
+        out_bool = rv.convert("Bool")
+        assert isinstance(out_bool, bool.Bool)
+        assert out_bool.prob_true == rv.convert("Disc").convert("Bool").prob_true
+
+        # Converting to Cont should result into mixture of continuous part and
+        # discrete part converted to continuous
+        out_cont = rv.convert("Cont")
+        assert isinstance(out_cont, Cont)
+
+        ## Remove reference points that are close to input x-grids where slight
+        ## difference is expected due to "grounding" of xy-grids
+        dist_to_set = lambda x, x_set: np.min(np.abs(x - x_set.reshape(-1, 1)), axis=0)
+        x_ref2 = x_ref[
+            (dist_to_set(x_ref, cont.x) > w) & (dist_to_set(x_ref, disc.x) > w)
+        ]
+        assert_array_almost_equal(
+            out_cont.cdf(x_ref2),
+            rv.weight_cont * rv.cont.cdf(x_ref2)
+            + rv.weight_disc * rv.disc.convert("Cont").cdf(x_ref2),
+            decimal=DECIMAL,
+        )
+
+        # Converting to Disc should result into mixture of continuous part
+        # converted to discrete and discrete part
+        out_disc = rv.convert("Disc")
+        assert isinstance(out_disc, Disc)
+        assert_array_equal(
+            out_disc.cdf(x_ref),
+            rv.weight_cont * rv.cont.convert("Disc").cdf(x_ref)
+            + rv.weight_disc * rv.disc.cdf(x_ref),
+        )
+
+        # Converting to own class should return self
+        out_mixt = rv.convert("Mixt")
+        assert out_mixt is rv
+
+        # Any other target class should result into error
+        with pytest.raises(ValueError, match="one of"):
+            rv.convert("aaa")
+
+    def test_convert_degenerate(self):
+        cont = Cont([0, 1], [1, 1])
+        cont_todisc = cont.convert("Disc")
+        disc = Disc([-1, 0.5], [0.25, 0.75])
+        disc_tocont = disc.convert("Cont")
+
+        # `None` part
+        rv_nocont = Mixt(cont=None, disc=disc, weight_cont=0)
+        rv_nocont_tocont = rv_nocont.convert("Cont")
+        _test_equal_seq(
+            (rv_nocont_tocont.x, rv_nocont_tocont.y), (disc_tocont.x, disc_tocont.y)
+        )
+        rv_nocont_todisc = rv_nocont.convert("Disc")
+        _test_equal_seq((rv_nocont_todisc.x, rv_nocont_todisc.p), (disc.x, disc.p))
+
+        rv_nodisc = Mixt(cont=cont, disc=None, weight_cont=1.0)
+        rv_nodisc_tocont = rv_nodisc.convert("Cont")
+        _test_equal_seq((rv_nodisc_tocont.x, rv_nodisc_tocont.y), (cont.x, cont.y))
+        rv_nodisc_todisc = rv_nodisc.convert("Disc")
+        _test_equal_seq(
+            (rv_nodisc_todisc.x, rv_nodisc_todisc.p), (cont_todisc.x, cont_todisc.p)
+        )
+
+        # Extreme weight
+        rv_weight0 = Mixt(cont=cont, disc=disc, weight_cont=0)
+        rv_weight0_tocont = rv_weight0.convert("Cont")
+        _test_equal_seq(
+            (rv_weight0_tocont.x, rv_weight0_tocont.y), (disc_tocont.x, disc_tocont.y)
+        )
+        rv_weight0_todisc = rv_weight0.convert("Disc")
+        _test_equal_seq((rv_weight0_todisc.x, rv_weight0_todisc.p), (disc.x, disc.p))
+
+        rv_weight1 = Mixt(cont=cont, disc=disc, weight_cont=1.0)
+        rv_weight1_tocont = rv_weight1.convert("Cont")
+        _test_equal_seq((rv_weight1_tocont.x, rv_weight1_tocont.y), (cont.x, cont.y))
+        rv_weight1_todisc = rv_weight1.convert("Disc")
+        _test_equal_seq(
+            (rv_weight1_todisc.x, rv_weight1_todisc.p), (cont_todisc.x, cont_todisc.p)
+        )
+
+    def test_convert_options(self):
+        cont = Cont([0, 1], [1, 1])
+        disc = Disc([-1, 0.5], [0.25, 0.75])
+        weight_cont = 0.75
+        rv = Mixt(cont=cont, disc=disc, weight_cont=weight_cont)
+
+        # Grounding is done respecting `small_width` package option
+        with op.option_context({"small_width": 0.1}):
+            w = op.get_option("small_width")
+            rv_tocont = rv.convert("Cont")
+            assert_array_equal(rv_tocont.x, [-1, -w, 0, w, 0.5 - w, 0.5, 0.5 + w, 1])
+
+        # No grounding is done if edge is close to output edge
+        with op.option_context({"base_tolerance": 0.1}):
+            tol = op.get_option("base_tolerance")
+            rv = Mixt(
+                cont=Cont([0, 1], [1, 1]),
+                disc=Disc([0.5 * tol, 1 - 0.5 * tol], [0.5, 0.5]),
+                weight_cont=weight_cont,
+            )
+            rv_tocont = rv.convert("Cont")
+            assert_array_equal(rv_tocont.x, [0, 0.5 * tol, 1 - 0.5 * tol, 1])
