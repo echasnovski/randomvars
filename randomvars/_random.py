@@ -126,3 +126,10 @@ class Rand:
     def integrate_cdf(self, a, b):
         """Efficient version of CDF integration"""
         raise NotImplementedError
+
+    def convert(self, to_class=None):
+        """Convert to different RV class"""
+        if to_class is None:
+            return self
+
+        raise NotImplementedError

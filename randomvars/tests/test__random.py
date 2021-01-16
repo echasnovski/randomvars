@@ -191,3 +191,14 @@ class TestRand:
     def test_integrate_cdf(self):
         with pytest.raises(NotImplementedError):
             Rand().integrate_cdf(0, 1)
+
+    def test_convert(self):
+        rv = Rand()
+
+        # By default and supplying `None` should return self
+        assert rv.convert() is rv
+        assert rv.convert(None) is rv
+
+        # Otherwise method is not implemented
+        with pytest.raises(NotImplementedError):
+            rv.convert("Disc")
