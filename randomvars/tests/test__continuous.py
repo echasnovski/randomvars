@@ -81,7 +81,7 @@ def augment_grid(x, n_inner_points):
 
 def from_sample_cdf_max_error(x):
     rv = Cont.from_sample(x)
-    density = op.get_option("density_estimator")(x)
+    density = op.get_option("estimator_cont")(x)
 
     x_grid = augment_grid(rv.x, 10)
 
@@ -413,7 +413,7 @@ class TestCont:
         rng = np.random.default_rng(101)
         x = norm.rvs(100, random_state=rng)
 
-        # "density_estimator"
+        # "estimator_cont"
         def uniform_estimator(x):
             x_min, x_max = x.min(), x.max()
 
@@ -422,23 +422,23 @@ class TestCont:
 
             return res
 
-        with op.option_context({"density_estimator": uniform_estimator}):
+        with op.option_context({"estimator_cont": uniform_estimator}):
             rv = Cont.from_sample(x)
         assert len(rv.y) == 2
         assert np.allclose(rv.y, rv.y[0], atol=1e-13)
 
-        # "density_estimator" which returns allowed classes
+        # "estimator_cont" which returns allowed classes
         ## `Rand` class should be forwarded to `from_rv()` method
         _test_from_sample_rand(
             cls=Cont,
             sample=x,
-            estimator_option="density_estimator",
+            estimator_option="estimator_cont",
             assert_equal=assert_equal_cont,
         )
 
         ## "Scipy" distribution should be forwarded to `Cont.from_rv()`
         rv_norm = distrs.norm()
-        with op.option_context({"density_estimator": lambda x: rv_norm}):
+        with op.option_context({"estimator_cont": lambda x: rv_norm}):
             rv = Cont.from_sample(np.asarray([0, 1, 2]))
             rv_ref = Cont.from_rv(rv_norm)
             assert_equal_cont(rv, rv_ref)
@@ -478,16 +478,12 @@ class TestCont:
 
         # Case when sample width is zero but density is not zero
         density_centered_interval = make_circ_density([(-1, 1)])
-        with op.option_context(
-            {"density_estimator": lambda x: density_centered_interval}
-        ):
+        with op.option_context({"estimator_cont": lambda x: density_centered_interval}):
             assert from_sample_cdf_max_error(zero_vec) <= 1e-4
 
         # Case when both sample width and density are zero
         density_shifted_interval = make_circ_density([(10, 20)])
-        with op.option_context(
-            {"density_estimator": lambda x: density_shifted_interval}
-        ):
+        with op.option_context({"estimator_cont": lambda x: density_shifted_interval}):
             # Here currently the problem is that support is estimated way to
             # wide with very small (~1e-9) non-zero density outside of [10,
             # 20]. However, CDFs are still close.
@@ -742,13 +738,13 @@ class TestFromSampleAccuracy:
 
     @pytest.mark.slow
     def test_density_range(self):
-        density_estimator = op.get_option("density_estimator")
         density_mincoverage = op.get_option("density_mincoverage")
+        estimator_cont = op.get_option("estimator_cont")
         rng = np.random.default_rng(101)
 
         def generate_density_coverage(distr):
             x = distr.rvs(size=100, random_state=rng)
-            density = density_estimator(x)
+            density = estimator_cont(x)
             rv = Cont.from_sample(x)
             return quad(density, rv.x[0], rv.x[-1])[0]
 
@@ -766,9 +762,9 @@ class TestFromSampleAccuracy:
         # Testing with `gaussian_kde` as the most used density estimator. This
         # also enables to use rather fast way of computing CDF of estimated
         # density via `integrate_box_1d` method.
-        with op.option_context({"density_estimator": gaussian_kde}):
+        with op.option_context({"estimator_cont": gaussian_kde}):
             rv = Cont.from_sample(x)
-            density = op.get_option("density_estimator")(x)
+            density = op.get_option("estimator_cont")(x)
 
         x_grid = augment_grid(rv.x, 10)
 
@@ -803,7 +799,7 @@ def test__extend_range():
     rng = np.random.default_rng(101)
     x = norm.rvs(100, random_state=rng)
 
-    with op.option_context({"density_estimator": extra_estimator}):
+    with op.option_context({"estimator_cont": extra_estimator}):
         rv = Cont.from_sample(x)
 
     assert (rv.x[0] <= x.min()) and (rv.x[-1] >= x.max())

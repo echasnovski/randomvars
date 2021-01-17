@@ -6,8 +6,9 @@ from scipy.stats.kde import gaussian_kde
 
 __all__ = [
     "OptionError",
-    "default_boolean_estimator",
-    "default_discrete_estimator",
+    "estimator_bool_default",
+    "estimator_cont_default",
+    "estimator_disc_default",
     "get_option",
     "option_context",
     "reset_option",
@@ -16,7 +17,7 @@ __all__ = [
 
 
 # %% Default estimators
-def default_boolean_estimator(sample):
+def estimator_bool_default(sample):
     """Default estimator of boolean distribution
 
     This estimator returns proportion of `True` values after converting input
@@ -36,7 +37,15 @@ def default_boolean_estimator(sample):
     return np.mean(sample)
 
 
-def default_discrete_estimator(sample):
+def estimator_cont_default(sample):
+    """Default estimator of continuous distribution
+
+    This estimator is a direct wrapper of scipy.stats.kde.gaussian_kde.
+    """
+    return gaussian_kde(sample)
+
+
+def estimator_disc_default(sample):
     """Default estimator of discrete distribution
 
     This estimator returns unique values of input as distributions values.
@@ -73,11 +82,11 @@ def default_discrete_estimator(sample):
 # %% Options
 _default_options = {
     "base_tolerance": 1e-12,
-    "boolean_estimator": default_boolean_estimator,
     "cdf_tolerance": 1e-4,
-    "density_estimator": gaussian_kde,
     "density_mincoverage": 0.9999,
-    "discrete_estimator": default_discrete_estimator,
+    "estimator_bool": estimator_bool_default,
+    "estimator_cont": estimator_cont_default,
+    "estimator_disc": estimator_disc_default,
     "metric": "L2",
     "n_grid": 1001,
     "small_prob": 1e-6,
@@ -96,20 +105,23 @@ _options_list = """
       between floating point numbers at `x` (see `numpy.spacing()`). This
       approach is chosen in order to find compromise between relative and
       absolute tolerance.
-- boolean_estimator : callable, default
-  randomvars.options.default_boolean_estimator. Function which takes sample as
-  input and returns one of:
-    - Number representing probability of `True` for boolean random variable.
-    - Object of class `Rand` or `rv_frozen` (`rv_discrete` with all
-      hyperparameters defined).
 - cdf_tolerance: float, default 1e-4. Tolerance for CDF approximation. Usually
   meant as mean approximation error. Smaller values lead to better
   approximation, larger values lead to less number of grid elements (knots) in
   output approximation. However, using large values (bigger than 0.01) is
   discouraged because this might lead to unexpected properties of approximation
   (like increasing density in tails where it should originally decrease, etc.).
-- density_estimator : callable, default scipy.stats.kde.gaussian_kde. Function
-  which takes sample as input and returns one of:
+- density_mincoverage : float, default 0.9999. Minimum value of integral within
+  output of density range estimation.
+- estimator_bool : callable, default randomvars.options.estimator_bool_default.
+  Estimator for `Bool.from_sample()`. Function which takes sample as input and
+  returns one of:
+    - Number representing probability of `True` for boolean random variable.
+    - Object of class `Rand` or `rv_frozen` (`rv_discrete` with all
+      hyperparameters defined).
+- estimator_cont : callable, default randomvars.options.estimator_cont_default.
+  Estimator for `Cont.from_sample()`. Function which takes sample as input and
+  returns one of:
     - Callable object for density estimate (takes points as input and returns
       density values).
     - Object of class `Rand` or `rv_frozen` (`rv_continuous` with all
@@ -119,11 +131,9 @@ _options_list = """
     - Output density callable should be vectorized: allow numpy array as input
       and return numpy array with the same length.
     - There is worse performance if output density callable has discontinuity.
-- density_mincoverage : float, default 0.9999. Minimum value of integral within
-  output of density range estimation.
-- discrete_estimator : callable, default
-  randomvars.options.default_discrete_estimator. Function which takes sample as
-  input and returns one of:
+- estimator_disc : callable, default randomvars.options.estimator_disc_default.
+  Estimator for `Disc.from_sample()`. Function which takes sample as input and
+  returns one of:
     - Tuple with two elements representing `x` and `prob` of discrete distribution.
     - Object of class `Rand` or `rv_frozen` (`rv_discrete` with all
       hyperparameters defined).

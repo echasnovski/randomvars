@@ -155,13 +155,13 @@ class Bool(Rand):
 
         Boolean RV is created by the following algorithm:
         - **Estimate distribution** with boolean estimator (taken from package
-          option "boolean_estimator") in the form `estimate =
-          boolean_estimator(sample)`. If `estimate` is an object of class
-          `Rand` or `scipy.stats.distributions.rv_frozen` (`rv_discrete` with
-          all hyperparameters defined), it is forwarded to `Bool.from_rv()`.
+          option "estimator_bool") in the form `estimate =
+          estimator_bool(sample)`. If `estimate` is an object of class `Rand`
+          or `scipy.stats.distributions.rv_frozen` (`rv_discrete` with all
+          hyperparameters defined), it is forwarded to `Bool.from_rv()`.
         - **Create random variable** with `Bool(prob_true=estimate)`.
 
-        Relevant package options: `boolean_estimator`. See documentation of
+        Relevant package options: `estimator_bool`. See documentation of
         `randomvars.options.get_option()` for more information. To temporarily
         set options use `randomvars.options.option_context()` context manager.
 
@@ -181,10 +181,10 @@ class Bool(Rand):
         sample = utils._as_1d_numpy(sample, "sample", chkfinite=False, dtype="bool")
 
         # Get options
-        boolean_estimator = op.get_option("boolean_estimator")
+        estimator_bool = op.get_option("estimator_bool")
 
         # Estimate distribution
-        estimate = boolean_estimator(sample)
+        estimate = estimator_bool(sample)
 
         # Make early return if `estimate` is random variable
         if isinstance(estimate, (Rand, rv_frozen)):

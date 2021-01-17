@@ -2,12 +2,14 @@
 """Tests for 'options.py' file"""
 import numpy as np
 from numpy.testing import assert_array_equal
+from scipy.stats.kde import gaussian_kde
 import pytest
 
 from randomvars.options import (
     OptionError,
-    default_boolean_estimator,
-    default_discrete_estimator,
+    estimator_bool_default,
+    estimator_cont_default,
+    estimator_disc_default,
     get_option,
     option_context,
     reset_option,
@@ -16,38 +18,46 @@ from randomvars.options import (
 )
 
 
-def test_default_discrete_estimator():
+def test_estimator_bool_default():
     # Normal usage
-    out = default_discrete_estimator([3, 1, 2, 1, 3])
+    out = estimator_bool_default([True, False, False, True, True])
+    assert out == 0.6
+
+    # Usage with other input types
+    out = estimator_bool_default([0, 0, 0, 1, 1])
+    assert out == 0.4
+
+    out = estimator_bool_default([0.0, 0.0, 0.0, 1.0, 0.0])
+    assert out == 0.2
+
+    out = estimator_bool_default(["a", "b", "c"])
+    assert out == 1.0
+
+
+def test_estimator_cont_default():
+    sample = [1, 1, 1, 2, 3, 4]
+    x_ref = np.linspace(-10, 10, 1001)
+    assert_array_equal(
+        estimator_cont_default(sample)(x_ref), gaussian_kde(sample)(x_ref)
+    )
+
+
+def test_estimator_disc_default():
+    # Normal usage
+    out = estimator_disc_default([3, 1, 2, 1, 3])
     assert len(out) == 2
     assert_array_equal(out[0], np.array([1, 2, 3]))
     assert_array_equal(out[1], np.array([0.4, 0.2, 0.4]))
 
     # Error if no finite values
     with pytest.raises(ValueError, match="doesn't have finite values"):
-        default_discrete_estimator([-np.inf, np.nan, np.inf])
+        estimator_disc_default([-np.inf, np.nan, np.inf])
 
     # Warning if there are some non-finite values
     with pytest.warns(UserWarning, match="non-finite values"):
-        out = default_discrete_estimator([1, np.nan, np.inf])
+        out = estimator_disc_default([1, np.nan, np.inf])
         assert_array_equal(out[0], np.array([1]))
         assert_array_equal(out[1], np.array([1]))
-
-
-def test_default_boolean_estimator():
-    # Normal usage
-    out = default_boolean_estimator([True, False, False, True, True])
-    assert out == 0.6
-
-    # Usage with other input types
-    out = default_boolean_estimator([0, 0, 0, 1, 1])
-    assert out == 0.4
-
-    out = default_boolean_estimator([0.0, 0.0, 0.0, 1.0, 0.0])
-    assert out == 0.2
-
-    out = default_boolean_estimator(["a", "b", "c"])
-    assert out == 1.0
 
 
 def test_get_option():

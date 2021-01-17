@@ -23,12 +23,6 @@ from randomvars.tests.commontests import h
 import randomvars.options as op
 
 
-# `default_discrete_estimator()` is tested in `options` module
-
-
-# `default_boolean_estimator()` is tested in `options` module
-
-
 def test__as_1d_array():
     # Check for array-like
     with pytest.raises(TypeError, match=f"`tmp_name`.*numpy array"):

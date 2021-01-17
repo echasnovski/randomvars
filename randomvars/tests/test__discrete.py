@@ -229,26 +229,26 @@ class TestDisc:
         rng = np.random.default_rng(101)
         x = binom.rvs(100, random_state=rng)
 
-        # "discrete_estimator"
+        # "estimator_disc"
         def single_value_estimator(x):
             return np.array([1.0]), np.array([1.0])
 
-        with op.option_context({"discrete_estimator": single_value_estimator}):
+        with op.option_context({"estimator_disc": single_value_estimator}):
             rv = Disc.from_sample(x)
             assert_equal_disc(rv, Disc(x=[1.0], p=[1.0]))
 
-        # "discrete_estimator" which returns allowed classes
+        # "estimator_disc" which returns allowed classes
         ## `Rand` class should be forwarded to `from_rv()` method
         _test_from_sample_rand(
             cls=Disc,
             sample=x,
-            estimator_option="discrete_estimator",
+            estimator_option="estimator_disc",
             assert_equal=assert_equal_disc,
         )
 
         ## "Scipy" distribution should be forwarded to `Disc.from_rv()`
         rv_binom = distrs.binom(n=10, p=0.5)
-        with op.option_context({"discrete_estimator": lambda x: rv_binom}):
+        with op.option_context({"estimator_disc": lambda x: rv_binom}):
             rv = Disc.from_sample(np.asarray([0, 1, 2]))
             rv_ref = Disc.from_rv(rv_binom)
             assert_equal_disc(rv, rv_ref)

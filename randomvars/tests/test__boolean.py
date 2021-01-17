@@ -131,23 +131,23 @@ class TestBool:
     def test_from_sample_options(self):
         x = [True, False, False, True]
 
-        # "boolean_estimator"
-        with op.option_context({"boolean_estimator": lambda x: 0}):
+        # "estimator_bool"
+        with op.option_context({"estimator_bool": lambda x: 0}):
             rv = Bool.from_sample(x)
             assert_equal_bool(rv, Bool(prob_true=0))
 
-        # "boolean_estimator" which returns allowed classes
+        # "estimator_bool" which returns allowed classes
         ## `Rand` class should be forwarded to `from_rv()` method
         _test_from_sample_rand(
             cls=Bool,
             sample=x,
-            estimator_option="boolean_estimator",
+            estimator_option="estimator_bool",
             assert_equal=assert_equal_bool,
         )
 
         ## "Scipy" distributions should be forwarded to `Bool.from_rv()`
         rv_bernoulli = distrs.bernoulli(p=0.625)
-        with op.option_context({"boolean_estimator": lambda x: rv_bernoulli}):
+        with op.option_context({"estimator_bool": lambda x: rv_bernoulli}):
             assert_equal_bool(Bool.from_sample(x), Bool.from_rv(rv_bernoulli))
 
     def test_pdf(self):

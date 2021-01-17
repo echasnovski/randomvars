@@ -7,10 +7,10 @@ from randomvars import Cont
 import randomvars.options as op
 
 # %% `from_sample()` from `Cont`
-def sklearn_density_estimator(*args, **kwargs):
+def sklearn_estimator_cont(*args, **kwargs):
     from sklearn.neighbors import KernelDensity
 
-    def density_estimator(x):
+    def estimator_cont(x):
         dens = KernelDensity(*args, **kwargs)
         dens.fit(x.reshape(-1, 1))
 
@@ -20,13 +20,13 @@ def sklearn_density_estimator(*args, **kwargs):
 
         return res
 
-    return density_estimator
+    return estimator_cont
 
 
-def statsmodels_density_estimator(*args, **kwargs):
+def statsmodels_estimator_cont(*args, **kwargs):
     import statsmodels.api as sm
 
-    def density_estimator(x):
+    def estimator_cont(x):
         density_class = sm.nonparametric.KDEUnivariate(x)
         density_class.fit()
 
@@ -35,12 +35,12 @@ def statsmodels_density_estimator(*args, **kwargs):
 
         return res
 
-    return density_estimator
+    return estimator_cont
 
 
 def describe_output(rv, sample, name):
-    density_estimator = op.get_option("density_estimator")
-    density = density_estimator(sample)
+    estimator_cont = op.get_option("estimator_cont")
+    density = estimator_cont(sample)
     integral = quad(density, rv.x[0], rv.x[-1])[0]
     print(
         f"""
@@ -63,15 +63,15 @@ x = np.concatenate([norm().rvs(size=500), norm(loc=100).rvs(size=500)])
 # x = np.concatenate([beta1.rvs(size=500), beta2.rvs(size=500)])
 # true_pdf = lambda x: 0.5 * beta1.pdf(x) + 0.5 * beta2.pdf(x)
 
-op.reset_option("density_estimator")
+op.reset_option("estimator_cont")
 rv_scipy = Cont.from_sample(x)
 describe_output(rv_scipy, x, "Scipy")
 
-with op.option_context({"density_estimator": sklearn_density_estimator()}):
+with op.option_context({"estimator_cont": sklearn_estimator_cont()}):
     rv_sklearn = Cont.from_sample(x)
     describe_output(rv_sklearn, x, "Sklearn")
 
-with op.option_context({"density_estimator": statsmodels_density_estimator()}):
+with op.option_context({"estimator_cont": statsmodels_estimator_cont()}):
     rv_statsmodels = Cont.from_sample(x)
     describe_output(rv_statsmodels, x, "Statsmodels")
 
@@ -130,7 +130,7 @@ def test_from_sample_accuracy(rng, low, high):
     rv = Cont.from_sample(x)
     time_end = time.time()
 
-    density = op.get_option("density_estimator")(x)
+    density = op.get_option("estimator_cont")(x)
     max_diff = np.max(np.abs(density(rv.x) - rv.y)) * 10 ** 5
 
     print(

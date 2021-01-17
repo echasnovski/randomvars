@@ -435,11 +435,12 @@ class Cont(Rand):
 
         Continuous RV with piecewise-linear density is created by the following
         algorithm:
-        - **Estimate density** with density estimator (taken from package
-          option "density_estimator") in the form `density =
-          density_estimator(sample)`. If `density` is an object of class `Rand`
+        - **Estimate distribution** with continuous estimator (taken from package
+          option "estimator_cont") in the form `estimate =
+          estimator_cont(sample)`. If `estimate` is an object of class `Rand`
           or `scipy.stats.distributions.rv_frozen` (`rv_continuous` with all
           hyperparameters defined), it is forwarded to `Cont.from_rv()`.
+          Otherwise it should represent density.
         - **Estimate effective range of density**: interval inside which total
           integral of density is not less than `density_mincoverage` (package
           option). Specific algorithm how it is done is subject to change.
@@ -486,7 +487,7 @@ class Cont(Rand):
           negative values can occur if CDF approximation is allowed to be loose
           (either `n_grid` is low or `cdf_tolerance` is high).
 
-        Relevant package options: `density_estimator`, `density_mincoverage`,
+        Relevant package options: `estimator_cont`, `density_mincoverage`,
         `n_grid`, `cdf_tolerance`. See documentation of
         `randomvars.options.get_option()` for more information. To temporarily
         set options use `randomvars.options.option_context()` context manager.
@@ -507,20 +508,20 @@ class Cont(Rand):
         sample = utils._as_1d_numpy(sample, "sample", chkfinite=False, dtype="float64")
 
         # Get options
-        density_estimator = op.get_option("density_estimator")
-        density_mincoverage = op.get_option("density_mincoverage")
-        n_grid = op.get_option("n_grid")
         cdf_tolerance = op.get_option("cdf_tolerance")
+        density_mincoverage = op.get_option("density_mincoverage")
+        estimator_cont = op.get_option("estimator_cont")
+        n_grid = op.get_option("n_grid")
 
-        # Estimate density
-        density = density_estimator(sample)
+        # Estimate distribution
+        estimate = estimator_cont(sample)
 
-        # Make early return if `density` is random variable
-        if isinstance(density, (Rand, rv_frozen)):
-            return Cont.from_rv(density)
+        # Make early return if `estimate` is random variable
+        if isinstance(estimate, (Rand, rv_frozen)):
+            return Cont.from_rv(estimate)
 
         # Estimate density range
-        density_range = _estimate_density_range(density, sample, density_mincoverage)
+        density_range = _estimate_density_range(estimate, sample, density_mincoverage)
 
         # Compute combination of equidistant and quantile grids
         x_grid = _compute_union_grid(
@@ -529,7 +530,7 @@ class Cont(Rand):
             quantile_fun=lambda q: np.quantile(a=sample, q=q, interpolation="linear"),
             n_grid=n_grid,
         )
-        y_grid = density(x_grid)
+        y_grid = estimate(x_grid)
 
         # Fit quadratic spline to cdf-grid. This uses the same approach as `from_rv()`
         # and results into considerably fewer xy-grid elements at the cost of
