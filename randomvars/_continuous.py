@@ -437,9 +437,8 @@ class Cont(Rand):
         algorithm:
         - **Estimate density** with density estimator (taken from package
           option "density_estimator") in the form `density =
-          density_estimator(sample)`. If `density` is object of class `Cont`,
-          it is returned untouched. If it is object of
-          `scipy.stats.distributions.rv_frozen` (`rv_continuous` with all
+          density_estimator(sample)`. If `density` is an object of class `Rand`
+          or `scipy.stats.distributions.rv_frozen` (`rv_continuous` with all
           hyperparameters defined), it is forwarded to `Cont.from_rv()`.
         - **Estimate effective range of density**: interval inside which total
           integral of density is not less than `density_mincoverage` (package
@@ -517,9 +516,7 @@ class Cont(Rand):
         density = density_estimator(sample)
 
         # Make early return if `density` is random variable
-        if isinstance(density, Cont):
-            return density
-        if isinstance(density, rv_frozen):
+        if isinstance(density, (Rand, rv_frozen)):
             return Cont.from_rv(density)
 
         # Estimate density range

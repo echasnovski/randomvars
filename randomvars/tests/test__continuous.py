@@ -14,6 +14,7 @@ from randomvars.tests.commontests import (
     _test_equal_seq,
     _test_input_coercion,
     _test_from_rv_rand,
+    _test_from_sample_rand,
     _test_log_fun,
     _test_one_value_input,
     _test_rvs_method,
@@ -427,12 +428,13 @@ class TestCont:
         assert np.allclose(rv.y, rv.y[0], atol=1e-13)
 
         # "density_estimator" which returns allowed classes
-        ## `Cont` object should be returned untouched
-        rv_estimation = Cont([0, 1], [1, 1])
-        rv_estimation.aaa = "Extra method"
-        with op.option_context({"density_estimator": lambda x: rv_estimation}):
-            rv = Cont.from_sample(np.asarray([0, 1, 2]))
-            assert "aaa" in dir(rv)
+        ## `Rand` class should be forwarded to `from_rv()` method
+        _test_from_sample_rand(
+            cls=Cont,
+            sample=x,
+            estimator_option="density_estimator",
+            assert_equal=assert_equal_cont,
+        )
 
         ## "Scipy" distribution should be forwarded to `Cont.from_rv()`
         rv_norm = distrs.norm()

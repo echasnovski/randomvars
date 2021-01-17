@@ -222,10 +222,9 @@ class Disc(Rand):
         Discrete RV is created by the following algorithm:
         - **Estimate distribution** with discrete estimator (taken from package
           option "discrete_estimator") in the form `estimate =
-          discrete_estimator(sample)`. If `estimator` is object of class
-          `Disc`, it is returned untouched. If it is an object of
-          `scipy.stats.distributions.rv_frozen` (`rv_discrete` with all
-          hyperparameters defined), it is forwarded to `Disc.from_rv()`.
+          discrete_estimator(sample)`. If `estimate` is an object of class
+          `Rand` or `scipy.stats.distributions.rv_frozen` (`rv_discrete` with
+          all hyperparameters defined), it is forwarded to `Disc.from_rv()`.
         - **Create random variable** with `Disc(x=x, p=p)`, where `x` and `p`
           are first and second values of `estimate`.
 
@@ -255,9 +254,7 @@ class Disc(Rand):
         estimate = discrete_estimator(sample)
 
         # Make early return if `estimate` is random variable
-        if isinstance(estimate, Disc):
-            return estimate
-        if isinstance(estimate, rv_frozen):
+        if isinstance(estimate, (Rand, rv_frozen)):
             return Disc.from_rv(estimate)
 
         return cls(x=estimate[0], p=estimate[1])

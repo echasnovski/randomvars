@@ -156,9 +156,9 @@ class Bool(Rand):
         Boolean RV is created by the following algorithm:
         - **Estimate distribution** with boolean estimator (taken from package
           option "boolean_estimator") in the form `estimate =
-          boolean_estimator(sample)`. If `estimator` is an object of class
-          `Rand` or `rv_frozen` (`rv_discrete` with all hyperparameters
-          defined), it is forwarded to `Bool.from_rv()`.
+          boolean_estimator(sample)`. If `estimate` is an object of class
+          `Rand` or `scipy.stats.distributions.rv_frozen` (`rv_discrete` with
+          all hyperparameters defined), it is forwarded to `Bool.from_rv()`.
         - **Create random variable** with `Bool(prob_true=estimate)`.
 
         Relevant package options: `boolean_estimator`. See documentation of

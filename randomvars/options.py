@@ -100,7 +100,7 @@ _options_list = """
   randomvars.options.default_boolean_estimator. Function which takes sample as
   input and returns one of:
     - Number representing probability of `True` for boolean random variable.
-    - Object of class `Bool, `Disc`, or `rv_frozen` (`rv_discrete` with all
+    - Object of class `Rand` or `rv_frozen` (`rv_discrete` with all
       hyperparameters defined).
 - cdf_tolerance: float, default 1e-4. Tolerance for CDF approximation. Usually
   meant as mean approximation error. Smaller values lead to better
@@ -112,7 +112,7 @@ _options_list = """
   which takes sample as input and returns one of:
     - Callable object for density estimate (takes points as input and returns
       density values).
-    - Object of class `Cont` or `rv_frozen` (`rv_continuous` with all
+    - Object of class `Rand` or `rv_frozen` (`rv_continuous` with all
       hyperparameters defined).
   **Notes**:
     - Theoretical integral of density over whole real line should be 1.
@@ -125,7 +125,7 @@ _options_list = """
   randomvars.options.default_discrete_estimator. Function which takes sample as
   input and returns one of:
     - Tuple with two elements representing `x` and `prob` of discrete distribution.
-    - Object of class `Disc` or `rv_frozen` (`rv_discrete` with all
+    - Object of class `Rand` or `rv_frozen` (`rv_discrete` with all
       hyperparameters defined).
 - metric : string, default "L2". Type of metric which measures distance between
   functions. Used in internal computations. Possible values:

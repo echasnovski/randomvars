@@ -11,6 +11,7 @@ from randomvars.tests.commontests import (
     _test_equal_seq,
     _test_input_coercion,
     _test_from_rv_rand,
+    _test_from_sample_rand,
     _test_log_fun,
     _test_one_value_input,
     _test_rvs_method,
@@ -136,26 +137,13 @@ class TestBool:
             assert_equal_bool(rv, Bool(prob_true=0))
 
         # "boolean_estimator" which returns allowed classes
-        ## `Rand` class should be forwarded to `Bool.from_rv()`
-        import randomvars._continuous as cont
-        import randomvars._discrete as disc
-        import randomvars._mixture as mixt
-
-        rv_bool = Bool(prob_true=0.5)
-        with op.option_context({"boolean_estimator": lambda x: rv_bool}):
-            assert_equal_bool(Bool.from_sample(x), Bool.from_rv(rv_bool))
-
-        rv_cont = cont.Cont(x=[0, 1], y=[1, 1])
-        with op.option_context({"boolean_estimator": lambda x: rv_cont}):
-            assert_equal_bool(Bool.from_sample(x), Bool.from_rv(rv_cont))
-
-        rv_disc = disc.Disc(x=[0, 1], p=[0.125, 0.875])
-        with op.option_context({"boolean_estimator": lambda x: rv_disc}):
-            assert_equal_bool(Bool.from_sample(x), Bool.from_rv(rv_disc))
-
-        rv_mixt = mixt.Mixt(rv_cont, rv_disc, 0.5)
-        with op.option_context({"boolean_estimator": lambda x: rv_mixt}):
-            assert_equal_bool(Bool.from_sample(x), Bool.from_rv(rv_mixt))
+        ## `Rand` class should be forwarded to `from_rv()` method
+        _test_from_sample_rand(
+            cls=Bool,
+            sample=x,
+            estimator_option="boolean_estimator",
+            assert_equal=assert_equal_bool,
+        )
 
         ## "Scipy" distributions should be forwarded to `Bool.from_rv()`
         rv_bernoulli = distrs.bernoulli(p=0.625)

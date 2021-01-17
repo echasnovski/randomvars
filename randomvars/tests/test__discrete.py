@@ -13,6 +13,7 @@ from randomvars.tests.commontests import (
     _test_equal_seq,
     _test_input_coercion,
     _test_from_rv_rand,
+    _test_from_sample_rand,
     _test_log_fun,
     _test_one_value_input,
     _test_rvs_method,
@@ -237,12 +238,13 @@ class TestDisc:
             assert_equal_disc(rv, Disc(x=[1.0], p=[1.0]))
 
         # "discrete_estimator" which returns allowed classes
-        ## `Disc` object should be returned untouched
-        rv_estimation = Disc(x=[0, 1], p=[0.5, 0.5])
-        rv_estimation.aaa = "Extra method"
-        with op.option_context({"discrete_estimator": lambda x: rv_estimation}):
-            rv = Disc.from_sample(np.asarray([0, 1, 2]))
-            assert "aaa" in dir(rv)
+        ## `Rand` class should be forwarded to `from_rv()` method
+        _test_from_sample_rand(
+            cls=Disc,
+            sample=x,
+            estimator_option="discrete_estimator",
+            assert_equal=assert_equal_disc,
+        )
 
         ## "Scipy" distribution should be forwarded to `Disc.from_rv()`
         rv_binom = distrs.binom(n=10, p=0.5)
