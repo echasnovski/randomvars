@@ -95,62 +95,70 @@ _default_options = {
 }
 _options = _default_options.copy()
 
+# Copying indentation from docstrings in this file
 _options_list = """
-- base_tolerance : float, default 1e-12. Tolerance to be used for testing
-  approximate equality of two numbers. It is used to compute tolerance
-  associated with any number `x`:
-    - If `abs(x) <= 1`, tolerance is equal to `base_tolerance`. Based on this,
-      `base_tolerance` can be viewed as an absolute tolerance for "small"
-      numbers.
-    - If `abs(x) > 1`, tolerance increases proportionally to the spacing
-      between floating point numbers at `x` (see `numpy.spacing()`). This
-      approach is chosen in order to find compromise between relative and
-      absolute tolerance.
-- cdf_tolerance: float, default 1e-4. Tolerance for CDF approximation. Usually
-  meant as mean approximation error. Smaller values lead to better
-  approximation, larger values lead to less number of grid elements (knots) in
-  output approximation. However, using large values (bigger than 0.01) is
-  discouraged because this might lead to unexpected properties of approximation
-  (like increasing density in tails where it should originally decrease, etc.).
-- density_mincoverage : float, default 0.9999. Minimum value of integral within
-  output of density range estimation.
-- estimator_bool : callable, default randomvars.options.estimator_bool_default.
-  Estimator for `Bool.from_sample()`. Function which takes sample as input and
-  returns one of:
-    - Number representing probability of `True` for boolean random variable.
-    - Object of class `Rand` or `rv_frozen` (`rv_discrete` with all
-      hyperparameters defined).
-- estimator_cont : callable, default randomvars.options.estimator_cont_default.
-  Estimator for `Cont.from_sample()`. Function which takes sample as input and
-  returns one of:
-    - Callable object for density estimate (takes points as input and returns
-      density values).
-    - Object of class `Rand` or `rv_frozen` (`rv_continuous` with all
-      hyperparameters defined).
-  **Notes**:
-    - Theoretical integral of density over whole real line should be 1.
-    - Output density callable should be vectorized: allow numpy array as input
-      and return numpy array with the same length.
-    - There is worse performance if output density callable has discontinuity.
-- estimator_disc : callable, default randomvars.options.estimator_disc_default.
-  Estimator for `Disc.from_sample()`. Function which takes sample as input and
-  returns one of:
-    - Tuple with two elements representing `x` and `prob` of discrete distribution.
-    - Object of class `Rand` or `rv_frozen` (`rv_discrete` with all
-      hyperparameters defined).
-- metric : string, default "L2". Type of metric which measures distance between
-  functions. Used in internal computations. Possible values:
-    - "L1": metric is defined as integral of absolute difference between
-      functions. Usually corresponds to using some kind of "median values".
-    - "L2": metric is defined as square root of integral of square difference
-      between functions. Usually corresponds to using some kind of "mean
-      values".
-- n_grid : int, default 1001. Number of points in initial xy-grids when
-  creating object of class `Cont`.
-- small_prob : float, default 1e-6. Probability value that can be considered
-  "small" during approximations.
-- small_width : float, default 1e-8. Difference between x-values that can be
-  considered "small" during approximations.
+    - base_tolerance : float, default 1e-12. Tolerance to be used for testing
+      approximate equality of two numbers. It is used to compute tolerance
+      associated with any number `x`:
+        - If `abs(x) <= 1`, tolerance is equal to `base_tolerance`. Based on
+          this, `base_tolerance` can be viewed as an absolute tolerance for
+          "small" numbers.
+        - If `abs(x) > 1`, tolerance increases proportionally to the spacing
+          between floating point numbers at `x` (see `numpy.spacing()`). This
+          approach is chosen in order to find compromise between relative and
+          absolute tolerance.
+    - cdf_tolerance: float, default 1e-4. Tolerance for CDF approximation.
+      Usually meant as mean approximation error. Smaller values lead to better
+      approximation, larger values lead to less number of grid elements (knots)
+      in output approximation. However, using large values (bigger than 0.01)
+      is discouraged because this might lead to unexpected properties of
+      approximation (like increasing density in tails where it should
+      originally decrease, etc.).
+    - density_mincoverage : float, default 0.9999. Minimum value of integral
+      within output of density range estimation.
+    - estimator_bool : callable, default
+      randomvars.options.estimator_bool_default. Estimator for
+      `Bool.from_sample()`. Function which takes sample as input and returns
+      one of:
+        - Number representing probability of `True` for boolean random
+          variable.
+        - Object of class `Rand` or `rv_frozen` (`rv_discrete` with all
+          hyperparameters defined).
+    - estimator_cont : callable, default
+      randomvars.options.estimator_cont_default.  Estimator for
+      `Cont.from_sample()`. Function which takes sample as input and returns
+      one of:
+        - Callable object for density estimate (takes points as input and
+          returns density values).
+        - Object of class `Rand` or `rv_frozen` (`rv_continuous` with all
+          hyperparameters defined).
+      **Notes**:
+        - Theoretical integral of density over whole real line should be 1.
+        - Output density callable should be vectorized: allow numpy array as
+          input and return numpy array with the same length.
+        - There is worse performance if output density callable has
+          discontinuity.
+    - estimator_disc : callable, default
+      randomvars.options.estimator_disc_default. Estimator for
+      `Disc.from_sample()`. Function which takes sample as input and returns
+      one of:
+        - Tuple with two elements representing `x` and `prob` of discrete
+          distribution.
+        - Object of class `Rand` or `rv_frozen` (`rv_discrete` with all
+          hyperparameters defined).
+    - metric : string, default "L2". Type of metric which measures distance
+      between functions. Used in internal computations. Possible values:
+        - "L1": metric is defined as integral of absolute difference between
+          functions. Usually corresponds to using some kind of "median values".
+        - "L2": metric is defined as square root of integral of square
+          difference between functions. Usually corresponds to using some kind
+          of "mean values".
+    - n_grid : int, default 1001. Number of points in initial xy-grids when
+      creating object of class `Cont`.
+    - small_prob : float, default 1e-6. Probability value that can be
+      considered "small" during approximations.
+    - small_width : float, default 1e-8. Difference between x-values that can
+      be considered "small" during approximations.
 """
 
 
@@ -192,31 +200,49 @@ def _docstring_relevant_options(opt_list):
     return _docstring_paragraph(relevant_options=opt_paragraph)
 
 
+_docstring_options_list = _docstring_paragraph(wrap=False, options_list=_options_list)
+
+
+# %% Option helpers
+@_docstring_options_list
 def get_option(opt):
+    """Get package option
+
+    List of available options:
+    {options_list}
+
+    Parameters
+    ----------
+    opt : str
+        Option name.
+
+    Raises
+    ------
+    OptionError : if no such option exists.
+    """
     try:
         return _options[opt]
     except KeyError:
         raise OptionError(f"There is no option '{opt}'.")
 
 
-get_option.__doc__ = f"""
-Get package option
-
-List of available options:
-{_options_list}
-
-Parameters
-----------
-opt : str
-    Option name.
-
-Raises
-------
-OptionError : if no such option exists.
-"""
-
-
+@_docstring_options_list
 def set_option(opt, val):
+    """Set package option
+
+    List of available options:
+    {options_list}
+    Parameters
+    ----------
+    opt : str
+        Option name.
+    val : any
+        Option value.
+
+    Raises
+    ------
+    OptionError : if no such option exists.
+    """
     # Ensure that `opt` option can be accessed, raising relevant error
     # otherwise
     get_option(opt)
@@ -225,26 +251,21 @@ def set_option(opt, val):
     _options[opt] = val
 
 
-set_option.__doc__ = f"""
-Set package option
-
-List of available options:
-{_options_list}
-
-Parameters
-----------
-opt : str
-    Option name.
-val : any
-    Option value.
-
-Raises
-------
-OptionError : if no such option exists.
-"""
-
-
+@_docstring_options_list
 def reset_option(opt):
+    """Reset package option to default
+
+    List of available options:
+    {options_list}
+    Parameters
+    ----------
+    opt : str
+        Option name.
+
+    Raises
+    ------
+    OptionError : if no such option exists.
+    """
     # Ensure that `opt` option can be accessed, raising relevant error
     # otherwise
     get_option(opt)
@@ -253,24 +274,19 @@ def reset_option(opt):
     set_option(opt, _default_options[opt])
 
 
-reset_option.__doc__ = f"""
-Reset package option to default
-
-List of available options:
-{_options_list}
-
-Parameters
-----------
-opt : str
-    Option name.
-
-Raises
-------
-OptionError : if no such option exists.
-"""
-
-
+@_docstring_options_list
 class option_context:
+    """Context manager to temporarily set options in the `with` statement
+    context
+
+    List of available options:
+    {options_list}
+    Parameters
+    ----------
+    opt_dict : dict
+        Dictionary with option names as keys and option values as values.
+    """
+
     def __init__(self, opt_dict):
         self.opt_dict = opt_dict
 
@@ -284,19 +300,6 @@ class option_context:
         if self.undo:
             for opt, val in self.undo.items():
                 set_option(opt, val)
-
-
-option_context.__doc__ = f"""
-Context manager to temporarily set options in the `with` statement context.
-
-List of available options:
-{_options_list}
-
-Parameters
-----------
-opt_dict : dict
-    Dictionary with option names as keys and option values as values.
-"""
 
 
 class OptionError(KeyError):

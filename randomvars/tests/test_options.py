@@ -8,8 +8,10 @@ import pytest
 from randomvars.options import (
     OptionError,
     _default_options,
+    _docstring_options_list,
     _docstring_paragraph,
     _docstring_relevant_options,
+    _options_list,
     estimator_bool_default,
     estimator_cont_default,
     estimator_disc_default,
@@ -111,6 +113,21 @@ def test__docstring_relevant_options():
         """
 
     assert f.__doc__.find("Relevant package options: `aaa`, `bbb`") > -1
+
+
+def test__docstring_options_list():
+    @_docstring_options_list
+    def f():
+        """Function
+
+        Documentation.
+
+        {options_list}
+
+        More documentation.
+        """
+
+    assert f.__doc__.find(_options_list) > -1
 
 
 def test_get_option():
