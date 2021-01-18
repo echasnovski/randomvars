@@ -115,6 +115,7 @@ class Cont(Rand):
 
     # `support()` is inherited from `Rand`
 
+    @op._docstring_relevant_options(["small_width"])
     def ground(self, w=None, direction="both"):
         """Update xy-grid to represent explicit piecewise-linear function
 
@@ -148,9 +149,7 @@ class Cont(Rand):
         - If there is a neighbor strictly closer than `w`, slopes of jump
           approximation depend on input neighbor distance.
 
-        Relevant package options: `small_width`.  See documentation of
-        `randomvars.options.get_option()` for more information. To temporarily
-        set options use `randomvars.options.option_context()` context manager.
+        {relevant_options}
 
         Parameters
         ----------
@@ -327,6 +326,7 @@ class Cont(Rand):
         return self._coeffs_by_ind(ind)
 
     @classmethod
+    @op._docstring_relevant_options(["cdf_tolerance", "n_grid", "small_prob"])
     def from_rv(cls, rv, supp=None):
         """Create continuous RV from general RV
 
@@ -367,10 +367,7 @@ class Cont(Rand):
         **Note** that if `rv` is an object of class `Rand`, it is converted to
         `Cont` via `rv.convert("Cont")`.
 
-        Relevant package options: `n_grid`, `small_prob`, `cdf_tolerance`.
-        See documentation of `randomvars.options.get_option()` for more
-        information. To temporarily set options use
-        `randomvars.options.option_context()` context manager.
+        {relevant_options}
 
         Parameters
         ----------
@@ -430,6 +427,9 @@ class Cont(Rand):
         return cls(x, y)
 
     @classmethod
+    @op._docstring_relevant_options(
+        ["cdf_tolerance", "density_mincoverage", "estimator_cont", "n_grid"]
+    )
     def from_sample(cls, sample):
         """Create continuous RV from sample
 
@@ -487,10 +487,7 @@ class Cont(Rand):
           negative values can occur if CDF approximation is allowed to be loose
           (either `n_grid` is low or `cdf_tolerance` is high).
 
-        Relevant package options: `estimator_cont`, `density_mincoverage`,
-        `n_grid`, `cdf_tolerance`. See documentation of
-        `randomvars.options.get_option()` for more information. To temporarily
-        set options use `randomvars.options.option_context()` context manager.
+        {relevant_options}
 
         Parameters
         ----------

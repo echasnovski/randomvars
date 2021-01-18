@@ -97,6 +97,7 @@ class Bool(Rand):
     # `support()` is inherited from `Rand`
 
     @classmethod
+    @op._docstring_relevant_options(["base_tolerance"])
     def from_rv(cls, rv):
         """Create boolean RV from general RV
 
@@ -116,9 +117,7 @@ class Bool(Rand):
           very small probability of `False`, which doesn't quite align with
           expected theoretical result of 0.
 
-        Relevant package options: `base_tolerance`. See documentation of
-        `randomvars.options.get_option()` for more information. To temporarily
-        set options use `randomvars.options.option_context()` context manager.
+        {relevant_options}
 
         Parameters
         ----------
@@ -150,6 +149,7 @@ class Bool(Rand):
         return cls(prob_true=1 - prob_false)
 
     @classmethod
+    @op._docstring_relevant_options(["estimator_bool"])
     def from_sample(cls, sample):
         """Create boolean RV from sample
 
@@ -161,9 +161,7 @@ class Bool(Rand):
           hyperparameters defined), it is forwarded to `Bool.from_rv()`.
         - **Create random variable** with `Bool(prob_true=estimate)`.
 
-        Relevant package options: `estimator_bool`. See documentation of
-        `randomvars.options.get_option()` for more information. To temporarily
-        set options use `randomvars.options.option_context()` context manager.
+        {relevant_options}
 
         Parameters
         ----------

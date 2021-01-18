@@ -7,6 +7,9 @@ import pytest
 
 from randomvars.options import (
     OptionError,
+    _default_options,
+    _docstring_paragraph,
+    _docstring_relevant_options,
     estimator_bool_default,
     estimator_cont_default,
     estimator_disc_default,
@@ -14,7 +17,6 @@ from randomvars.options import (
     option_context,
     reset_option,
     set_option,
-    _default_options,
 )
 
 
@@ -58,6 +60,57 @@ def test_estimator_disc_default():
         out = estimator_disc_default([1, np.nan, np.inf])
         assert_array_equal(out[0], np.array([1]))
         assert_array_equal(out[1], np.array([1]))
+
+
+def test__docstring_paragraph():
+    big_string = " ".join(["Newly added documentation"] * 5)
+
+    @_docstring_paragraph(ccc=big_string, ddd="Extra help.")
+    def f():
+        """Function
+
+        Documentation.
+
+            {ccc}
+
+        {ddd}
+
+        More documentation.
+        """
+        return 1
+
+    # Paragraph should be added with identation
+    assert f.__doc__.find("    Newly added documentation") > -1
+    assert f.__doc__.find("Extra help.") > -1
+
+    # Paragraph should be wrapped by default
+    assert all(len(s) < 79 for s in f.__doc__.splitlines())
+
+    # Wrapping shouldn't be done if `wrap=False`
+    @_docstring_paragraph(wrap=False, ccc=big_string)
+    def f2():
+        """Function
+
+        {ccc}
+        """
+        return 1
+
+    assert not all([len(s) < 79 for s in f2.__doc__.splitlines()])
+
+
+def test__docstring_relevant_options():
+    @_docstring_relevant_options(["aaa", "bbb"])
+    def f():
+        """Function
+
+        Documentation.
+
+        {relevant_options}
+
+        More documentation.
+        """
+
+    assert f.__doc__.find("Relevant package options: `aaa`, `bbb`") > -1
 
 
 def test_get_option():

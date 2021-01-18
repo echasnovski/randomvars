@@ -7,6 +7,7 @@ import numpy as np
 from randomvars._continuous import Cont
 from randomvars._discrete import Disc
 from randomvars._random import Rand
+import randomvars.options as op
 import randomvars._utils as utils
 import randomvars._utilsgrid as utilsgrid
 
@@ -461,6 +462,7 @@ class Mixt(Rand):
             a, b
         ) + self._weight_disc * self._disc.integrate_cdf(a, b)
 
+    @op._docstring_relevant_options(["base_tolerance", "small_width"])
     def convert(self, to_class=None):
         """Convert to different RV class
 
@@ -493,10 +495,7 @@ class Mixt(Rand):
               happens. This ensures smooth behavior in case of "touching
               supports".
 
-        Relevant package options: `base_tolerance`, `small_width` (only if
-        `to_class` is `"Cont"`). See documentation of
-        `randomvars.options.get_option()` for more information. To temporarily
-        set options use `randomvars.options.option_context()` context manager.
+        {relevant_options}
 
         Parameters
         ----------

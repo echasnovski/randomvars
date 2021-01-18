@@ -111,6 +111,7 @@ class Disc(Rand):
     # `support()` is inherited from `Rand`
 
     @classmethod
+    @op._docstring_relevant_options(["small_prob"])
     def from_rv(cls, rv):
         """Create discrete RV from general RV
 
@@ -150,9 +151,7 @@ class Disc(Rand):
           positive probability, because it will result into many calls of
           `cdf()` and `ppf()` methods.
 
-        Relevant package options: `small_prob`. See documentation of
-        `randomvars.options.get_option()` for more information. To temporarily
-        set options use `randomvars.options.option_context()` context manager.
+        {relevant_options}
 
         Parameters
         ----------
@@ -216,6 +215,7 @@ class Disc(Rand):
         return cls(x=x, p=p)
 
     @classmethod
+    @op._docstring_relevant_options(["estimator_disc"])
     def from_sample(cls, sample):
         """Create discrete RV from sample
 
@@ -228,9 +228,7 @@ class Disc(Rand):
         - **Create random variable** with `Disc(x=x, p=p)`, where `x` and `p`
           are first and second values of `estimate`.
 
-        Relevant package options: `estimator_disc`. See documentation of
-        `randomvars.options.get_option()` for more information. To temporarily
-        set options use `randomvars.options.option_context()` context manager.
+        {relevant_options}
 
         Parameters
         ----------
@@ -269,6 +267,7 @@ class Disc(Rand):
             "`Disc` doesn't have probability density function. Use `logpmf()` instead."
         )
 
+    @op._docstring_relevant_options(["base_tolerance"])
     def pmf(self, x):
         """Probability mass function
 
@@ -281,9 +280,7 @@ class Disc(Rand):
         For algorithm of "tolerance associated with a number" see documentation
         of `base_tolerance` option.
 
-        Relevant package options: `base_tolerance`. See documentation of
-        `randomvars.options.get_option()` for more information. To temporarily
-        set options use `randomvars.options.option_context()` context manager.
+        {relevant_options}
 
         Parameters
         ----------

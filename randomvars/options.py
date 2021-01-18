@@ -1,3 +1,4 @@
+import textwrap
 import warnings
 
 import numpy as np
@@ -151,6 +152,44 @@ _options_list = """
 - small_width : float, default 1e-8. Difference between x-values that can be
   considered "small" during approximations.
 """
+
+
+# %% Documentation helpers
+def _docstring_paragraph(wrap=True, **kwargs):
+    def decorator(f):
+        doc = f.__doc__
+
+        # Ensure paragraph indentation and width wrap
+        kwargs_new = {}
+        for marker, string in kwargs.items():
+            marker_full = f"{{{marker}}}"
+            # Assuming marker is placed on a separate line
+            target_line = [s for s in doc.splitlines() if s.find(marker_full) > -1][0]
+            indentation = target_line.replace(marker_full, "")
+
+            if wrap:
+                lines = textwrap.wrap(string, width=79 - len(indentation))
+            else:
+                lines = [string]
+
+            paragraph = f"\n{indentation}".join(lines)
+            kwargs_new[marker] = paragraph
+
+        f.__doc__ = doc.format(**kwargs_new)
+
+        return f
+
+    return decorator
+
+
+def _docstring_relevant_options(opt_list):
+    opt_list_string = f'`{"`, `".join(opt_list)}`'
+    opt_paragraph = (
+        f"Relevant package options: {opt_list_string}. See documentation of "
+        "`randomvars.options.get_option()` for more information. To temporarily set "
+        "options use `randomvars.options.option_context()` context manager."
+    )
+    return _docstring_paragraph(relevant_options=opt_paragraph)
 
 
 def get_option(opt):
