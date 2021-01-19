@@ -68,6 +68,10 @@ class TestBool:
         rv = Bool(0.75)
         assert rv.support() == (False, True)
 
+    def test_compress(self):
+        rv = Bool(0.75)
+        assert rv.compress() is rv
+
     def test_from_rv_basic(self):
         prob_true = 0.75
         rv = distrs.rv_discrete(values=([0, 1], [1 - prob_true, prob_true]))

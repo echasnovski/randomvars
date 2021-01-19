@@ -115,6 +115,48 @@ class Cont(Rand):
 
     # `support()` is inherited from `Rand`
 
+    def compress(self):
+        """Compress random variable
+
+        Here the meaning of "compress" is to return a random variable which
+        numerically has the same CDF values and uses minimum amount of
+        metadata.
+
+        Compressing of continuous RV is done by the following algorithm:
+        - Remove x-values from beginning and end which has zero y-values except
+          the "most center" ones. Those describe tails with zero probability
+          which don't affect the CDF values.
+        - Remove x-values which provide "extra linearity": they contribute
+          points on piecewise-linear density which lie on the segment
+          connecting neighbor points. In other words, x-values for which slopes
+          of neighbor intervals are the same. Removing them won't affect
+          density structure and hence CDF values.
+
+        Returns
+        -------
+        rv_compressed : compressed RV
+            If nothing to compress, self is returned.
+        """
+        x, y = self._x, self._y
+
+        # X-values which contribute zero probability from beginning and end
+        zero_probs = 0.5 * (x[1:] - x[:-1]) * (y[1:] + y[:-1]) == 0
+        zero_tail_left = np.concatenate((np.minimum.accumulate(zero_probs), [False]))
+        zero_tail_right = np.concatenate(
+            (np.minimum.accumulate(zero_probs[::-1]), [False])
+        )[::-1]
+
+        # X-values with extra linearity
+        _, slope = self._coeffs_by_ind()
+        extra_linearity = np.concatenate(([False], slope[:-1] == slope[1:], [False]))
+
+        # Compress
+        x_is_good = ~(zero_tail_left | zero_tail_right | extra_linearity)
+        if np.all(x_is_good):
+            return self
+        else:
+            return type(self)(x=x[x_is_good], y=y[x_is_good])
+
     @op._docstring_relevant_options(["small_width"])
     def ground(self, w=None, direction="both"):
         """Update xy-grid to represent explicit piecewise-linear function

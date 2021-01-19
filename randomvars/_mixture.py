@@ -226,6 +226,41 @@ class Mixt(Rand):
 
     # `support()` is inherited from `Rand`
 
+    def compress(self):
+        """Compress random variable
+
+        Here the meaning of "compress" is to return a random variable (possibly
+        of different class) which numerically has the same CDF values and uses
+        minimum amount of metadata.
+
+        Compressing of mixture RV is done by the following algorithm:
+        - If `weight_cont` is zero, compressed version of discrete part is returned.
+        - If `weight_disc` is zero, compressed version of continuous part is
+          returned.
+        - Otherwise, return mixture of compressed discrete and continuous
+          parts.
+
+        Returns
+        -------
+        rv_compressed : compressed RV
+            If nothing to compress, self is returned.
+        """
+        if self._missing_cont():
+            return self._disc.compress()
+        if self._missing_disc():
+            return self._cont.compress()
+
+        cont_compressed = self._cont.compress()
+        disc_compressed = self._disc.compress()
+        if (cont_compressed is self._cont) and (disc_compressed is self._disc):
+            return self
+        else:
+            return type(self)(
+                cont=cont_compressed,
+                disc=disc_compressed,
+                weight_cont=self._weight_cont,
+            )
+
     @classmethod
     def from_rv(cls, rv, weight_cont=None):
         """Create mixture RV from two general Rvs

@@ -230,6 +230,58 @@ class TestCont:
         rv = Cont([0.5, 1.5, 4.5], [0, 0.5, 0])
         assert rv.support() == (0.5, 4.5)
 
+    def test_compress(self):
+        # Zero tails
+        ## Left tail
+        assert_equal_cont(
+            Cont([0, 1, 2, 3], [0, 0, 0, 2]).compress(), Cont([2, 3], [0, 2])
+        )
+        assert_equal_cont(
+            Cont([0, 1, 2, 3], [0, 0, 1, 0]).compress(), Cont([1, 2, 3], [0, 1, 0])
+        )
+
+        ## Right tail
+        assert_equal_cont(
+            Cont([0, 1, 2, 3], [2, 0, 0, 0]).compress(), Cont([0, 1], [2, 0])
+        )
+        assert_equal_cont(
+            Cont([0, 1, 2, 3], [0, 1, 0, 0]).compress(), Cont([0, 1, 2], [0, 1, 0])
+        )
+
+        ## Both tails
+        assert_equal_cont(
+            Cont([0, 1, 2, 3, 4], [0, 0, 1, 0, 0]).compress(),
+            Cont([1, 2, 3], [0, 1, 0]),
+        )
+
+        # Extra linearity
+        ## Non-zero slope
+        assert_equal_cont(
+            Cont([0, 1, 2, 3, 4], [0.5, 0.25, 0, 0.25, 0.5]).compress(),
+            Cont([0, 2, 4], [0.5, 0, 0.5]),
+        )
+
+        ## Zero slope, non-zero y
+        assert_equal_cont(
+            Cont([0, 1, 2], [0.5, 0.5, 0.5]).compress(), Cont([0, 2], [0.5, 0.5])
+        )
+
+        ## Zero slope, zero y, outside of tails
+        assert_equal_cont(
+            Cont([0, 1, 2, 3, 4], [1, 0, 0, 0, 1]).compress(),
+            Cont([0, 1, 3, 4], [1, 0, 0, 1]),
+        )
+
+        # All features
+        assert_equal_cont(
+            Cont(np.arange(14), [0, 0, 0, 1, 2, 2, 2, 1, 0, 0, 0, 1, 0, 0]).compress(),
+            Cont([2, 4, 6, 8, 10, 11, 12], [0, 2, 2, 0, 0, 1, 0]),
+        )
+
+        # If nothing to compress, self should be returned
+        rv = Cont([0, 1], [1, 1])
+        assert rv.compress() is rv
+
     def test_ground(self):
         w = op.get_option("small_width")
 

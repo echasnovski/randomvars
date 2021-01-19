@@ -96,6 +96,8 @@ class Bool(Rand):
 
     # `support()` is inherited from `Rand`
 
+    # `compress()` is inherited from `Rand`
+
     @classmethod
     @op._docstring_relevant_options(["base_tolerance"])
     def from_rv(cls, rv):

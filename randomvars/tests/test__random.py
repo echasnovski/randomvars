@@ -32,6 +32,10 @@ class TestRand:
         tmp_rv = TmpRand()
         assert tmp_rv.support() == (0, 1)
 
+    def test_compress(self):
+        rv = Rand()
+        assert rv.compress() is rv
+
     def test_from_rv(self):
         # Objects of `Rand` class should be `convert()`ed
         rv = Rand()

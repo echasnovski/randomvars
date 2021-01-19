@@ -110,6 +110,27 @@ class Disc(Rand):
 
     # `support()` is inherited from `Rand`
 
+    def compress(self):
+        """Compress random variable
+
+        Here the meaning of "compress" is to return a random variable which
+        numerically has the same CDF values and uses minimum amount of
+        metadata.
+
+        Compressing of discrete RV is done by keeping only elements of xp-grid
+        with strictly positive probability.
+
+        Returns
+        -------
+        rv_compressed : compressed RV
+            If nothing to compress, self is returned.
+        """
+        p_is_pos = self._p > 0
+        if np.all(p_is_pos):
+            return self
+        else:
+            return type(self)(x=self._x[p_is_pos], p=self._p[p_is_pos])
+
     @classmethod
     @op._docstring_relevant_options(["small_prob"])
     def from_rv(cls, rv):

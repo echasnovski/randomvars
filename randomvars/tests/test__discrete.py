@@ -140,6 +140,17 @@ class TestDisc:
         rv = Disc([0.5, 1.5, 4.5], [0.25, 0.375, 0.375])
         assert rv.support() == (0.5, 4.5)
 
+    def test_compress(self):
+        # Keep only x-values with positive probabilities
+        assert_equal_disc(
+            Disc([0, 1, 2, 3], [0.0, 0.5, 0.0, 0.5]).compress(),
+            Disc([1, 3], [0.5, 0.5]),
+        )
+
+        # If nothing to compress, self should be returned
+        rv = Disc([0, 1], [0.5, 0.5])
+        assert rv.compress() is rv
+
     def test_from_rv_basic(self):
         x = [0, 1, 5]
         p = [0.1, 0.4, 0.5]

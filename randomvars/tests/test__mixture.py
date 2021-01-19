@@ -21,6 +21,18 @@ from randomvars.tests.commontests import (
 import randomvars.options as op
 
 
+def assert_equal_cont(rv_1, rv_2, decimal=None):
+    xy1 = rv_1.x, rv_1.y
+    xy2 = rv_2.x, rv_2.y
+    _test_equal_seq(xy1, xy2, decimal=decimal)
+
+
+def assert_equal_disc(rv_1, rv_2, decimal=None):
+    xp1 = rv_1.x, rv_1.p
+    xp2 = rv_2.x, rv_2.p
+    _test_equal_seq(xp1, xp2, decimal=decimal)
+
+
 def assert_equal_mixt(rv_1, rv_2, decimal=None):
     # Check weights
     assert rv_1.weight_cont == rv_2.weight_cont
@@ -29,9 +41,7 @@ def assert_equal_mixt(rv_1, rv_2, decimal=None):
     # Check continuous parts
     if rv_1.cont is not None:
         if rv_2.cont is not None:
-            xy1 = rv_1.cont.x, rv_1.cont.y
-            xy2 = rv_2.cont.x, rv_2.cont.y
-            _test_equal_seq(xy1, xy2, decimal=decimal)
+            assert_equal_cont(rv_1.cont, rv_2.cont, decimal)
         else:
             raise ValueError("`rv_2.cont` is `None` while `rv_1.cont` is not.")
     else:
@@ -41,9 +51,7 @@ def assert_equal_mixt(rv_1, rv_2, decimal=None):
     # Check discrete parts
     if rv_1.disc is not None:
         if rv_2.disc is not None:
-            xp1 = rv_1.disc.x, rv_1.disc.p
-            xp2 = rv_2.disc.x, rv_2.disc.p
-            _test_equal_seq(xp1, xp2)
+            assert_equal_disc(rv_1.disc, rv_2.disc, decimal)
         else:
             raise ValueError("`rv_2.disc` is `None` while `rv_1.disc` is not.")
     else:
@@ -237,6 +245,27 @@ class TestMixt:
 
         rv_weight_1 = Mixt(cont=cont, disc=disc, weight_cont=1)
         assert rv_weight_1.support() == cont.support()
+
+    def test_compress(self):
+        cont = Cont(np.arange(7), [0, 0, 1, 2, 1, 0, 0])
+        disc = Disc([0, 1, 2, 3], [0, 0.5, 0, 0.5])
+
+        # Basic usage
+        assert_equal_mixt(
+            Mixt(cont, disc, 0.5).compress(),
+            Mixt(cont.compress(), disc.compress(), 0.5),
+        )
+
+        # Degenerate cases
+        assert_equal_cont(Mixt(cont, None, 1.0).compress(), cont.compress())
+        assert_equal_cont(Mixt(cont, disc, 1.0).compress(), cont.compress())
+
+        assert_equal_disc(Mixt(None, disc, 0.0).compress(), disc.compress())
+        assert_equal_disc(Mixt(cont, disc, 0.0).compress(), disc.compress())
+
+        # If nothing to compress, self should be returned
+        rv = Mixt(cont.compress(), disc.compress(), 0.5)
+        assert rv.compress() is rv
 
     def test_from_rv_basic(self):
         cont = Cont([0, 1], [1, 1])

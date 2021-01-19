@@ -25,6 +25,21 @@ class Rand:
         """Return support of random variable"""
         return (self.a, self.b)
 
+    def compress(self):
+        """Compress random variable
+
+        Here the meaning of "compress" is to return a random variable (possibly
+        of different class) which numerically has the same CDF values and uses
+        minimum amount of metadata.
+
+        Returns
+        -------
+        rv_compressed : compressed RV
+            This class of random variable already has the minimum amount of
+            metadata to achieve its CDF, so self is returned.
+        """
+        return self
+
     @classmethod
     def from_rv(cls, rv):
         """Create RV from different RV"""
