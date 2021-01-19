@@ -131,6 +131,10 @@ class TestDisc:
         p = np.repeat(0.1, 10)
         rv = Disc(x, p)
 
+        assert list(rv.params.keys()) == ["x", "p"]
+        assert_array_equal(rv.params["x"], x)
+        assert_array_equal(rv.params["p"], p)
+
         assert_array_equal(rv.x, x)
         assert_array_equal(rv.p, p)
         assert rv.a == 0

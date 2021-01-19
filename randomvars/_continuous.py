@@ -64,7 +64,7 @@ class Cont(Rand):
         # Private attributes
         self._cump = utils._trapez_integral_cum(self._x, self._y)
 
-        super().__init__()
+        super().__init__(x=x, y=y)
 
     @staticmethod
     def _impute_init_args(x, y):
@@ -93,6 +93,8 @@ class Cont(Rand):
             f"(support: [{self._a}, {self._b}])"
         )
 
+    # `params` is inherited from `Rand`
+
     @property
     def x(self):
         """Return x-grid (`x` component of piecewise-linear density)"""
@@ -120,7 +122,7 @@ class Cont(Rand):
 
         Here the meaning of "compress" is to return a random variable which
         numerically has the same CDF values and uses minimum amount of
-        metadata.
+        parameters.
 
         Compressing of continuous RV is done by the following algorithm:
         - Remove x-values from beginning and end which has zero y-values except

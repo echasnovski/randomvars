@@ -65,7 +65,7 @@ class Disc(Rand):
         # Private attributes
         self._cump = np.cumsum(p)
 
-        super().__init__()
+        super().__init__(x=x, p=p)
 
     @staticmethod
     def _impute_init_args(x, p):
@@ -87,6 +87,8 @@ class Disc(Rand):
         x_len = len(self._x)
         s = "s" if x_len > 1 else ""
         return f"Discrete RV with {x_len} value{s} (support: [{self._a}, {self._b}])"
+
+    # `params` is inherited from `Rand`
 
     @property
     def x(self):
@@ -115,7 +117,7 @@ class Disc(Rand):
 
         Here the meaning of "compress" is to return a random variable which
         numerically has the same CDF values and uses minimum amount of
-        metadata.
+        parameters.
 
         Compressing of discrete RV is done by keeping only elements of xp-grid
         with strictly positive probability.

@@ -221,6 +221,10 @@ class TestCont:
         y = np.repeat(0.1, 11)
         rv = Cont(x, y)
 
+        assert list(rv.params.keys()) == ["x", "y"]
+        assert_array_equal(rv.params["x"], x)
+        assert_array_equal(rv.params["y"], y)
+
         assert_array_equal(rv.x, x)
         assert_array_equal(rv.y, y)
         assert rv.a == 0.0

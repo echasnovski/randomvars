@@ -11,6 +11,19 @@ class Rand:
     variable classes in this package inherit from this class.
     """
 
+    def __init__(self, **kwargs):
+        self._params = kwargs
+
+    @property
+    def params(self):
+        """Parameters of random variable
+
+        Return a dictionary of parameters which completely describes this object.
+        It is enough to create a copy of this object via:
+        `type(self)(**self.params)`.
+        """
+        return self._params
+
     @property
     def a(self):
         """Return left edge of support"""
@@ -30,13 +43,13 @@ class Rand:
 
         Here the meaning of "compress" is to return a random variable (possibly
         of different class) which numerically has the same CDF values and uses
-        minimum amount of metadata.
+        minimum amount of parameters.
 
         Returns
         -------
-        rv_compressed : compressed RV
+        rv_compressed : self
             This class of random variable already has the minimum amount of
-            metadata to achieve its CDF, so self is returned.
+            parameters to achieve its CDF, so self is returned.
         """
         return self
 

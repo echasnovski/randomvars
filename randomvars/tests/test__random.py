@@ -14,6 +14,7 @@ class TestRand:
     def test_properties(self):
         rv = Rand()
 
+        assert rv.params == dict()
         with pytest.raises(NotImplementedError):
             rv.a
         with pytest.raises(NotImplementedError):

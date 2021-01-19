@@ -80,7 +80,7 @@ class Mixt(Rand):
         # Private attributes
         self._cump_tuple = self._compute_cump_tuple()
 
-        super().__init__()
+        super().__init__(cont=cont, disc=disc, weight_cont=weight_cont)
 
     @staticmethod
     def _impute_init_args(cont, disc, weight_cont):
@@ -194,6 +194,8 @@ class Mixt(Rand):
             f"Disc (weight = {self._weight_disc}): {self._disc}"
         )
 
+    # `params` is inherited from `Rand`
+
     @property
     def cont(self):
         """Return continuous part of mixture"""
@@ -231,7 +233,7 @@ class Mixt(Rand):
 
         Here the meaning of "compress" is to return a random variable (possibly
         of different class) which numerically has the same CDF values and uses
-        minimum amount of metadata.
+        minimum amount of parameters.
 
         Compressing of mixture RV is done by the following algorithm:
         - If `weight_cont` is zero, compressed version of discrete part is returned.

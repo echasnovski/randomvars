@@ -59,6 +59,8 @@ class TestBool:
         prob_true = 0.75
         rv = Bool(prob_true)
 
+        assert rv.params == {"prob_true": rv.prob_true}
+
         assert_array_equal(rv.prob_false, 1 - prob_true)
         assert_array_equal(rv.prob_true, prob_true)
         assert_array_equal(rv.a, False)

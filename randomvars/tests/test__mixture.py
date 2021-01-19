@@ -198,6 +198,11 @@ class TestMixt:
         weight_cont = 0.75
         rv = Mixt(cont=cont, disc=disc, weight_cont=weight_cont)
 
+        assert list(rv.params.keys()) == ["cont", "disc", "weight_cont"]
+        assert rv.params["cont"] == cont
+        assert rv.params["disc"] == disc
+        assert rv.params["weight_cont"] == weight_cont
+
         assert isinstance(rv.cont, Cont)
         assert isinstance(rv.disc, Disc)
         assert_array_equal(rv.weight_disc, 1 - weight_cont)

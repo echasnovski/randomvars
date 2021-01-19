@@ -57,7 +57,7 @@ class Bool(Rand):
         self._prob_true = self._impute_init_args(prob_true)
         self._prob_false = 1.0 - self._prob_true
 
-        super().__init__()
+        super().__init__(prob_true=prob_true)
 
     @staticmethod
     def _impute_init_args(prob_true):
@@ -73,6 +73,8 @@ class Bool(Rand):
 
     def __str__(self):
         return f"Boolean RV with {self._prob_true} probability of True"
+
+    # `params` is inherited from `Rand`
 
     @property
     def prob_true(self):
