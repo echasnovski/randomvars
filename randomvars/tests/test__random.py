@@ -11,6 +11,69 @@ from randomvars.tests.commontests import _test_one_value_input
 class TestRand:
     """Regression tests for `Rand` class"""
 
+    def test_eq(self):
+        class Tmp(Rand):
+            def __init__(self, loc, scale):
+                super().__init__(loc=loc, scale=scale)
+
+        # Equality
+        ## Simple params
+        rv1 = Tmp(0, "a")
+        rv2 = Tmp(0, "a")
+        assert (rv1 == rv2) and (rv1 is not rv2)
+
+        ## Numpy array params
+        rv1 = Tmp(np.array([0, 1]), np.array([0, 1]))
+        rv2 = Tmp(np.array([0, 1]), np.array([[0, 1]]))
+        assert (rv1 == rv2) and (rv1 is not rv2)
+
+        ## Exotic params
+        rv1 = Tmp(loc=(0, "a"), scale={"alpha": 1, "beta": 2})
+        rv2 = Tmp(loc=(0, "a"), scale={"alpha": 1, "beta": 2})
+        assert (rv1 == rv2) and (rv1 is not rv2)
+
+        # Not equality
+        ## Different classes
+        rv1 = Tmp(0, 1)
+        rv2 = Rand()
+        assert (rv1 == rv2) is False
+
+        ## Absence of params (for some reason)
+        class Tmp2(Tmp):
+            @property
+            def params(self):
+                return self._params
+
+            @params.setter
+            def params(self, new_params):
+                self._params = new_params
+
+            @params.deleter
+            def params(self):
+                del self._params
+
+        rv1 = Tmp2(0, 1)
+        rv2 = Tmp2(0, 1)
+        del rv2.params
+        assert (rv1 == rv2) is False
+
+        ## Absence of disctionary params (for some reason)
+        rv1 = Tmp2(0, 1)
+        rv2 = Tmp2(0, 1)
+        rv2.params = "a"
+        assert (rv1 == rv2) is False
+
+        ## Disctionary params with different keys (for some reason)
+        rv1 = Tmp2(0, 1)
+        rv2 = Tmp2(0, 1)
+        rv2.params = {"a": 1}
+        assert (rv1 == rv2) is False
+
+        ## Not equal params
+        rv1 = Tmp(0, 1 + 1e-8)
+        rv2 = Tmp(0, 1)
+        assert (rv1 == rv2) is False
+
     def test_properties(self):
         rv = Rand()
 

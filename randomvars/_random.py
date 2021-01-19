@@ -14,6 +14,25 @@ class Rand:
     def __init__(self, **kwargs):
         self._params = kwargs
 
+    def __eq__(self, other):
+        if type(self) is not type(other):
+            return False
+
+        # Guard for possible absence of `params` property and if they are not
+        # dictionary
+        try:
+            self_params = self.params
+            other_params = other.params
+
+            if self_params.keys() != other_params.keys():
+                return False
+        except AttributeError:
+            return False
+
+        return all(
+            np.all(self_params[key] == other_params[key]) for key in self_params.keys()
+        )
+
     @property
     def params(self):
         """Parameters of random variable
@@ -21,6 +40,14 @@ class Rand:
         Return a dictionary of parameters which completely describes this object.
         It is enough to create a copy of this object via:
         `type(self)(**self.params)`.
+
+        Its primary usage is to check equality of two RVs via `rv1 == rv2`:
+        they are equal, if they are of the same class and have the same
+        parameters (checked elementwise with `np.all(element1 == element2)`).
+
+        Returns
+        -------
+        params: dictionary
         """
         return self._params
 
