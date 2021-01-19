@@ -10,7 +10,7 @@ from randomvars._utils import _tolerance
 from randomvars.tests.commontests import (
     DECIMAL,
     h,
-    _test_equal_seq,
+    _test_equal_rand,
     _test_input_coercion,
     _test_from_rv_rand,
     _test_from_sample_rand,
@@ -45,12 +45,6 @@ DISTRIBUTIONS = {
 }
 
 
-def assert_equal_disc(rv_1, rv_2, decimal=None):
-    xp1 = rv_1.x, rv_1.p
-    xp2 = rv_2.x, rv_2.p
-    _test_equal_seq(xp1, xp2, decimal=decimal)
-
-
 class TestDisc:
     """Regression tests for `Disc` class"""
 
@@ -81,7 +75,7 @@ class TestDisc:
         with pytest.warns(UserWarning, match="`x`.*not sorted.*`x` and `p`"):
             rv = Disc([1, 0], [0.2, 0.8])
             rv_ref = Disc([0, 1], [0.8, 0.2])
-            assert_equal_disc(rv, rv_ref)
+            _test_equal_rand(rv, rv_ref)
 
         with pytest.raises(ValueError, match="`p`.*negative"):
             Disc([0, 1], [0.8, -1])
@@ -96,11 +90,11 @@ class TestDisc:
 
         # Simple case with non-numpy input
         rv_1 = Disc(x=x_ref.tolist(), p=p_ref.tolist())
-        assert_equal_disc(rv_1, rv_ref)
+        _test_equal_rand(rv_1, rv_ref)
 
         # Check if `p` is normalized
         rv_2 = Disc(x=x_ref, p=10 * p_ref)
-        assert_equal_disc(rv_2, rv_ref)
+        _test_equal_rand(rv_2, rv_ref)
 
         # Check that zero probability is allowed
         rv_3 = Disc(x=[0, 1, 3], p=[0, 0.5, 0.5])
@@ -110,13 +104,13 @@ class TestDisc:
         # Check if `x` and `p` are rearranged if not sorted
         with pytest.warns(UserWarning, match="`x`.*not sorted"):
             rv_4 = Disc(x=x_ref[[1, 0, 2]], p=p_ref[[1, 0, 2]])
-            assert_equal_disc(rv_4, rv_ref)
+            _test_equal_rand(rv_4, rv_ref)
 
         # Check if duplicated values are removed from `x`
         with pytest.warns(UserWarning, match="duplicated"):
             # First pair of xy-grid is taken among duplicates
             rv_5 = Disc(x=x_ref[[0, 1, 1, 2]], p=p_ref[[0, 1, 2, 2]])
-            assert_equal_disc(rv_5, rv_ref)
+            _test_equal_rand(rv_5, rv_ref)
 
     def test_str(self):
         rv = Disc([0, 2, 4], [0.125, 0, 0.875])
@@ -146,7 +140,7 @@ class TestDisc:
 
     def test_compress(self):
         # Keep only x-values with positive probabilities
-        assert_equal_disc(
+        _test_equal_rand(
             Disc([0, 1, 2, 3], [0.0, 0.5, 0.0, 0.5]).compress(),
             Disc([1, 3], [0.5, 0.5]),
         )
@@ -161,10 +155,10 @@ class TestDisc:
         rv = distrs.rv_discrete(values=(x, p))
         rv_out = Disc.from_rv(rv)
         rv_ref = Disc(x=x, p=p)
-        assert_equal_disc(rv_out, rv_ref)
+        _test_equal_rand(rv_out, rv_ref)
 
         # Objects of `Rand` class should be `convert()`ed
-        _test_from_rv_rand(cls=Disc, to_class="Disc", assert_equal=assert_equal_disc)
+        _test_from_rv_rand(cls=Disc, to_class="Disc")
 
         # Works with single-valued rv
         rv_single = distrs.rv_discrete(values=(2, 1))
@@ -209,7 +203,7 @@ class TestDisc:
         with op.option_context({"small_prob": 0.125 + 1e-5}):
             rv_out = Disc.from_rv(rv)
             rv_ref = Disc([1, 3], [0.5, 0.5])
-            assert_equal_disc(rv_out, rv_ref)
+            _test_equal_rand(rv_out, rv_ref)
 
     def test_from_sample_basic(self):
         x = np.array([0.1, -100, 1, np.pi, np.pi, 1, 3, 0.1])
@@ -217,7 +211,7 @@ class TestDisc:
         rv = Disc.from_sample(x)
         rv_ref = Disc(x=[-100, 0.1, 1, 3, np.pi], p=[0.125, 0.25, 0.25, 0.125, 0.25])
         assert isinstance(rv, Disc)
-        assert_equal_disc(rv, rv_ref)
+        _test_equal_rand(rv, rv_ref)
 
     def test_from_sample_errors(self):
         with pytest.raises(TypeError, match="numeric numpy array"):
@@ -231,7 +225,7 @@ class TestDisc:
         with pytest.warns(UserWarning, match="has non-finite"):
             rv = Disc.from_sample([1, 2, np.nan])
             rv_ref = Disc(x=[1, 2], p=[0.5, 0.5])
-            assert_equal_disc(rv, rv_ref)
+            _test_equal_rand(rv, rv_ref)
 
         # Error is given with default discrete estimator if there is no finite
         # values
@@ -250,7 +244,7 @@ class TestDisc:
 
         with op.option_context({"estimator_disc": single_value_estimator}):
             rv = Disc.from_sample(x)
-            assert_equal_disc(rv, Disc(x=[1.0], p=[1.0]))
+            _test_equal_rand(rv, Disc(x=[1.0], p=[1.0]))
 
         # "estimator_disc" which returns allowed classes
         ## `Rand` class should be forwarded to `from_rv()` method
@@ -258,7 +252,6 @@ class TestDisc:
             cls=Disc,
             sample=x,
             estimator_option="estimator_disc",
-            assert_equal=assert_equal_disc,
         )
 
         ## "Scipy" distribution should be forwarded to `Disc.from_rv()`
@@ -266,7 +259,7 @@ class TestDisc:
         with op.option_context({"estimator_disc": lambda x: rv_binom}):
             rv = Disc.from_sample(np.asarray([0, 1, 2]))
             rv_ref = Disc.from_rv(rv_binom)
-            assert_equal_disc(rv, rv_ref)
+            _test_equal_rand(rv, rv_ref)
 
     def test_pdf(self):
         rv = Disc([0.5, 1, 3], [0.1, 0.2, 0.7])
@@ -458,7 +451,7 @@ class TestFromRVAccuracy:
         with op.option_context({"small_prob": 0.125 + 1e-5}):
             rv_1_out = Disc.from_rv(rv_1)
             rv_1_ref = Disc([1, 3], [0.5, 0.5])
-            assert_equal_disc(rv_1_out, rv_1_ref)
+            _test_equal_rand(rv_1_out, rv_1_ref)
 
         # Currently not all elements with small probabilities are not detected,
         # but only those, which cumulative probability after previous detected
@@ -467,7 +460,7 @@ class TestFromRVAccuracy:
         with op.option_context({"small_prob": 0.1}):
             rv_2_out = Disc.from_rv(rv_2)
             rv_2_ref = Disc([1, 3, 4], [0.5, 0.125, 0.375])
-            assert_equal_disc(rv_2_out, rv_2_ref)
+            _test_equal_rand(rv_2_out, rv_2_ref)
 
     def test_last_value(self):
         # If last (biggest) value has probability equal to `small_prob`, it
@@ -476,7 +469,7 @@ class TestFromRVAccuracy:
         with op.option_context({"small_prob": 0.125}):
             rv_out = Disc.from_rv(rv)
             rv_ref = Disc([0, 1], [0.875, 0.125])
-            assert_equal_disc(rv_out, rv_ref)
+            _test_equal_rand(rv_out, rv_ref)
 
         # If last value cuts some right tail, all its probability should be
         # transferred into last x-value
@@ -484,7 +477,7 @@ class TestFromRVAccuracy:
         with op.option_context({"small_prob": 0.2}):
             rv_out = Disc.from_rv(rv)
             rv_ref = Disc([0, 2], [0.625, 0.375])
-            assert_equal_disc(rv_out, rv_ref)
+            _test_equal_rand(rv_out, rv_ref)
 
     @staticmethod
     def is_from_rv_small_tails(rv):

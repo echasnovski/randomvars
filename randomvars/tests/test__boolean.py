@@ -8,7 +8,7 @@ import pytest
 from randomvars._boolean import Bool
 from randomvars.tests.commontests import (
     h,
-    _test_equal_seq,
+    _test_equal_rand,
     _test_input_coercion,
     _test_from_rv_rand,
     _test_from_sample_rand,
@@ -17,12 +17,6 @@ from randomvars.tests.commontests import (
     _test_rvs_method,
 )
 import randomvars.options as op
-
-
-def assert_equal_bool(rv_1, rv_2, decimal=None):
-    grid_1 = rv_1.prob_false, rv_1.prob_true
-    grid_2 = rv_2.prob_false, rv_2.prob_true
-    _test_equal_seq(grid_1, grid_2, decimal=decimal)
 
 
 class TestBool:
@@ -79,17 +73,17 @@ class TestBool:
         rv = distrs.rv_discrete(values=([0, 1], [1 - prob_true, prob_true]))
         rv_out = Bool.from_rv(rv)
         rv_ref = Bool(prob_true=prob_true)
-        assert_equal_bool(rv_out, rv_ref)
+        _test_equal_rand(rv_out, rv_ref)
 
         # Objects of `Rand` class should be `convert()`ed
-        _test_from_rv_rand(cls=Bool, to_class="Bool", assert_equal=assert_equal_bool)
+        _test_from_rv_rand(cls=Bool, to_class="Bool")
 
         # Works with rv with not only 0 and 1 values
         rv_many = distrs.rv_discrete(values=([-1, 0, 1], [0.5, 0.375, 0.125]))
         rv_out = Bool.from_rv(rv_many)
         ## Only probability of 0 should matter
         rv_ref = Bool(prob_true=1 - 0.375)
-        assert_equal_bool(rv_out, rv_ref)
+        _test_equal_rand(rv_out, rv_ref)
 
     def test_from_rv_errors(self):
         # Absence of `cdf` method should result intro error
@@ -104,13 +98,13 @@ class TestBool:
         rv = distrs.rv_discrete(values=(x, prob))
 
         with op.option_context({"base_tolerance": 1e-4}):
-            assert_equal_bool(Bool.from_rv(rv), Bool(prob_true=1 - 0.5))
+            _test_equal_rand(Bool.from_rv(rv), Bool(prob_true=1 - 0.5))
         with op.option_context({"base_tolerance": 5e-3}):
             # Close positive values shouldn't affect output, because it is
             # computed using `cdf(0) - cdf(-base_tol)`
-            assert_equal_bool(Bool.from_rv(rv), Bool(prob_true=1 - 0.5))
+            _test_equal_rand(Bool.from_rv(rv), Bool(prob_true=1 - 0.5))
         with op.option_context({"base_tolerance": 5e-2}):
-            assert_equal_bool(Bool.from_rv(rv), Bool(prob_true=1 - 0.625))
+            _test_equal_rand(Bool.from_rv(rv), Bool(prob_true=1 - 0.625))
 
     def test_from_sample_basic(self):
         # Normal usage
@@ -119,13 +113,13 @@ class TestBool:
         rv = Bool.from_sample(x)
         rv_ref = Bool(prob_true=0.6)
         assert isinstance(rv, Bool)
-        assert_equal_bool(rv, rv_ref)
+        _test_equal_rand(rv, rv_ref)
 
         # Accepting other types
         x = np.array([0, 1, 2, 1])
         rv = Bool.from_sample(x)
         rv_ref = Bool.from_sample(x.astype("bool"))
-        assert_equal_bool(rv, rv_ref)
+        _test_equal_rand(rv, rv_ref)
 
     def test_from_sample_errors(self):
         # As everything is convertible to boolean array, no error can be thrown
@@ -140,7 +134,7 @@ class TestBool:
         # "estimator_bool"
         with op.option_context({"estimator_bool": lambda x: 0}):
             rv = Bool.from_sample(x)
-            assert_equal_bool(rv, Bool(prob_true=0))
+            _test_equal_rand(rv, Bool(prob_true=0))
 
         # "estimator_bool" which returns allowed classes
         ## `Rand` class should be forwarded to `from_rv()` method
@@ -148,13 +142,12 @@ class TestBool:
             cls=Bool,
             sample=x,
             estimator_option="estimator_bool",
-            assert_equal=assert_equal_bool,
         )
 
         ## "Scipy" distributions should be forwarded to `Bool.from_rv()`
         rv_bernoulli = distrs.bernoulli(p=0.625)
         with op.option_context({"estimator_bool": lambda x: rv_bernoulli}):
-            assert_equal_bool(Bool.from_sample(x), Bool.from_rv(rv_bernoulli))
+            _test_equal_rand(Bool.from_sample(x), Bool.from_rv(rv_bernoulli))
 
     def test_pdf(self):
         rv = Bool(0.75)

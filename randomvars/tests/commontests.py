@@ -23,6 +23,13 @@ def _test_equal_seq(first, second, decimal=None):
             assert_array_almost_equal(el1, el2, decimal=decimal)
 
 
+def _test_equal_rand(first, second, decimal=None):
+    if decimal is None:
+        assert first == second
+    else:
+        _test_equal_seq(first.params.values(), second.params.values(), decimal=decimal)
+
+
 def _test_input_coercion(func, arr):
     out = func(list(arr))
     out_ref = func(arr)
@@ -30,26 +37,26 @@ def _test_input_coercion(func, arr):
     assert type(out) == type(out_ref)
 
 
-def _test_from_rv_rand(cls, to_class, assert_equal):
+def _test_from_rv_rand(cls, to_class):
     import randomvars._boolean as bool
     import randomvars._continuous as cont
     import randomvars._discrete as disc
     import randomvars._mixture as mixt
 
     rv_bool = bool.Bool(0.5)
-    assert_equal(cls.from_rv(rv_bool), rv_bool.convert(to_class))
+    _test_equal_rand(cls.from_rv(rv_bool), rv_bool.convert(to_class))
 
     rv_cont = cont.Cont([0, 1], [1, 1])
-    assert_equal(cls.from_rv(rv_cont), rv_cont.convert(to_class))
+    _test_equal_rand(cls.from_rv(rv_cont), rv_cont.convert(to_class))
 
     rv_disc = disc.Disc([-1, 2], [0.25, 0.75])
-    assert_equal(cls.from_rv(rv_disc), rv_disc.convert(to_class))
+    _test_equal_rand(cls.from_rv(rv_disc), rv_disc.convert(to_class))
 
     rv_mixt = mixt.Mixt(rv_cont, rv_disc, 0.5)
-    assert_equal(cls.from_rv(rv_mixt), rv_mixt.convert(to_class))
+    _test_equal_rand(cls.from_rv(rv_mixt), rv_mixt.convert(to_class))
 
 
-def _test_from_sample_rand(cls, sample, estimator_option, assert_equal):
+def _test_from_sample_rand(cls, sample, estimator_option):
     import randomvars._boolean as bool
     import randomvars._continuous as cont
     import randomvars._discrete as disc
@@ -57,19 +64,19 @@ def _test_from_sample_rand(cls, sample, estimator_option, assert_equal):
 
     rv_bool = bool.Bool(0.5)
     with op.option_context({estimator_option: lambda x: rv_bool}):
-        assert_equal(cls.from_sample(sample), cls.from_rv(rv_bool))
+        _test_equal_rand(cls.from_sample(sample), cls.from_rv(rv_bool))
 
     rv_cont = cont.Cont([0, 1], [1, 1])
     with op.option_context({estimator_option: lambda x: rv_cont}):
-        assert_equal(cls.from_sample(sample), cls.from_rv(rv_cont))
+        _test_equal_rand(cls.from_sample(sample), cls.from_rv(rv_cont))
 
     rv_disc = disc.Disc([-1, 2], [0.25, 0.75])
     with op.option_context({estimator_option: lambda x: rv_disc}):
-        assert_equal(cls.from_sample(sample), cls.from_rv(rv_disc))
+        _test_equal_rand(cls.from_sample(sample), cls.from_rv(rv_disc))
 
     rv_mixt = mixt.Mixt(rv_cont, rv_disc, 0.5)
     with op.option_context({estimator_option: lambda x: rv_mixt}):
-        assert_equal(cls.from_sample(sample), cls.from_rv(rv_mixt))
+        _test_equal_rand(cls.from_sample(sample), cls.from_rv(rv_mixt))
 
 
 def _test_log_fun(logfun, fun, x_ref):

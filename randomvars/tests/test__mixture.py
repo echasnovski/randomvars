@@ -11,7 +11,7 @@ from randomvars._mixture import Mixt
 from randomvars.tests.commontests import (
     DECIMAL,
     h,
-    _test_equal_seq,
+    _test_equal_rand,
     _test_input_coercion,
     _test_from_rv_rand,
     _test_log_fun,
@@ -19,44 +19,6 @@ from randomvars.tests.commontests import (
     _test_rvs_method,
 )
 import randomvars.options as op
-
-
-def assert_equal_cont(rv_1, rv_2, decimal=None):
-    xy1 = rv_1.x, rv_1.y
-    xy2 = rv_2.x, rv_2.y
-    _test_equal_seq(xy1, xy2, decimal=decimal)
-
-
-def assert_equal_disc(rv_1, rv_2, decimal=None):
-    xp1 = rv_1.x, rv_1.p
-    xp2 = rv_2.x, rv_2.p
-    _test_equal_seq(xp1, xp2, decimal=decimal)
-
-
-def assert_equal_mixt(rv_1, rv_2, decimal=None):
-    # Check weights
-    assert rv_1.weight_cont == rv_2.weight_cont
-    assert rv_1.weight_disc == rv_2.weight_disc
-
-    # Check continuous parts
-    if rv_1.cont is not None:
-        if rv_2.cont is not None:
-            assert_equal_cont(rv_1.cont, rv_2.cont, decimal)
-        else:
-            raise ValueError("`rv_2.cont` is `None` while `rv_1.cont` is not.")
-    else:
-        if rv_2.cont is not None:
-            raise ValueError("`rv_1.cont` is `None` while `rv_2.cont` is not.")
-
-    # Check discrete parts
-    if rv_1.disc is not None:
-        if rv_2.disc is not None:
-            assert_equal_disc(rv_1.disc, rv_2.disc, decimal)
-        else:
-            raise ValueError("`rv_2.disc` is `None` while `rv_1.disc` is not.")
-    else:
-        if rv_2.disc is not None:
-            raise ValueError("`rv_1.disc` is `None` while `rv_2.disc` is not.")
 
 
 def assert_ppf(cont, disc, weight_cont):
@@ -256,17 +218,17 @@ class TestMixt:
         disc = Disc([0, 1, 2, 3], [0, 0.5, 0, 0.5])
 
         # Basic usage
-        assert_equal_mixt(
+        _test_equal_rand(
             Mixt(cont, disc, 0.5).compress(),
             Mixt(cont.compress(), disc.compress(), 0.5),
         )
 
         # Degenerate cases
-        assert_equal_cont(Mixt(cont, None, 1.0).compress(), cont.compress())
-        assert_equal_cont(Mixt(cont, disc, 1.0).compress(), cont.compress())
+        _test_equal_rand(Mixt(cont, None, 1.0).compress(), cont.compress())
+        _test_equal_rand(Mixt(cont, disc, 1.0).compress(), cont.compress())
 
-        assert_equal_disc(Mixt(None, disc, 0.0).compress(), disc.compress())
-        assert_equal_disc(Mixt(cont, disc, 0.0).compress(), disc.compress())
+        _test_equal_rand(Mixt(None, disc, 0.0).compress(), disc.compress())
+        _test_equal_rand(Mixt(cont, disc, 0.0).compress(), disc.compress())
 
         # If nothing to compress, self should be returned
         rv = Mixt(cont.compress(), disc.compress(), 0.5)
@@ -285,10 +247,10 @@ class TestMixt:
         out_ref = Mixt(
             Cont.from_rv(cont_scipy), Disc.from_rv(disc_scipy), weight_cont_scipy
         )
-        assert_equal_mixt(out, out_ref)
+        _test_equal_rand(out, out_ref)
 
         # Objects of `Rand` class should be `convert()`ed
-        _test_from_rv_rand(cls=Mixt, to_class="Mixt", assert_equal=assert_equal_mixt)
+        _test_from_rv_rand(cls=Mixt, to_class="Mixt")
 
         # Degenerate cases
         ## Allow degenerate cases with tuple `rv`
@@ -296,12 +258,12 @@ class TestMixt:
         mixt_nonecont_ref = Mixt(None, Disc.from_rv(disc_scipy), 0)
 
         ### `weight_cont` can be `None`
-        assert_equal_mixt(Mixt.from_rv((cont_scipy, None)), mixt_nonedisc_ref)
-        assert_equal_mixt(Mixt.from_rv((None, disc_scipy)), mixt_nonecont_ref)
+        _test_equal_rand(Mixt.from_rv((cont_scipy, None)), mixt_nonedisc_ref)
+        _test_equal_rand(Mixt.from_rv((None, disc_scipy)), mixt_nonecont_ref)
 
         ### `weight_cont` can represent full weight of non-`None` part
-        assert_equal_mixt(Mixt.from_rv((cont_scipy, None), 1), mixt_nonedisc_ref)
-        assert_equal_mixt(Mixt.from_rv((None, disc_scipy), 0), mixt_nonecont_ref)
+        _test_equal_rand(Mixt.from_rv((cont_scipy, None), 1), mixt_nonedisc_ref)
+        _test_equal_rand(Mixt.from_rv((None, disc_scipy), 0), mixt_nonecont_ref)
 
     def test_from_rv_errors(self):
         cont = Cont([0, 1], [1, 1])
@@ -344,16 +306,16 @@ class TestMixt:
         rv_ref = Mixt(
             Cont.from_sample(sample[0]), Disc.from_sample(sample[1]), weight_cont
         )
-        assert_equal_mixt(rv, rv_ref)
+        _test_equal_rand(rv, rv_ref)
 
         # Degenerate cases
         rv_none_cont = Mixt.from_sample((None, sample[1]), weight_cont=0)
         rv_none_cont_ref = Mixt(None, Disc.from_sample(sample[1]), 0)
-        assert_equal_mixt(rv_none_cont, rv_none_cont_ref)
+        _test_equal_rand(rv_none_cont, rv_none_cont_ref)
 
         rv_none_disc = Mixt.from_sample((sample[0], None), weight_cont=1)
         rv_none_disc_ref = Mixt(Cont.from_sample(sample[0]), None, 1)
-        assert_equal_mixt(rv_none_disc, rv_none_disc_ref)
+        _test_equal_rand(rv_none_disc, rv_none_disc_ref)
 
     def test_from_sample_errors(self):
         # `sample` should be tuple
@@ -705,39 +667,23 @@ class TestMixt:
         disc = Disc([-1, 0.5], [0.25, 0.75])
         disc_tocont = disc.convert("Cont")
 
-        # `None` part
+        # No continuous part
         rv_nocont = Mixt(cont=None, disc=disc, weight_cont=0)
-        rv_nocont_tocont = rv_nocont.convert("Cont")
-        _test_equal_seq(
-            (rv_nocont_tocont.x, rv_nocont_tocont.y), (disc_tocont.x, disc_tocont.y)
-        )
-        rv_nocont_todisc = rv_nocont.convert("Disc")
-        _test_equal_seq((rv_nocont_todisc.x, rv_nocont_todisc.p), (disc.x, disc.p))
+        _test_equal_rand(rv_nocont.convert("Cont"), disc.convert("Cont"))
+        _test_equal_rand(rv_nocont.convert("Disc"), disc)
 
-        rv_nodisc = Mixt(cont=cont, disc=None, weight_cont=1.0)
-        rv_nodisc_tocont = rv_nodisc.convert("Cont")
-        _test_equal_seq((rv_nodisc_tocont.x, rv_nodisc_tocont.y), (cont.x, cont.y))
-        rv_nodisc_todisc = rv_nodisc.convert("Disc")
-        _test_equal_seq(
-            (rv_nodisc_todisc.x, rv_nodisc_todisc.p), (cont_todisc.x, cont_todisc.p)
-        )
-
-        # Extreme weight
         rv_weight0 = Mixt(cont=cont, disc=disc, weight_cont=0)
-        rv_weight0_tocont = rv_weight0.convert("Cont")
-        _test_equal_seq(
-            (rv_weight0_tocont.x, rv_weight0_tocont.y), (disc_tocont.x, disc_tocont.y)
-        )
-        rv_weight0_todisc = rv_weight0.convert("Disc")
-        _test_equal_seq((rv_weight0_todisc.x, rv_weight0_todisc.p), (disc.x, disc.p))
+        _test_equal_rand(rv_weight0.convert("Cont"), disc.convert("Cont"))
+        _test_equal_rand(rv_weight0.convert("Disc"), disc)
+
+        # No discrete part
+        rv_nodisc = Mixt(cont=cont, disc=None, weight_cont=1.0)
+        _test_equal_rand(rv_nodisc.convert("Cont"), cont)
+        _test_equal_rand(rv_nodisc.convert("Disc"), cont.convert("Disc"))
 
         rv_weight1 = Mixt(cont=cont, disc=disc, weight_cont=1.0)
-        rv_weight1_tocont = rv_weight1.convert("Cont")
-        _test_equal_seq((rv_weight1_tocont.x, rv_weight1_tocont.y), (cont.x, cont.y))
-        rv_weight1_todisc = rv_weight1.convert("Disc")
-        _test_equal_seq(
-            (rv_weight1_todisc.x, rv_weight1_todisc.p), (cont_todisc.x, cont_todisc.p)
-        )
+        _test_equal_rand(rv_weight1.convert("Cont"), cont)
+        _test_equal_rand(rv_weight1.convert("Disc"), cont.convert("Disc"))
 
     def test_convert_options(self):
         cont = Cont([0, 1], [1, 1])

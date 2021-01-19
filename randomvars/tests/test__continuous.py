@@ -12,6 +12,7 @@ from randomvars.tests.commontests import (
     DECIMAL,
     h,
     _test_equal_seq,
+    _test_equal_rand,
     _test_input_coercion,
     _test_from_rv_rand,
     _test_from_sample_rand,
@@ -62,12 +63,6 @@ DISTRIBUTIONS = {
     **DISTRIBUTIONS_HEAVY_TAILS,
     **DISTRIBUTIONS_INF_DENSITY,
 }
-
-
-def assert_equal_cont(rv_1, rv_2, decimal=None):
-    xy1 = rv_1.x, rv_1.y
-    xy2 = rv_2.x, rv_2.y
-    _test_equal_seq(xy1, xy2, decimal=decimal)
 
 
 def augment_grid(x, n_inner_points):
@@ -176,7 +171,7 @@ class TestCont:
         with pytest.warns(UserWarning, match="`x`.*not sorted.*`x` and `y`"):
             rv = Cont([1, 0], [0, 2])
             rv_ref = Cont([0, 1], [2, 0])
-            assert_equal_cont(rv, rv_ref)
+            _test_equal_rand(rv, rv_ref)
 
         with pytest.raises(ValueError, match="`y`.*negative"):
             Cont([0, 1], [1, -1])
@@ -191,22 +186,22 @@ class TestCont:
 
         # Simple case with non-numpy input
         rv_1 = Cont(x=x_ref.tolist(), y=y_ref.tolist())
-        assert_equal_cont(rv_1, rv_ref)
+        _test_equal_rand(rv_1, rv_ref)
 
         # Check if `y` is normalized
         rv_2 = Cont(x=x_ref, y=10 * y_ref)
-        assert_equal_cont(rv_2, rv_ref)
+        _test_equal_rand(rv_2, rv_ref)
 
         # Check if `x` and `y` are rearranged if not sorted
         with pytest.warns(UserWarning, match="`x`.*not sorted"):
             rv_3 = Cont(x=x_ref[[1, 0, 2]], y=y_ref[[1, 0, 2]])
-            assert_equal_cont(rv_3, rv_ref)
+            _test_equal_rand(rv_3, rv_ref)
 
         # Check if duplicated values are removed from `x`
         with pytest.warns(UserWarning, match="duplicated"):
             # First pair of xy-grid is taken among duplicates
             rv_4 = Cont(x=x_ref[[0, 1, 1, 2]], y=y_ref[[0, 1, 2, 2]])
-            assert_equal_cont(rv_4, rv_ref)
+            _test_equal_rand(rv_4, rv_ref)
 
     def test_str(self):
         rv = Cont([0, 2, 4], [0, 1, 0])
@@ -237,47 +232,47 @@ class TestCont:
     def test_compress(self):
         # Zero tails
         ## Left tail
-        assert_equal_cont(
+        _test_equal_rand(
             Cont([0, 1, 2, 3], [0, 0, 0, 2]).compress(), Cont([2, 3], [0, 2])
         )
-        assert_equal_cont(
+        _test_equal_rand(
             Cont([0, 1, 2, 3], [0, 0, 1, 0]).compress(), Cont([1, 2, 3], [0, 1, 0])
         )
 
         ## Right tail
-        assert_equal_cont(
+        _test_equal_rand(
             Cont([0, 1, 2, 3], [2, 0, 0, 0]).compress(), Cont([0, 1], [2, 0])
         )
-        assert_equal_cont(
+        _test_equal_rand(
             Cont([0, 1, 2, 3], [0, 1, 0, 0]).compress(), Cont([0, 1, 2], [0, 1, 0])
         )
 
         ## Both tails
-        assert_equal_cont(
+        _test_equal_rand(
             Cont([0, 1, 2, 3, 4], [0, 0, 1, 0, 0]).compress(),
             Cont([1, 2, 3], [0, 1, 0]),
         )
 
         # Extra linearity
         ## Non-zero slope
-        assert_equal_cont(
+        _test_equal_rand(
             Cont([0, 1, 2, 3, 4], [0.5, 0.25, 0, 0.25, 0.5]).compress(),
             Cont([0, 2, 4], [0.5, 0, 0.5]),
         )
 
         ## Zero slope, non-zero y
-        assert_equal_cont(
+        _test_equal_rand(
             Cont([0, 1, 2], [0.5, 0.5, 0.5]).compress(), Cont([0, 2], [0.5, 0.5])
         )
 
         ## Zero slope, zero y, outside of tails
-        assert_equal_cont(
+        _test_equal_rand(
             Cont([0, 1, 2, 3, 4], [1, 0, 0, 0, 1]).compress(),
             Cont([0, 1, 3, 4], [1, 0, 0, 1]),
         )
 
         # All features
-        assert_equal_cont(
+        _test_equal_rand(
             Cont(np.arange(14), [0, 0, 0, 1, 2, 2, 2, 1, 0, 0, 0, 1, 0, 0]).compress(),
             Cont([2, 4, 6, 8, 10, 11, 12], [0, 2, 2, 0, 0, 1, 0]),
         )
@@ -291,26 +286,26 @@ class TestCont:
 
         # Basic usage
         rv = Cont([0, 1], [1, 1])
-        assert_equal_cont(
+        _test_equal_rand(
             rv.ground(), Cont([-w, 0, w, 1 - w, 1, 1 + w], [0, 0.5, 1, 1, 0.5, 0])
         )
 
         # Argument `direction`
-        assert_equal_cont(
+        _test_equal_rand(
             rv.ground(direction="both"),
             Cont([-w, 0, w, 1 - w, 1, 1 + w], [0, 0.5, 1, 1, 0.5, 0]),
         )
-        assert_equal_cont(
+        _test_equal_rand(
             rv.ground(direction="left"), Cont([-w, 0, w, 1], [0, 0.5, 1, 1])
         )
-        assert_equal_cont(
+        _test_equal_rand(
             rv.ground(direction="right"), Cont([0, 1 - w, 1, 1 + w], [1, 1, 0.5, 0])
         )
-        assert_equal_cont(rv.ground(direction="none"), rv)
+        _test_equal_rand(rv.ground(direction="none"), rv)
 
         # Argument `w`
         w2 = 0.1
-        assert_equal_cont(
+        _test_equal_rand(
             rv.ground(w=w2, direction="both"),
             Cont([-w2, 0, w2, 1 - w2, 1, 1 + w2], [0, 0.5, 1, 1, 0.5, 0]),
         )
@@ -329,7 +324,7 @@ class TestCont:
         rv = Cont([0, 1], [1, 1])
         with op.option_context({"small_width": 0.1}):
             w = op.get_option("small_width")
-            assert_equal_cont(
+            _test_equal_rand(
                 rv.ground(), Cont([-w, 0, w, 1 - w, 1, 1 + w], [0, 0.5, 1, 1, 0.5, 0])
             )
 
@@ -380,23 +375,23 @@ class TestCont:
         # Basic usage
         rv_unif = Cont.from_rv(uniform)
         rv_unif_test = Cont(x=[0, 1], y=[1, 1])
-        assert_equal_cont(rv_unif, rv_unif_test, decimal=DECIMAL)
+        _test_equal_rand(rv_unif, rv_unif_test, decimal=DECIMAL)
 
         # Objects of `Rand` class should be `convert()`ed
-        _test_from_rv_rand(cls=Cont, to_class="Cont", assert_equal=assert_equal_cont)
+        _test_from_rv_rand(cls=Cont, to_class="Cont")
 
         # Forced support edges
         rv_right = Cont.from_rv(uniform, supp=(0.5, None))
         rv_right_test = Cont([0.5, 1], [2, 2])
-        assert_equal_cont(rv_right, rv_right_test, decimal=DECIMAL)
+        _test_equal_rand(rv_right, rv_right_test, decimal=DECIMAL)
 
         rv_left = Cont.from_rv(uniform, supp=(None, 0.5))
         rv_left_test = Cont([0, 0.5], [2, 2])
-        assert_equal_cont(rv_left, rv_left_test, decimal=DECIMAL)
+        _test_equal_rand(rv_left, rv_left_test, decimal=DECIMAL)
 
         rv_mid = Cont.from_rv(uniform, supp=(0.25, 0.75))
         rv_mid_test = Cont([0.25, 0.75], [2, 2])
-        assert_equal_cont(rv_mid, rv_mid_test, decimal=DECIMAL)
+        _test_equal_rand(rv_mid, rv_mid_test, decimal=DECIMAL)
 
     def test_from_rv_errors(self):
         # Absence of either `cdf` or `ppf` method should result intro error
@@ -489,7 +484,6 @@ class TestCont:
             cls=Cont,
             sample=x,
             estimator_option="estimator_cont",
-            assert_equal=assert_equal_cont,
         )
 
         ## "Scipy" distribution should be forwarded to `Cont.from_rv()`
@@ -497,7 +491,7 @@ class TestCont:
         with op.option_context({"estimator_cont": lambda x: rv_norm}):
             rv = Cont.from_sample(np.asarray([0, 1, 2]))
             rv_ref = Cont.from_rv(rv_norm)
-            assert_equal_cont(rv, rv_ref)
+            _test_equal_rand(rv, rv_ref)
 
         # "density_mincoverage"
         with op.option_context({"density_mincoverage": 0}):
