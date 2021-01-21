@@ -10,6 +10,7 @@ __all__ = [
     "estimator_bool_default",
     "estimator_cont_default",
     "estimator_disc_default",
+    "estimator_mixt_default",
     "get_option",
     "option_context",
     "reset_option",
@@ -80,6 +81,44 @@ def estimator_disc_default(sample):
     return vals, counts / np.sum(counts)
 
 
+def estimator_mixt_default(sample):
+    """Default estimator of mixture distribution
+
+    This estimator returns tuple with two non-overlaping parts of `sample`
+    which are estimated to come from continuous and discrete parts of mixture
+    distribution. Estimation is done by deciding sample element to be from
+    discrete part if it is present at least twice in input `sample`.
+
+    If some part of estimation has no elements, it is represented as `None` in
+    output.
+
+    Parameters
+    ----------
+    sample : array_like
+        This should be a valid input to `np.asarray()` so that its output is
+        numeric.
+
+    Returns
+    -------
+    sample_cont, sample_disc : tuple with two elements
+        Elements can be `None` if estimation showed no elements from
+        corresponding mixture part.
+    """
+    # Detect sample from discrete part
+    sample = np.asarray(sample)
+    vals, inverse, counts = np.unique(sample, return_inverse=True, return_counts=True)
+    disc_inds = np.nonzero(counts >= 2)[0]
+    sample_is_disc = np.isin(inverse, disc_inds)
+
+    # Return separation
+    if np.all(sample_is_disc):
+        return (None, sample)
+    elif np.all(~sample_is_disc):
+        return (sample, None)
+    else:
+        return (sample[~sample_is_disc], sample[sample_is_disc])
+
+
 # %% Options
 _default_options = {
     "base_tolerance": 1e-12,
@@ -88,6 +127,7 @@ _default_options = {
     "estimator_bool": estimator_bool_default,
     "estimator_cont": estimator_cont_default,
     "estimator_disc": estimator_disc_default,
+    "estimator_mixt": estimator_mixt_default,
     "metric": "L2",
     "n_grid": 1001,
     "small_prob": 1e-6,
@@ -146,6 +186,15 @@ _options_list = """
           distribution.
         - Object of class `Rand` or `rv_frozen` (`rv_discrete` with all
           hyperparameters defined).
+    - estimator_mixt : callable, default
+      randomvars.options.estimator_mixt_default. Estimator for
+      `Mixt.from_sample()`. Function which takes sample as input and returns
+      one of:
+        - Tuple with two elements representing samples from continuous and
+          discrete parts. Absence of sample from certain part should be
+          indicated by `None` element of output tuple: there will be no
+          corresponding part in output `Mixt`.
+        - Object of class `Rand`.
     - metric : string, default "L2". Type of metric which measures distance
       between functions. Used in internal computations. Possible values:
         - "L1": metric is defined as integral of absolute difference between

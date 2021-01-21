@@ -15,11 +15,14 @@ from randomvars.options import (
     estimator_bool_default,
     estimator_cont_default,
     estimator_disc_default,
+    estimator_mixt_default,
     get_option,
     option_context,
     reset_option,
     set_option,
 )
+
+from randomvars.tests.commontests import _test_equal_seq
 
 
 def test_estimator_bool_default():
@@ -62,6 +65,20 @@ def test_estimator_disc_default():
         out = estimator_disc_default([1, np.nan, np.inf])
         assert_array_equal(out[0], np.array([1]))
         assert_array_equal(out[1], np.array([1]))
+
+
+def test_estimator_mixt_default():
+    # Basic usage
+    _test_equal_seq(
+        estimator_mixt_default(np.array([10, 2, 0.1, -100, 0.1, 2, 0.2, 2, 2, 3])),
+        (np.array([10, -100, 0.2, 3]), np.array([2, 0.1, 0.1, 2, 2, 2])),
+    )
+
+    # Degenerate cases
+    _test_equal_seq(estimator_mixt_default(np.arange(10)), (np.arange(10), None))
+    _test_equal_seq(
+        estimator_mixt_default(np.array([0, 1, 0, 1])), (None, np.array([0, 1, 0, 1]))
+    )
 
 
 def test__docstring_paragraph():
