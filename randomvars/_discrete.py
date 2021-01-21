@@ -417,6 +417,8 @@ class Disc(Rand):
             - X-grid is taken the same as x-grid of `self`.
             - Y-grid is computed so that output continuous RV is a maximum
               likelihood estimation of input discrete RV.
+          Note that if input has single element, conversion won't be done
+          (raising `ValueError`).
         - If it is `"Mixt"`, mixture RV with only discrete component equal to
           `self` is returned.
 
@@ -429,7 +431,8 @@ class Disc(Rand):
         Raises
         ------
         ValueError:
-            In case not supported `to_class` is given.
+            - If given `to_class` is not supported.
+            - If `self` has one element in xp-grid.
         """
         # Use inline `import` statements to avoid circular import problems
         if to_class == "Bool":
@@ -438,6 +441,9 @@ class Disc(Rand):
             # Probability of `True` is a probability of all non-zero elements
             return bool.Bool(prob_true=1 - self.pmf(0.0))
         elif to_class == "Cont":
+            if len(self.x) == 1:
+                raise ValueError("Can't convert to `Cont` if there is one element.")
+
             import randomvars._continuous as cont
 
             # Convert xp-grid to xy-grid

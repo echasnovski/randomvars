@@ -414,6 +414,10 @@ class TestDisc:
         assert isinstance(out_cont, cont.Cont)
         assert_array_equal(out_cont.x, rv.x)
 
+        ## Converting to Cont if there is one element should raise an error
+        with pytest.raises(ValueError, match="one"):
+            Disc([1], [1]).convert("Cont")
+
         # Converting to own class should return self
         out_disc = rv.convert("Disc")
         assert out_disc is rv
