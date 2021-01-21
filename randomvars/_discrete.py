@@ -65,7 +65,7 @@ class Disc(Rand):
         # Private attributes
         self._cump = np.cumsum(p)
 
-        super().__init__(x=x, p=p)
+        super().__init__()
 
     @staticmethod
     def _impute_init_args(x, p):
@@ -88,7 +88,11 @@ class Disc(Rand):
         s = "s" if x_len > 1 else ""
         return f"Discrete RV with {x_len} value{s} (support: [{self._a}, {self._b}])"
 
-    # `params` is inherited from `Rand`
+    @property
+    def params(self):
+        return {"x": self._x, "p": self._p}
+
+    params.__doc__ = Rand.params.__doc__
 
     @property
     def x(self):

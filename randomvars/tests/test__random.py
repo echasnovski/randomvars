@@ -14,7 +14,13 @@ class TestRand:
     def test_eq(self):
         class Tmp(Rand):
             def __init__(self, loc, scale):
-                super().__init__(loc=loc, scale=scale)
+                self.loc = loc
+                self.scale = scale
+                super().__init__()
+
+            @property
+            def params(self):
+                return {"loc": self.loc, "scale": self.scale}
 
         # Equality
         ## Simple params
@@ -38,8 +44,12 @@ class TestRand:
         rv2 = Rand()
         assert (rv1 == rv2) is False
 
-        ## Absence of params (for some reason)
+        ## Absence of params
         class Tmp2(Tmp):
+            def __init__(self, loc, scale):
+                super().__init__(loc=loc, scale=scale)
+                self._params = super().params
+
             @property
             def params(self):
                 return self._params
@@ -57,13 +67,13 @@ class TestRand:
         del rv2.params
         assert (rv1 == rv2) is False
 
-        ## Absence of disctionary params (for some reason)
+        ## Absence of dictionary params
         rv1 = Tmp2(0, 1)
         rv2 = Tmp2(0, 1)
         rv2.params = "a"
         assert (rv1 == rv2) is False
 
-        ## Disctionary params with different keys (for some reason)
+        ## Dictionary params with different keys
         rv1 = Tmp2(0, 1)
         rv2 = Tmp2(0, 1)
         rv2.params = {"a": 1}

@@ -64,7 +64,7 @@ class Cont(Rand):
         # Private attributes
         self._cump = utils._trapez_integral_cum(self._x, self._y)
 
-        super().__init__(x=x, y=y)
+        super().__init__()
 
     @staticmethod
     def _impute_init_args(x, y):
@@ -93,7 +93,11 @@ class Cont(Rand):
             f"(support: [{self._a}, {self._b}])"
         )
 
-    # `params` is inherited from `Rand`
+    @property
+    def params(self):
+        return {"x": self._x, "y": self._y}
+
+    params.__doc__ = Rand.params.__doc__
 
     @property
     def x(self):

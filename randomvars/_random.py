@@ -11,9 +11,6 @@ class Rand:
     variable classes in this package inherit from this class.
     """
 
-    def __init__(self, **kwargs):
-        self._params = kwargs
-
     def __eq__(self, other):
         if type(self) is not type(other):
             return False
@@ -37,19 +34,16 @@ class Rand:
     def params(self):
         """Parameters of random variable
 
-        Return a dictionary of parameters which completely describes this object.
-        It is enough to create a copy of this object via:
+        Dictionary of parameters which completely describes this object. Its
+        structure should reflect input arguments of `__init__()` method. As a
+        rule of thumb, it should be enough to create a copy of this object via:
         `type(self)(**self.params)`.
 
         Its primary usage is to check equality of two RVs via `rv1 == rv2`:
         they are equal, if they are of the same class and have the same
-        parameters (checked elementwise with `np.all(element1 == element2)`).
-
-        Returns
-        -------
-        params: dictionary
+        parameters (checked per element with `np.all(element1 == element2)`).
         """
-        return self._params
+        return dict()
 
     @property
     def a(self):

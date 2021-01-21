@@ -80,7 +80,7 @@ class Mixt(Rand):
         # Private attributes
         self._cump_tuple = self._compute_cump_tuple()
 
-        super().__init__(cont=cont, disc=disc, weight_cont=weight_cont)
+        super().__init__()
 
     @staticmethod
     def _impute_init_args(cont, disc, weight_cont):
@@ -194,7 +194,13 @@ class Mixt(Rand):
             f"Disc (weight = {self._weight_disc}): {self._disc}"
         )
 
-    # `params` is inherited from `Rand`
+    @property
+    def params(self):
+        return {
+            "cont": self._cont,
+            "disc": self._disc,
+            "weight_cont": self._weight_cont,
+        }
 
     @property
     def cont(self):
