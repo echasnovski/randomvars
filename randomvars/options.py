@@ -65,8 +65,8 @@ def estimator_disc_default(sample):
 
     Returns
     -------
-    x, prob : tuple with two elements
-        Here `x` represents estimated values of distribution and `prob` -
+    x, p : tuple with two elements
+        Here `x` represents estimated values of distribution and `p` -
         estimated probabilities.
     """
     sample = np.asarray(sample, dtype="float64")
