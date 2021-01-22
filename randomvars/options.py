@@ -44,6 +44,10 @@ def estimator_cont_default(sample):
 
     This estimator is a direct wrapper of scipy.stats.kde.gaussian_kde.
     """
+    if len(sample) < 2:
+        raise ValueError(
+            "Sample should have at least two elements for `gaussian_kde` to work."
+        )
     return gaussian_kde(sample)
 
 

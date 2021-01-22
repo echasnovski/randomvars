@@ -42,11 +42,16 @@ def test_estimator_bool_default():
 
 
 def test_estimator_cont_default():
+    # Normal usage
     sample = [1, 1, 1, 2, 3, 4]
     x_ref = np.linspace(-10, 10, 1001)
     assert_array_equal(
         estimator_cont_default(sample)(x_ref), gaussian_kde(sample)(x_ref)
     )
+
+    # Error on small sample
+    with pytest.raises(ValueError, match="two"):
+        estimator_cont_default(np.array([1]))
 
 
 def test_estimator_disc_default():
