@@ -322,42 +322,66 @@ class Mixt(Rand):
         )
 
     @classmethod
-    def from_sample(cls, sample, weight_cont):
-        """Create mixture RV from two samples
+    @op._docstring_relevant_options(
+        ["estimator_cont", "estimator_disc", "estimator_mixt"]
+    )
+    def from_sample(cls, sample):
+        """Create mixture RV from sample
 
-        This is mostly a wrapper for `Mixt(cont=Cont.from_sample(sample[0]),
-        disc=Disc.from_sample(sample[1]), weight_cont=weight_cont)`. If one of
-        samples is `None` and other part has full weight, mixture random
-        variable with only one part is created.
+        Mixture RV is created by the following algorithm:
+        - **Estimate samples from parts** with mixture estimator (taken from
+          package option "estimator_mixt") in the form `estimate =
+          estimator_mixt(sample)`. If `estimate` is an object of class `Rand`
+          it is forwarded to `Mixt.from_rv()`.
+        - **Estimate parts** via `cont=Cont.from_sample(estimate[0])` and
+          `disc=Disc.from_sample(estimate[1])`. If some estimate part is `None`
+          or has zero length, mixture with only other part is created.
+        - **Create random variable** with `Mixt(cont=cont, disc=disc,
+          weight_cont=weight_cont)`, where `weight_cont` is estimated as
+          fraction of continuous sample length relative to sum of both
+          estimated samples' lengths.
+
+        {relevant_options}
 
         Parameters
         ----------
-        sample : tuple with two elements
-            First element should be a valid input for `Cont.from_sample()` or
-            `None`. Second - for `Disc.from_sample()` or `None`.
-        weight_cont : number
-            Weight of continuous part.
+        sample : 1d array-like
+            This should be a valid input to `np.asarray()` so that its output
+            is numeric and has single dimension.
 
         Returns
         -------
         rv_out : Mixt
-            Mixture random variable with parts created from sample.
+            Mixture random variable with parts estimated from sample.
         """
-        _assert_two_tuple(sample, "sample")
+        # Check and prepare input
+        sample = utils._as_1d_numpy(sample, "sample", chkfinite=False, dtype="float64")
 
-        if sample[0] is None:
-            return cls(
-                cont=None, disc=Disc.from_sample(sample[1]), weight_cont=weight_cont
-            )
-        if sample[1] is None:
-            return cls(
-                cont=Cont.from_sample(sample[0]), disc=None, weight_cont=weight_cont
-            )
+        # Get options
+        estimator_mixt = op.get_option("estimator_mixt")
+
+        # Estimate distribution
+        estimate = estimator_mixt(sample)
+
+        # Make early return if `estimate` is random variable
+        if isinstance(estimate, Rand):
+            return Mixt.from_rv(estimate)
+
+        _assert_two_tuple(estimate, "estimate")
+
+        # Construct random variable
+        if (estimate[0] is None) or (len(estimate[0]) == 0):
+            return cls(cont=None, disc=Disc.from_sample(estimate[1]), weight_cont=0.0)
+        if (estimate[1] is None) or (len(estimate[1]) == 0):
+            return cls(cont=Cont.from_sample(estimate[0]), disc=None, weight_cont=1.0)
 
         return cls(
-            cont=Cont.from_sample(sample[0]),
-            disc=Disc.from_sample(sample[1]),
-            weight_cont=weight_cont,
+            cont=Cont.from_sample(estimate[0]),
+            disc=Disc.from_sample(estimate[1]),
+            # Having sum of two `estimate` lengths is important because it is
+            # allowed for `estimate` parts to have different total number of
+            # values than in input `sample`
+            weight_cont=len(estimate[0]) / (len(estimate[0]) + len(estimate[1])),
         )
 
     def _missing_cont(self):

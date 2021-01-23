@@ -299,44 +299,72 @@ class TestMixt:
             Mixt.from_rv((None, disc_scipy), weight_cont=0.5)
 
     def test_from_sample_basic(self):
+        estimator_mixt = op.get_option("estimator_mixt")
+        sample = np.array([0.1, -1, 0.1, 2, 3, 0, -1, -1])
+
         # Normal usage
-        sample = ([0, 0.25, 0.5, 0.75, 1], [0, 1, 1, 1])
-        weight_cont = 0.75
-        rv = Mixt.from_sample(sample=sample, weight_cont=weight_cont)
+        sample_cont, sample_disc = estimator_mixt(sample)
+        weight_cont = len(sample_cont) / (len(sample_cont) + len(sample_disc))
+
+        rv = Mixt.from_sample(sample)
         rv_ref = Mixt(
-            Cont.from_sample(sample[0]), Disc.from_sample(sample[1]), weight_cont
+            Cont.from_sample(sample_cont), Disc.from_sample(sample_disc), weight_cont
         )
         _test_equal_rand(rv, rv_ref)
 
         # Degenerate cases
-        rv_none_cont = Mixt.from_sample((None, sample[1]), weight_cont=0)
-        rv_none_cont_ref = Mixt(None, Disc.from_sample(sample[1]), 0)
-        _test_equal_rand(rv_none_cont, rv_none_cont_ref)
+        with op.option_context({"estimator_mixt": lambda t: (t, None)}):
+            _test_equal_rand(
+                Mixt.from_sample(sample), Mixt(Cont.from_sample(sample), None, 1.0)
+            )
 
-        rv_none_disc = Mixt.from_sample((sample[0], None), weight_cont=1)
-        rv_none_disc_ref = Mixt(Cont.from_sample(sample[0]), None, 1)
-        _test_equal_rand(rv_none_disc, rv_none_disc_ref)
+        with op.option_context({"estimator_mixt": lambda t: (None, t)}):
+            _test_equal_rand(
+                Mixt.from_sample(sample), Mixt(None, Disc.from_sample(sample), 0.0)
+            )
+
+        # Usage of `estimate` to estimate `weight_cont`
+        with op.option_context({"estimator_mixt": lambda t: (t[:2], t[2:4])}):
+            rv_out = Mixt.from_sample(sample)
+            # Here it should be used that estimate has different total number
+            # of elements
+            assert rv_out.weight_cont == 0.5
+
+    def test_from_sample_options(self):
+        sample = np.array([0.1, -1, 0.1, 2, 3, 0, -1, -1])
+        cont = Cont([0, 1], [1, 1])
+        disc = Disc([0], [1])
+        mixt = Mixt(cont, disc, 0.5)
+
+        with op.option_context({"estimator_cont": lambda t: cont}):
+            _test_equal_rand(Mixt.from_sample(sample).cont, cont)
+
+        with op.option_context({"estimator_disc": lambda t: disc}):
+            _test_equal_rand(Mixt.from_sample(sample).disc, disc)
+
+        with op.option_context({"estimator_mixt": lambda t: mixt}):
+            _test_equal_rand(Mixt.from_sample(sample), mixt)
 
     def test_from_sample_errors(self):
-        # `sample` should be tuple
-        with pytest.raises(TypeError, match="`sample`.*tuple"):
-            Mixt.from_sample([[0, 1, 2], [0, 1, 1, 1]], weight_cont=0.5)
+        # Errors if output of `estimate_mixt` is not `Rand`
+        ## Estimate should be tuple
+        with pytest.raises(TypeError, match="`estimate`.*tuple"):
+            with op.option_context({"estimator_mixt": lambda t: t}):
+                Mixt.from_sample([0, 1, 2])
 
-        # `sample` should have exactly two elements
-        with pytest.raises(ValueError, match="`sample`.*two"):
-            Mixt.from_sample(([0, 1, 2],), weight_cont=0.5)
-        with pytest.raises(ValueError, match="`sample`.*two"):
-            Mixt.from_sample(([0, 1, 2], [3, 4, 5], [6, 7]), weight_cont=0.5)
+        # Estimate should have exactly two elements
+        with pytest.raises(ValueError, match="`estimate`.*two"):
+            with op.option_context({"estimator_mixt": lambda t: (t,)}):
+                Mixt.from_sample([0, 1, 2])
 
-        # `sample` can't have both elements to be `None`
-        with pytest.raises(ValueError, match="`sample`.*two `None`"):
-            Mixt.from_sample((None, None), weight_cont=0.5)
+        with pytest.raises(ValueError, match="`estimate`.*two"):
+            with op.option_context({"estimator_mixt": lambda t: (t, t, t)}):
+                Mixt.from_sample([0, 1, 2])
 
-        # Errors for degenerate cases
-        with pytest.raises(ValueError, match="`weight_cont`.*1"):
-            Mixt.from_sample(([0, 1], None), weight_cont=0.5)
-        with pytest.raises(ValueError, match="`weight_cont`.*0"):
-            Mixt.from_sample((None, [0, 1]), weight_cont=0.5)
+        # Estimate can't have both elements to be `None`
+        with pytest.raises(ValueError, match="`estimate`.*two `None`"):
+            with op.option_context({"estimator_mixt": lambda t: (None, None)}):
+                Mixt.from_sample([0, 1, 2])
 
     def test_pdf(self):
         cont = Cont([0, 1], [1, 1])
