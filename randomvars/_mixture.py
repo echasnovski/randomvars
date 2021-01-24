@@ -146,18 +146,16 @@ class Mixt(Rand):
         """
         # Case of one discrete part
         if self._missing_cont():
-            disc_x = self._disc.x
-            cump = np.concatenate([[0], self._disc.cdf(disc_x)])
-            x = np.concatenate([[self._disc.a], disc_x])
-            ids = np.repeat("d", len(x) - 1)
+            cump = np.array([0, 1])
+            x = np.array([self._a, self._b])
+            ids = np.array(["d"])
             return cump, x, ids
 
         # Case of one continuous part
         if self._missing_disc():
-            cont_x = self._cont.x
-            cump = self._cont.cdf(cont_x)
-            x = cont_x
-            ids = np.repeat("c", len(x) - 1)
+            cump = np.array([0, 1])
+            x = np.array([self._a, self._b])
+            ids = np.array(["c"])
             return cump, x, ids
 
         # Compute "inner" x-grid
@@ -178,11 +176,11 @@ class Mixt(Rand):
         # Add possibly missing intervals because of continuous part tails
         if cump[0] > 0:
             cump = np.concatenate([[0], cump])
-            x = np.concatenate([[self._cont.a], x])
+            x = np.concatenate([[self.a], x])
             ids = np.concatenate([["c"], ids])
         if cump[-1] < 1:
             cump = np.concatenate([cump, [1]])
-            x = np.concatenate([x, [self._cont.b]])
+            x = np.concatenate([x, [self.b]])
             ids = np.concatenate([ids, ["c"]])
 
         return cump, x, ids
