@@ -249,6 +249,48 @@ def _minmax(x):
     return np.nanmin(x), np.nanmax(x)
 
 
+def _collapse_while_equal_fval(f, interval, side):
+    """Drag one interval end towards another while having same function value
+
+    Collapse interval (reduce width by "dragging" input side towards the other)
+    in such a way that input side always has the same function value. So the
+    output is a single value which is closest to the other side (maybe equal to
+    it) and for which `f` has constant value on the whole segment from starting
+    interval side to output.
+
+    Collapsing is done until two interval ends are approximately equal (uses
+    `base_tolerance` package option).
+
+    Parameters
+    ----------
+    f : callable
+    interval : List with two elements
+    side : int
+        Indicates side to always have the same function value: 0 for left and 1
+        for right.
+
+    Returns
+    -------
+    edge : numeric
+    """
+    val = f(interval[side])
+
+    while not _is_close(interval[0], interval[1]):
+        mid = 0.5 * (interval[0] + interval[1])
+        if f(mid) == val:
+            interval[side] = mid
+        else:
+            interval[1 - side] = mid
+
+    # Return other side if it has reference function value. This isn't done
+    # before cycle because `f` can have equal values at the input `interval`
+    # but be different inside of it.
+    if f(interval[1 - side]) == val:
+        return interval[1 - side]
+    else:
+        return interval[side]
+
+
 # %% Package assertions
 def _assert_positive(x, x_name):
     if np.any(x < 0):

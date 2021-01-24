@@ -16,6 +16,7 @@ from randomvars._utils import (
     _is_zero,
     _tolerance,
     _minmax,
+    _collapse_while_equal_fval,
     _assert_positive,
     BSplineConstExtrapolate,
 )
@@ -257,6 +258,30 @@ def test__is_zero():
 def test__minmax():
     assert _minmax([0, 9, 10, -1, np.nan]) == (-1, 10)
     assert _minmax([-np.inf, 10, np.inf, 20, np.nan]) == (-np.inf, np.inf)
+
+
+def test__collapse_while_equal_fval():
+    def assert_collapse(f, interval, side, reference):
+        out = _collapse_while_equal_fval(f, interval, side)
+        assert _is_close(out, reference)
+        assert f(interval[side]) == f(out)
+
+    # Usual cases
+    assert_collapse(lambda x: 1 if x < -1 else 2, [-10, 1], 0, reference=-1)
+    assert_collapse(lambda x: 1 if x < -1 else 2, [-10, 1], 1, reference=-1)
+
+    # Case when function is constant on the whole input interval
+    ## Input side should be dragged all the way to the other side and return it
+    assert_collapse(lambda x: 1, [-10, 1], 0, reference=1)
+    assert_collapse(lambda x: 1, [-10, 1], 1, reference=-10)
+
+    # Case when function has equal values at input ends but is not constant on
+    # the whole interval
+    assert_collapse(lambda x: 1 if x < -1 else x, [-10, 1], 0, reference=-1)
+
+    # Cases with no actual collapse
+    assert_collapse(lambda x: x, [-1, 2], 0, reference=-1)
+    assert_collapse(lambda x: x, [-1, 2], 1, reference=2)
 
 
 def test__assert_positive():
