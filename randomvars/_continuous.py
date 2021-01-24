@@ -972,7 +972,14 @@ def _compute_union_grid(x_range, prob_range, quantile_fun, n_grid, tol=1e-12):
     x_equi = np.linspace(x_range[0], x_range[1], n_grid)
 
     # Equiprobable grid
-    prob_equi = np.linspace(prob_range[0], prob_range[1], n_grid)
+    ## Don't use first and last values in this grid because:
+    ## - It helps overcome issue with `extra zero tails`. When `quantile_fun`
+    ##   returns unnecessarily extreme values because it was constructed
+    ##   assuming zero tails. Like, for example, with xy-grid `([0, 1, 2, 3,
+    ##   4], [0, 0, 1, 0, 0])`.
+    ## - In case of usual usage of `Cont.from_rv` it right away introduces
+    ##   duplicated points, as `prob_range` is `cdf(x_range)`.
+    prob_equi = np.linspace(prob_range[0], prob_range[1], n_grid)[1:-1]
     x_quan = quantile_fun(prob_equi)
 
     # Raw union grid
