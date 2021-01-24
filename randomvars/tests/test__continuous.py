@@ -10,15 +10,16 @@ import pytest
 from randomvars._continuous import Cont
 from randomvars.tests.commontests import (
     DECIMAL,
-    h,
-    _test_equal_seq,
     _test_equal_rand,
-    _test_input_coercion,
+    _test_equal_seq,
     _test_from_rv_rand,
     _test_from_sample_rand,
+    _test_input_coercion,
     _test_log_fun,
     _test_one_value_input,
     _test_rvs_method,
+    declass,
+    h,
 )
 import randomvars.options as op
 
@@ -754,6 +755,12 @@ class TestFromRVAccuracy:
         }
 
         assert all(test_passed.values())
+
+    def test_detected_support(self):
+        """Test correct trimming of zero tails"""
+        rv_ref = Cont([0, 1, 2, 3, 4], [0, 0, 1, 0, 0])
+        rv_out = Cont.from_rv(declass(rv_ref))
+        _test_equal_rand(rv_out, rv_ref.compress(), decimal=4)
 
     @staticmethod
     def from_rv_cdf_maxerror(rv_base, n_inner_points=10, **kwargs):

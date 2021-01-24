@@ -374,7 +374,9 @@ class Cont(Rand):
         return self._coeffs_by_ind(ind)
 
     @classmethod
-    @op._docstring_relevant_options(["cdf_tolerance", "n_grid", "small_prob"])
+    @op._docstring_relevant_options(
+        ["base_tolerance", "cdf_tolerance", "n_grid", "small_prob"]
+    )
     def from_rv(cls, rv, supp=None):
         """Create continuous RV from general RV
 
@@ -382,8 +384,18 @@ class Cont(Rand):
         algorithm:
         - **Detect finite support**. Left and right edges are treated
           separately. If edge is supplied, it is used untouched. If not, it is
-          computed by "removing" corresponding (left or right) tail which has
-          probability of `small_prob` (package option).
+          detected based on the value supplied via `rv.ppf()` at extreme
+          quantile (`rv.ppf(0.0)` for left edge and `rv.ppf(1.0)` for right
+          edge):
+            - If value is finite, edge is computed to be the value "closest to
+              positive probability region" (most right for left edge and most
+              left for right edge) while having the same extreme value of CDF.
+              This is done by iterative procedure which is terminated when
+              certain two numbers are considered to be approximately equal
+              (controlled by `base_tolerance` package option).
+            - If value is infinite, edge is computed by "removing"
+              corresponding (left or right) tail which has probability of
+              `small_prob` (package option).
         - **Create x-grid**. It is computed as union of equidistant (fixed
           distance between consecutive points) and equiprobable (fixed
           probability between consecutive points) grids between edges of
@@ -845,8 +857,12 @@ class Cont(Rand):
 def _detect_finite_supp(rv, supp=None, small_prob=1e-6):
     """Detect finite support of random variable
 
-    Finite support edge is detected via testing actual edge to be finite:
-    - If finite, it is returned.
+    Finite support edge is detected via testing extreme quantiles (0 for left
+    and 1 for right) to be finite:
+    - If finite, output is a value which has extreme value of CDF and is
+      "closest to positive probability region". This accounts for a possibility
+      when quantile function returns unnecessarily extreme values at extreme
+      quantiles, i.e. it has "zero tails".
     - If infinite, output is a value with outer tail having probability
       `small_prob`.
 
@@ -870,16 +886,22 @@ def _detect_finite_supp(rv, supp=None, small_prob=1e-6):
         supp = (None, None)
 
     if supp[0] is None:
-        left = rv.ppf(0)
-        if np.isneginf(left):
-            left = rv.ppf(small_prob)
+        left_try = rv.ppf(np.array([0.0, small_prob]))
+        if np.isneginf(left_try[0]):
+            left = left_try[1]
+        else:
+            left = utils._collapse_while_equal_fval(f=rv.cdf, interval=left_try, side=0)
     else:
         left = supp[0]
 
     if supp[1] is None:
-        right = rv.ppf(1)
-        if np.isposinf(right):
-            right = rv.ppf(1 - small_prob)
+        right_try = rv.ppf(np.array([1.0 - small_prob, 1.0]))
+        if np.isposinf(right_try[1]):
+            right = right_try[0]
+        else:
+            right = utils._collapse_while_equal_fval(
+                f=rv.cdf, interval=right_try, side=1
+            )
     else:
         right = supp[1]
 

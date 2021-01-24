@@ -14,6 +14,15 @@ DECIMAL = np.ceil(-np.log10(base_tol)).astype("int64")
 h = op.get_option("small_width")
 
 
+def declass(rv):
+    class TmpClass:
+        def __init__(self, rv):
+            self.cdf = rv.cdf
+            self.ppf = rv.ppf
+
+    return TmpClass(rv)
+
+
 def _test_equal_seq(first, second, decimal=None):
     assert len(first) == len(second)
     for el1, el2 in zip(first, second):
