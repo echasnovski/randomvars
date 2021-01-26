@@ -44,21 +44,32 @@ class Mixt(Rand):
         my_mixt_2 = Mixt(cont=my_cont, disc=None, weight_cont=1.0)
         print(my_mixt_2)
     ```
-    2. Use `Mixt.from_rv()`:
+    2. Use `Mixt.from_rv()` to create approximation of some existing mixture
+    random variable (object with methods `cdf()` and `ppf()`):
     ```
+        from randomvars import Cont, Disc
+        rv_ref = Mixt(Cont([0, 1], [1, 1]), Disc([-0.5, 1.5], [0.5, 0.5]), 0.75)
+        class TmpRV:
+            def __init__(self, rv):
+                self.cdf = rv.cdf
+                self.ppf = rv.ppf
 
+        rv = TmpRV(rv_ref)
+        rv_mixt = Mixt.from_rv(rv)
+        (rv_mixt.cont.params, rv_mixt.disc.params, rv_mixt.weight_cont)
     ```
-    3. Use `Mixt.from_sample()` to create estimation based on existing two
-    samples (one for continuous part and another for discrete) and weight of
-    continuous part:
+    3. Use `Mixt.from_sample()` to create estimation based on some existing sample:
     ```
-        # Two samples should be supplied in tuple
-        my_mixt = Mixt.from_sample(sample=([0, 0.5, 1], [0, 1]), weight_cont=0.5)
-        print(my_mixt)
-
-        # One of samples can be `None` but only if other part has full weight
-        my_mixt_2 = Mixt.from_sample(([0, 0.5, 1], None), weight_cont=1.0)
-
+        from scipy.stats import binom, norm
+        sample_cont = norm().rvs(size=300, random_state=101)
+        sample_disc = binom(n=10, p=0.1).rvs(size=100, random_state=102)
+        sample = np.concatenate((sample_cont, sample_disc))
+        ## There is no need for sample to have any structure. It is assumed to
+        ## be a sample from mixture distribution.
+        rng = np.random.default_rng(103)
+        sample = rng.permutation(sample)
+        rv_mixt = Mixt.from_sample(sample)
+        (rv_mixt.cont.params, rv_mixt.disc.params, rv_mixt.weight_cont)
     ```
     """
 
