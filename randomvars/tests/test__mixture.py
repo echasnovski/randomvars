@@ -506,40 +506,9 @@ class TestMixt:
         rv = Mixt(cont=cont, disc=disc, weight_cont=weight_cont)
         ref_x = np.array([-1.1, -1 - h, -1, 0, 0.25, 0.5 - h, 0.5, 0.75, 1, 1.1])
         ref_q = rv.cdf(ref_x)
-        prob = [0.25, 0.75]
 
         # Regular checks
-        # Due to nature of quantile function it is safer to check every
-        # combination of overlapping between supports of continuous and
-        # discrete parts. Probably an overkill, but this on a safer side.
-        # Here: `a_cont` and `b_cont` - edges of continuous part, `a_disc` and
-        # `b_disc` - edges of discrete part
-        ## a_disc < b_disc < a_cont < b_cont
-        assert_ppf(cont, Disc([-1, -0.5], prob), weight_cont)
-        ## a_disc < b_disc = a_cont < b_cont
-        assert_ppf(cont, Disc([-1, 0], prob), weight_cont)
-        ## a_disc < a_cont < b_disc < b_cont
-        assert_ppf(cont, Disc([-1, 0.5], prob), weight_cont)
-        ## a_disc < a_cont < b_disc = b_cont
-        assert_ppf(cont, Disc([-1, 1], prob), weight_cont)
-        ## a_disc < a_cont < b_cont < b_disc
-        assert_ppf(cont, Disc([-1, 1.5], prob), weight_cont)
-        ## a_disc = a_cont < b_disc < b_cont
-        assert_ppf(cont, Disc([0, 0.5], prob), weight_cont)
-        ## a_disc = a_cont < b_disc = b_cont
-        assert_ppf(cont, Disc([0, 1], prob), weight_cont)
-        ## a_disc = a_cont < b_cont < b_disc
-        assert_ppf(cont, Disc([0, 1.5], prob), weight_cont)
-        ## a_cont < a_disc < b_disc < b_cont
-        assert_ppf(cont, Disc([0.25, 0.5], prob), weight_cont)
-        ## a_cont < a_disc < b_disc = b_cont
-        assert_ppf(cont, Disc([0.5, 1], prob), weight_cont)
-        ## a_cont < a_disc < b_cont < b_disc
-        assert_ppf(cont, Disc([0.5, 1.5], prob), weight_cont)
-        ## a_cont < a_disc = b_cont < b_disc
-        assert_ppf(cont, Disc([1, 1.5], prob), weight_cont)
-        ## a_cont < b_cont < a_disc < b_disc
-        assert_ppf(cont, Disc([1.5, 2], prob), weight_cont)
+        assert_ppf(cont, disc, weight_cont)
 
         ## Checks with one value in discrete part
         assert_ppf(cont, Disc([-1], [1]), weight_cont)
@@ -584,6 +553,38 @@ class TestMixt:
 
         rv_weight_1 = Mixt(cont=cont, disc=disc, weight_cont=1)
         assert_array_equal(rv_weight_1.ppf(ref_q), cont.ppf(ref_q))
+
+    # Due to nature of quantile function it is safer to check every combination
+    # of overlapping between supports of continuous and discrete parts.
+    # Probably an overkill, but this on a safer side.  Here: `a_cont` and
+    # `b_cont` - edges of continuous part, `a_disc` and `b_disc` - edges of
+    # discrete part
+    @pytest.mark.slow
+    @pytest.mark.parametrize(
+        "disc",
+        [
+            Disc([-1, -0.5], [0.25, 0.75]),  ## a_disc < b_disc < a_cont < b_cont
+            Disc([-1, 0], [0.25, 0.75]),  ## a_disc < b_disc = a_cont < b_cont
+            Disc([-1, 0.5], [0.25, 0.75]),  ## a_disc < a_cont < b_disc < b_cont
+            Disc([-1, 1], [0.25, 0.75]),  ## a_disc < a_cont < b_disc = b_cont
+            Disc([-1, 1.5], [0.25, 0.75]),  ## a_disc < a_cont < b_cont < b_disc
+            Disc([0, 0.5], [0.25, 0.75]),  ## a_disc = a_cont < b_disc < b_cont
+            Disc([0, 1], [0.25, 0.75]),  ## a_disc = a_cont < b_disc = b_cont
+            Disc([0, 1.5], [0.25, 0.75]),  ## a_disc = a_cont < b_cont < b_disc
+            Disc([0.25, 0.5], [0.25, 0.75]),  ## a_cont < a_disc < b_disc < b_cont
+            Disc([0.5, 1], [0.25, 0.75]),  ## a_cont < a_disc < b_disc = b_cont
+            Disc([0.5, 1.5], [0.25, 0.75]),  ## a_cont < a_disc < b_cont < b_disc
+            Disc([1, 1.5], [0.25, 0.75]),  ## a_cont < a_disc = b_cont < b_disc
+            Disc([1.5, 2], [0.25, 0.75]),  ## a_cont < b_cont < a_disc < b_disc
+        ],
+    )
+    def test_ppf_different_supports(self, disc):
+        cont = Cont([0, 1], [1, 1])
+        disc = Disc([-1, 0.5], [0.25, 0.75])
+        weight_cont = 0.75
+        rv = Mixt(cont=cont, disc=disc, weight_cont=weight_cont)
+
+        assert_ppf(Cont([0, 1], [1, 1]), disc, 0.75)
 
     def test_isf(self):
         cont = Cont([0, 1], [1, 1])
