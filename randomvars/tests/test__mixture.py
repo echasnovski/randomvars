@@ -10,13 +10,14 @@ from randomvars._discrete import Disc
 from randomvars._mixture import Mixt
 from randomvars.tests.commontests import (
     DECIMAL,
-    h,
     _test_equal_rand,
-    _test_input_coercion,
     _test_from_rv_rand,
+    _test_input_coercion,
     _test_log_fun,
     _test_one_value_input,
     _test_rvs_method,
+    declass,
+    h,
 )
 import randomvars.options as op
 
@@ -234,69 +235,69 @@ class TestMixt:
         rv = Mixt(cont.compress(), disc.compress(), 0.5)
         assert rv.compress() is rv
 
+    @pytest.mark.slow
     def test_from_rv_basic(self):
         cont = Cont([0, 1], [1, 1])
         disc = Disc([-1, 0.5], [0.25, 0.75])
-
-        cont_scipy = distrs.norm()
-        disc_scipy = distrs.bernoulli(p=0.5)
-        weight_cont_scipy = 0.75
+        weight_cont = 0.75
 
         # Normal usage
-        out = Mixt.from_rv((cont_scipy, disc_scipy), weight_cont_scipy)
-        out_ref = Mixt(
-            Cont.from_rv(cont_scipy), Disc.from_rv(disc_scipy), weight_cont_scipy
-        )
-        _test_equal_rand(out, out_ref)
+        rv_ref = Mixt(cont, disc, weight_cont)
+        rv_out = Mixt.from_rv(declass(rv_ref))
+        _test_equal_rand(rv_out.cont, rv_ref.cont, decimal=DECIMAL)
+        _test_equal_rand(rv_out.disc, rv_ref.disc, decimal=DECIMAL)
+        assert_array_almost_equal(rv_out.weight_cont, weight_cont, decimal=DECIMAL)
 
         # Objects of `Rand` class should be `convert()`ed
         _test_from_rv_rand(cls=Mixt, to_class="Mixt")
 
         # Degenerate cases
-        ## Allow degenerate cases with tuple `rv`
-        mixt_nonedisc_ref = Mixt(Cont.from_rv(cont_scipy), None, 1)
-        mixt_nonecont_ref = Mixt(None, Disc.from_rv(disc_scipy), 0)
+        rv_nodisc = Mixt(cont, None, 1.0)
+        rv_out = Mixt.from_rv(declass(rv_nodisc))
+        assert rv_out.weight_cont == 1.0
+        _test_equal_rand(rv_out.cont, rv_nodisc.cont, decimal=DECIMAL)
+        assert rv_out.disc is None
 
-        ### `weight_cont` can be `None`
-        _test_equal_rand(Mixt.from_rv((cont_scipy, None)), mixt_nonedisc_ref)
-        _test_equal_rand(Mixt.from_rv((None, disc_scipy)), mixt_nonecont_ref)
-
-        ### `weight_cont` can represent full weight of non-`None` part
-        _test_equal_rand(Mixt.from_rv((cont_scipy, None), 1), mixt_nonedisc_ref)
-        _test_equal_rand(Mixt.from_rv((None, disc_scipy), 0), mixt_nonecont_ref)
+        rv_nocont = Mixt(None, disc, 0.0)
+        rv_out = Mixt.from_rv(declass(rv_nocont))
+        assert rv_out.weight_cont == 0.0
+        assert rv_out.cont is None
+        _test_equal_rand(rv_out.disc, rv_nocont.disc, decimal=DECIMAL)
 
     def test_from_rv_errors(self):
+        # Absence of either `cdf` or `ppf` method should result intro error
+        class Tmp:
+            pass
+
+        tmp1 = Tmp()
+        tmp1.ppf = lambda x: np.where((0 <= x) & (x <= 1), 1, 0)
+        with pytest.raises(ValueError, match="cdf"):
+            Mixt.from_rv(tmp1)
+
+        tmp2 = Tmp()
+        tmp2.cdf = lambda x: np.where((0 <= x) & (x <= 1), 1, 0)
+        with pytest.raises(ValueError, match="ppf"):
+            Mixt.from_rv(tmp2)
+
+    def test_from_rv_options(self):
         cont = Cont([0, 1], [1, 1])
-        disc = Disc([-1, 0.5], [0.25, 0.75])
+        disc = Disc([0.25, 1.5], [0.5, 0.5])
+        rv = declass(Mixt(cont, disc, weight_cont=0.9))
 
-        cont_scipy = distrs.norm()
-        disc_scipy = distrs.bernoulli(p=0.5)
+        # With high `base_tolerance` estimation of p-grid of discrete part
+        # will significantly overestimate value if there is continuous part to
+        # its left
+        ## Here big `small_prob` option is used to speed up execution
+        with op.option_context({"base_tolerance": 0.1, "small_prob": 0.001}):
+            rv_out = Mixt.from_rv(rv)
+            assert rv_out.disc.p[0] > disc.p[0] + 0.03
 
-        # `rv` should be tuple
-        with pytest.raises(TypeError, match="`rv`.*tuple"):
-            Mixt.from_rv(cont_scipy, weight_cont=0.5)
-        with pytest.raises(TypeError, match="`rv`.*tuple"):
-            Mixt.from_rv([cont_scipy, disc_scipy], weight_cont=0.5)
-
-        # `rv` should have exactly two elements
-        with pytest.raises(ValueError, match="`rv`.*two"):
-            Mixt.from_rv((cont_scipy,), weight_cont=0.5)
-        with pytest.raises(ValueError, match="`rv`.*two"):
-            Mixt.from_rv((cont_scipy, disc_scipy, cont_scipy), weight_cont=0.5)
-
-        # `rv` can't have both elements to be `None`
-        with pytest.raises(ValueError, match="`rv`.*two `None`"):
-            Mixt.from_rv((None, None), weight_cont=0.5)
-
-        # `weight_cont` can't be `None` if both elements of tuple are not `None`
-        with pytest.raises(ValueError, match="`weight_cont` can't be `None`"):
-            Mixt.from_rv((cont_scipy, disc_scipy), weight_cont=None)
-
-        # Errors for degenerate cases
-        with pytest.raises(ValueError, match="`weight_cont`.*1"):
-            Mixt.from_rv((cont_scipy, None), weight_cont=0.5)
-        with pytest.raises(ValueError, match="`weight_cont`.*0"):
-            Mixt.from_rv((None, disc_scipy), weight_cont=0.5)
+        # With high `small_prob` there is almost no chance that discrete part
+        # will be detected if products of its weight with probabilities is very
+        # low
+        with op.option_context({"small_prob": 0.3}):
+            rv_out = Mixt.from_rv(rv)
+            assert rv_out.weight_cont == 1.0
 
     def test_from_sample_basic(self):
         estimator_mixt = op.get_option("estimator_mixt")
@@ -735,3 +736,47 @@ class TestMixt:
             )
             rv_tocont = rv.convert("Cont")
             assert_array_equal(rv_tocont.x, [0, 0.5 * tol, 1 - 0.5 * tol, 1])
+
+
+class TestFromRVAccuracy:
+    """Accuracy of `Mixt.from_rv()`"""
+
+    # Output of `from_rv()` should parts that are very close to those in input
+    # regardless of interrelation of supports
+    @pytest.mark.slow
+    @pytest.mark.parametrize(
+        "disc,decimal",
+        [
+            (Disc([-1.5, -0.5], [0.25, 0.75]), DECIMAL),
+            (Disc([-1.5, 0.5], [0.25, 0.75]), DECIMAL),
+            ## In certain cases p-grid or weight of discrete part get slightly
+            ## overestimated
+            (Disc([0.125, 0.875], [0.25, 0.75]), DECIMAL - 1),
+            (Disc([0.5, 1.5], [0.25, 0.75]), DECIMAL - 1),
+            (Disc([1.5, 2.5], [0.25, 0.75]), DECIMAL),
+        ],
+    )
+    def test_accuracy(self, disc, decimal):
+        cont = Cont([0, 1], [1, 1])
+        weight_cont = 0.75
+        rv_ref = Mixt(cont, disc, weight_cont)
+        rv = declass(rv_ref)
+        rv_out = Mixt.from_rv(rv)
+        _test_equal_rand(rv_out.cont, rv_ref.cont, decimal=decimal)
+        _test_equal_rand(rv_out.disc, rv_ref.disc, decimal=decimal)
+        assert_array_almost_equal(rv_out.weight_cont, rv_ref.weight_cont)
+
+    @pytest.mark.slow
+    def test_real_example(self):
+        cont = Cont.from_rv(distrs.norm())
+        disc = Disc.from_rv(distrs.bernoulli(p=0.5))
+        weight_cont = 0.75
+
+        rv_ref = Mixt(cont, disc, weight_cont)
+        rv = declass(rv_ref)
+        rv_out = Mixt.from_rv(rv)
+        x_grid = np.linspace(rv_ref.a, rv_ref.b, 10001)
+        tolerance_decimal = np.ceil(-np.log10(op.get_option("cdf_tolerance")))
+        assert_array_almost_equal(
+            rv_out.cdf(x_grid), rv.cdf(x_grid), decimal=tolerance_decimal
+        )

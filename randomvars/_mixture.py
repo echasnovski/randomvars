@@ -268,56 +268,76 @@ class Mixt(Rand):
             )
 
     @classmethod
-    def from_rv(cls, rv, weight_cont=None):
-        """Create mixture RV from two general Rvs
+    @op._docstring_relevant_options(["base_tolerance", "small_prob"])
+    def from_rv(cls, rv):
+        """Create mixture RV from general RV
 
-        This is mostly a wrapper for `Mixt(cont=Cont.from_rv(rv[0]),
-        disc=Disc.from_rv(rv[1]), weight_cont=weight_cont)` which allows `None`
-        as one element: if other part has full weight (or weight is `None`),
-        mixture random variable with only one part is created.
+        Mixture RV with discrete and continuous parts is created by the
+        following algorithm:
+        - **Detect discrete part**:
+            - Compute possible values of input random variable `rv` as
+              quantiles (values of `rv.ppf`) from equidistant grid between 0
+              and 1 with step `small_prob` package option. **Note** that this
+              step might take some time because usually `small_prob` is quite
+              small which results into big length of grid array.
+            - Estimate values to come from discrete part if they appear at
+              least twice as possible values. That is, value is guaranteed to
+              be detected if its probability multiplied by weight is at least
+              `2 * small_prob`. **If no values are detected, then mixture with
+              only continuous part `Cont.from_rv(rv)` is returned**.
+            - Estimate jumps of `rv.cdf` at detected points `x` as `rv.cdf(x) -
+              rv.cdf(x_left)`, where `x_left` is the smallest value that is
+              close to `x` (controlled by `base_tolerance` package option).
+            - Estimate weight of discrete part as sum of jumps at detected
+              points. **If it is approximately equal to one (controlled by
+              `base_tolerance` package option), mixture with only detected
+              discrete part is returned**.
+            - Estimate probabilities of detected values as jumps normalized to
+              unity sum.
+        - **Construct continuous part**. Having detected discrete part and its
+          weight, construct continuous part by `Cont.from_rv(rv_cont)` where
+          `rv_cont` has appropriate `cdf` and `ppf` methods.
 
         **Note** that if `rv` is an object of class `Rand`, it is converted to
-        `Mixt` via `rv.convert("Mixt")` (regardless of what `weight_cont` is
-        supplied).
+        `Mixt` via `rv.convert("Mixt")`.
+
+        {relevant_options}
 
         Parameters
         ----------
-        rv : tuple with two elements or object of `Rand`
-            First element should be a valid input for `Cont.from_rv()` or
-            `None`. Second - for `Disc.from_rv()` or `None`.
-        weight_cont : number or `None` (default)
-            Weight of continuous part. Can be `None` if one of input tuple's
-            element is `None`.
+        rv : Object with methods `cdf()` and `ppf()`
+            Methods `cdf()` and `ppf()` should implement functions for
+            cumulative distribution and quantile functions respectively.
+            Recommended to be an object of class
+            `scipy.stats.distributions.rv_frozen` (`rv_discrete` with all
+            hyperparameters defined).
 
         Returns
         -------
         rv_out : Mixt
-            Mixture random variable with parts created from input random
-            variables.
+            Mixture random variable estimated from input.
         """
         if isinstance(rv, Rand):
             return rv.convert("Mixt")
 
-        _assert_two_tuple(rv, "rv")
-        if (weight_cont is None) and (rv[0] is not None) and (rv[1] is not None):
-            raise ValueError(
-                "`weight_cont` can't be `None` if both elements of `rv` are not `None`."
-            )
+        # Check input
+        rv_dir = dir(rv)
+        if not all(method in rv_dir for method in ["cdf", "ppf"]):
+            raise ValueError("`rv` should have methods `cdf()` and `ppf()`.")
 
-        if rv[0] is None:
-            if weight_cont is None:
-                # Allow `Mixt.from_rv((None, disc))`
-                weight_cont = 0.0
-            return cls(cont=None, disc=Disc.from_rv(rv[1]), weight_cont=weight_cont)
-        if rv[1] is None:
-            if weight_cont is None:
-                # Allow `Mixt.from_rv((cont, None))`
-                weight_cont = 1.0
-            return cls(cont=Cont.from_rv(rv[0]), disc=None, weight_cont=weight_cont)
+        # Detect discrete part
+        disc, weight_cont = _detect_disc_part(rv)
 
-        return cls(
-            cont=Cont.from_rv(rv[0]), disc=Disc.from_rv(rv[1]), weight_cont=weight_cont
-        )
+        # Make early return for degenerate cases
+        if weight_cont == 0.0:
+            return Mixt(cont=None, disc=disc, weight_cont=0.0)
+        if weight_cont == 1.0:
+            return Mixt(cont=Cont.from_rv(rv), disc=None, weight_cont=1.0)
+
+        # Construct continuous part
+        cont = _construct_cont_part(rv, disc, weight_cont)
+
+        return Mixt(cont=cont, disc=disc, weight_cont=weight_cont)
 
     @classmethod
     @op._docstring_relevant_options(
@@ -615,3 +635,64 @@ def _assert_two_tuple(x, x_name):
         raise ValueError(f"`{x_name}` should have exactly two elements.")
     if (x[0] is None) and (x[1] is None):
         raise ValueError(f"`{x_name}` can't have two `None` elements.")
+
+
+def _detect_disc_part(rv):
+    # Get options
+    small_prob = op.get_option("small_prob")
+
+    # Detect x-values coming from discrete part
+    q_try = np.concatenate((np.arange(np.floor(1 / small_prob)) * small_prob, [1.0]))
+    ## Usually (with small `small_prob`) takes a long time to compute
+    x_try = rv.ppf(q_try)
+    ## Value is estimated to come from discrete part if it appeared at least
+    ## twice (because of a discontinuity jump in CDF)
+    vals, counts = np.unique(x_try, return_counts=True)
+    x = vals[counts >= 2]
+
+    # Return early if there are no detected discrete values
+    if len(x) == 0:
+        return None, 1.0
+
+    # Estimate p-grid
+    ## Mixture probabilities are discrete probabilities multiplied by weight of
+    ## discrete part
+    ## **Important note**: this approach slightly overestimates probability of
+    ## discrete value if there is a continuous part to its left. This leads to:
+    ## - Overestimating weight of discrete part.
+    ## - Later having CDF estimation of continuous part to be strictly
+    ##   decreasing in the small right neighborhood of this discrete value.
+    ##   This (possible small negative density values) is expected to be
+    ##   handled inside `Cont.from_rv()`.
+    mixt_probs = rv.cdf(x) - rv.cdf(x - utils._tolerance(x))
+    weight_disc = np.sum(mixt_probs)
+
+    ## Return early if mixture consists only from discrete part
+    if utils._is_close(weight_disc, 1.0):
+        return Disc(x=x, p=mixt_probs), 0.0
+
+    return Disc(x=x, p=mixt_probs / weight_disc), 1 - weight_disc
+
+
+def _construct_cont_part(rv_in, disc, weight_cont):
+    weight_disc = 1 - weight_cont
+
+    # Reconstruct CDF (here it is assumed `0 < weight_cont < 1`)
+    cont_cdf = lambda t: (rv_in.cdf(t) - weight_disc * disc.cdf(t)) / weight_cont
+
+    # Reconstruct quantile function
+    q_grid_cont = np.concatenate(([0], cont_cdf(disc.x)))
+    q_grid_disc = np.concatenate(([0], disc.cdf(disc.x)))
+
+    class ContEstimate:
+        def cdf(self, x):
+            return cont_cdf(x)
+
+        def ppf(self, q):
+            q_ind = (
+                utils._searchsorted_wrap(q_grid_cont, q, side="left", edge_inside=True)
+                - 1
+            )
+            return rv_in.ppf(weight_cont * q + weight_disc * q_grid_disc[q_ind])
+
+    return Cont.from_rv(ContEstimate())
