@@ -359,3 +359,30 @@ class OptionError(KeyError):
     """
     Exception describing error in interaction with package options.
     """
+
+
+class SingleOption:
+    def __init__(self, default, validator):
+        self.default = default
+        self.option = default
+        self.validator_f, self.validator_str = validator
+
+    def __set_name__(self, owner, name):
+        self.name = name
+
+    def __get__(self, obj, objtype=None):
+        return self.option
+
+    def __set__(self, obj, value):
+        try:
+            value_is_valid = self.validator_f(value)
+        except BaseException as e:
+            raise OptionError(
+                "There was an error verifying validity of value for "
+                f"`{self.name}`: {str(e)}"
+            )
+
+        if not value_is_valid:
+            raise OptionError(f"`{self.name}` should be {self.validator_str}")
+
+        self.option = value

@@ -7,6 +7,7 @@ import pytest
 
 from randomvars.options import (
     OptionError,
+    SingleOption,
     _default_options,
     _docstring_options_list,
     _docstring_paragraph,
@@ -216,3 +217,33 @@ def test_option_context():
         assert get_option("n_grid") == prev_opt
     finally:
         set_option("n_grid", prev_opt)
+
+
+class TestSingleOption:
+    def test_basic(self):
+        class A:
+            opt = SingleOption(default=0.1, validator=(lambda x: x > 0, "positive"))
+
+        a = A()
+
+        # Get
+        assert a.opt == 0.1
+
+        # Set
+        a.opt = 1
+        assert a.opt == 1
+
+        # Default
+        assert type(a).__dict__["opt"].default == 0.1
+
+    def test_errors(self):
+        class A:
+            opt = SingleOption(default=0.1, validator=(lambda x: x > 0, "positive"))
+
+        a = A()
+
+        with pytest.raises(OptionError, match="verifying validity of value for `opt`"):
+            a.opt = "a"
+
+        with pytest.raises(OptionError, match="`opt` should be positive"):
+            a.opt = 0.0
