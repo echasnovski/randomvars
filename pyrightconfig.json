@@ -1,0 +1,7 @@
+{
+  "include": [
+    "randomvars"
+  ],
+  "venvPath": ".",
+  "venv": ".venv"
+}
