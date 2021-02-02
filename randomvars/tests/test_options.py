@@ -19,6 +19,7 @@ from randomvars.options import (
     estimator_mixt_default,
     get_option,
     option_context,
+    options,
     reset_option,
     set_option,
 )
@@ -247,3 +248,161 @@ class Test_SingleOption:
 
         with pytest.raises(OptionError, match="`opt` should be positive"):
             a.opt = 0.0
+
+
+class TestOptions:
+    """Tests for `options` object"""
+
+    def test_basic(self):
+        # Get option as attribute
+        assert isinstance(options.base_tolerance, float)
+
+        # Set option as attribute
+        val = options.base_tolerance
+        options.base_tolerance = 0.1
+        assert options.base_tolerance == 0.1
+
+        ## Cleanup
+        options.base_tolerance = val
+
+        # Validate option value
+        with pytest.raises(OptionError, match="non-negative"):
+            options.base_tolerance = -0.1
+        with pytest.raises(OptionError, match="float"):
+            options.base_tolerance = "a"
+
+    def test_list(self):
+        l = options.list
+        assert isinstance(l, list)
+        assert all(isinstance(val, str) for val in l)
+        assert all(isinstance(type(options).__dict__[val], _SingleOption) for val in l)
+
+    def test_dict(self):
+        d = options.dict
+        assert isinstance(d, dict)
+        assert list(d.keys()) == options.list
+
+        # Should return current option values
+        val = options.base_tolerance
+        options.base_tolerance = 0.1
+        assert options.dict["base_tolerance"] == 0.1
+
+        ## Cleanup
+        options.base_tolerance = val
+
+    def test_defaults(self):
+        # Should return default option values
+        val = options.base_tolerance
+        options.base_tolerance = 0.1
+        assert options.defaults["base_tolerance"] == val
+
+        ## Cleanup
+        options.base_tolerance = val
+
+    def test_get_single(self):
+        assert options.get_single("base_tolerance") == options.base_tolerance
+
+        # Error on non-existent option
+        with pytest.raises(OptionError, match="no option `aaa`"):
+            options.get_single("aaa")
+
+    def test_get(self):
+        assert options.get(["base_tolerance", "estimator_bool"]) == [
+            options.base_tolerance,
+            options.estimator_bool,
+        ]
+
+        # Should return list even with one-element input
+        assert options.get(["base_tolerance"]) == [options.base_tolerance]
+
+        # Error on non-existent option
+        with pytest.raises(OptionError, match="no option `aaa`"):
+            options.get(["base_tolerance", "aaa"])
+
+    def test_set_single(self):
+        val = options.base_tolerance
+        options.set_single("base_tolerance", 0.1)
+        assert options.base_tolerance == 0.1
+
+        ## Cleanup
+        options.base_tolerance = val
+
+        # Error on non-existent option
+        with pytest.raises(OptionError, match="no option `aaa`"):
+            options.set_single("aaa", 0.1)
+
+    def test_set(self):
+        vals = [options.base_tolerance, options.estimator_bool]
+        options.set({"base_tolerance": 0.1, "estimator_bool": lambda x: np.mean(x)})
+        assert options.base_tolerance == 0.1
+        assert options.estimator_bool([1, 2]) == 1.5
+
+        ## Cleanup
+        options.base_tolerance = vals[0]
+        options.estimator_bool = vals[1]
+
+        # Error on non-existent option
+        with pytest.raises(OptionError, match="no option `aaa`"):
+            options.set({"aaa": 0.1})
+
+    def test_reset_single(self):
+        # Should set value to default option, not the previous one
+        val = options.base_tolerance
+        options.base_tolerance = 0.1
+        options.base_tolerance = 0.2
+        options.reset_single("base_tolerance")
+        assert options.base_tolerance == val
+
+        ## Cleanup
+        options.base_tolerance = val
+
+        # Error on non-existent option
+        with pytest.raises(OptionError, match="no option `aaa`"):
+            options.reset_single("aaa")
+
+    def test_reset(self):
+        # Should set value to default option, not the previous one
+        vals = [options.base_tolerance, options.estimator_bool]
+        options.base_tolerance = 0.1
+        options.base_tolerance = 0.2
+        options.estimator_bool = lambda x: np.mean(x)
+        options.estimator_bool = lambda x: np.median(x)
+        options.reset(["base_tolerance", "estimator_bool"])
+        assert options.base_tolerance == vals[0]
+        assert options.estimator_bool == vals[1]
+
+        ## Cleanup
+        options.base_tolerance = vals[0]
+        options.estimator_bool = vals[1]
+
+        # Error on non-existent option
+        with pytest.raises(OptionError, match="no option `aaa`"):
+            options.reset(["base_tolerance", "aaa"])
+
+    def test_context(self):
+        # It shouldn't be possible to use raw `options` as context manager
+        with pytest.raises(OptionError, match=r"Use `context\(\)`"):
+            with options:
+                pass
+
+        # Usage of `context()`
+        val = options.base_tolerance
+        assert val != 0.1
+        with options.context({"base_tolerance": 0.1}):
+            assert options.base_tolerance == 0.1
+        assert options.base_tolerance == val
+
+        ## Cleanup
+        options.base_tolerance = val
+
+        # It shouldn't be possible to use raw `options` as context manager even
+        # after using `context()` (deals with some possible implementation
+        # detail)
+        with pytest.raises(OptionError, match=r"Use `context\(\)`"):
+            with options:
+                pass
+
+        # Error on non-existent option
+        with pytest.raises(OptionError, match="no option `aaa`"):
+            with options.context({"aaa": 0.1}):
+                pass

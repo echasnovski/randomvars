@@ -13,6 +13,7 @@ __all__ = [
     "estimator_mixt_default",
     "get_option",
     "option_context",
+    "options",
     "reset_option",
     "set_option",
 ]
@@ -386,3 +387,79 @@ class _SingleOption:
             raise OptionError(f"`{self.name}` should be {self.validator_str}")
 
         self.option = value
+
+
+class _Options:
+    base_tolerance = _SingleOption(
+        default=1e-12,
+        validator=(lambda x: isinstance(x, float) and x >= 0, "a non-negative float"),
+    )
+    estimator_bool = _SingleOption(
+        default=estimator_bool_default,
+        validator=(lambda x: callable(x), "a callable"),
+    )
+
+    def __init__(self):
+        self._list = [
+            key
+            for key, val in type(self).__dict__.items()
+            if isinstance(val, _SingleOption)
+        ]
+
+    @property
+    def list(self):
+        return self._list
+
+    @property
+    def dict(self):
+        return {opt: getattr(self, opt) for opt in self._list}
+
+    @property
+    def defaults(self):
+        return {opt: type(self).__dict__[opt].default for opt in self._list}
+
+    def get_single(self, opt):
+        if opt not in self._list:
+            raise OptionError(f"There is no option `{opt}`")
+        return getattr(self, opt)
+
+    def get(self, opt_list):
+        return [self.get_single(opt) for opt in opt_list]
+
+    def set_single(self, opt, value):
+        if opt not in self._list:
+            raise OptionError(f"There is no option `{opt}`")
+        setattr(self, opt, value)
+
+    def set(self, opt_dict):
+        for key, val in opt_dict.items():
+            self.set_single(key, val)
+
+    def reset_single(self, opt):
+        if opt not in self._list:
+            raise OptionError(f"There is no option `{opt}`")
+        setattr(self, opt, type(self).__dict__[opt].default)
+
+    def reset(self, opt_list):
+        for opt in opt_list:
+            self.reset_single(opt)
+
+    def context(self, opt_dict):
+        self._context_input = opt_dict
+        return self
+
+    def __enter__(self):
+        if not hasattr(self, "_context_input"):
+            raise OptionError("Use `context()` method to create context manager")
+
+        self._context_undo = {opt: self.get_single(opt) for opt in self._context_input}
+        self.set(self._context_input)
+
+    def __exit__(self, *args):
+        self.set(self._context_undo)
+
+        del self._context_input
+        del self._context_undo
+
+
+options = _Options()
