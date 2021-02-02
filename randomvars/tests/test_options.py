@@ -7,7 +7,7 @@ import pytest
 
 from randomvars.options import (
     OptionError,
-    SingleOption,
+    _SingleOption,
     _default_options,
     _docstring_options_list,
     _docstring_paragraph,
@@ -219,10 +219,10 @@ def test_option_context():
         set_option("n_grid", prev_opt)
 
 
-class TestSingleOption:
+class Test_SingleOption:
     def test_basic(self):
         class A:
-            opt = SingleOption(default=0.1, validator=(lambda x: x > 0, "positive"))
+            opt = _SingleOption(default=0.1, validator=(lambda x: x > 0, "positive"))
 
         a = A()
 
@@ -238,7 +238,7 @@ class TestSingleOption:
 
     def test_errors(self):
         class A:
-            opt = SingleOption(default=0.1, validator=(lambda x: x > 0, "positive"))
+            opt = _SingleOption(default=0.1, validator=(lambda x: x > 0, "positive"))
 
         a = A()
 

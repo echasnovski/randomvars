@@ -361,7 +361,7 @@ class OptionError(KeyError):
     """
 
 
-class SingleOption:
+class _SingleOption:
     def __init__(self, default, validator):
         self.default = default
         self.option = default
