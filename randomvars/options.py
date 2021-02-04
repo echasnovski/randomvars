@@ -389,16 +389,38 @@ class _SingleOption:
         self.option = value
 
 
+_validator_nonneg = (lambda x: isinstance(x, float) and x >= 0, "a non-negative float")
+_validator_callable = (lambda x: callable(x), "a callable")
+
+
 class _Options:
-    base_tolerance = _SingleOption(
-        default=1e-12,
-        validator=(lambda x: isinstance(x, float) and x >= 0, "a non-negative float"),
+    # Available options
+    base_tolerance = _SingleOption(1e-12, _validator_nonneg)
+    cdf_tolerance = _SingleOption(1e-4, _validator_nonneg)
+    density_mincoverage = _SingleOption(
+        0.9999,
+        (lambda x: isinstance(x, float) and 0 <= x and x < 1, "a float inside [0; 1)"),
     )
-    estimator_bool = _SingleOption(
-        default=estimator_bool_default,
-        validator=(lambda x: callable(x), "a callable"),
+    estimator_bool = _SingleOption(estimator_bool_default, _validator_callable)
+    estimator_cont = _SingleOption(estimator_cont_default, _validator_callable)
+    estimator_disc = _SingleOption(estimator_disc_default, _validator_callable)
+    estimator_mixt = _SingleOption(estimator_mixt_default, _validator_callable)
+    metric = _SingleOption(
+        "L2",
+        (lambda x: isinstance(x, str) and x in ["L1", "L2"], 'one of "L1" or "L2"'),
+    )
+    n_grid = _SingleOption(
+        1001, (lambda x: isinstance(x, int) and x > 1, "an integer more than 1")
+    )
+    small_prob = _SingleOption(
+        1e-6,
+        (lambda x: isinstance(x, float) and 0 < x and x < 1, "a float inside (0; 1)"),
+    )
+    small_width = _SingleOption(
+        1e-8, (lambda x: isinstance(x, float) and x > 0, "a positive float")
     )
 
+    # Methods
     def __init__(self):
         self._list = [
             key

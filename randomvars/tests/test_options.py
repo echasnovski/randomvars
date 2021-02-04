@@ -271,6 +271,109 @@ class TestOptions:
         with pytest.raises(OptionError, match="float"):
             options.base_tolerance = "a"
 
+    def test_available_options(self):
+        # `base_tolerance`
+        options.base_tolerance == 1e-12
+
+        with pytest.raises(OptionError, match="float"):
+            options.base_tolerance = "0.1"
+        with pytest.raises(OptionError, match="non-negative"):
+            options.base_tolerance = -0.1
+
+        # `cdf_tolerance`
+        options.cdf_tolerance == 1e-4
+
+        with pytest.raises(OptionError, match="float"):
+            options.cdf_tolerance = "0.1"
+        with pytest.raises(OptionError, match="non-negative"):
+            options.cdf_tolerance = -0.1
+
+        # `density_mincoverage`
+        options.density_mincoverage == 0.9999
+
+        with pytest.raises(OptionError, match="float"):
+            options.density_mincoverage = "0.1"
+        with pytest.raises(OptionError, match=r"inside \[0; 1\)"):
+            options.density_mincoverage = -0.1
+        with pytest.raises(OptionError, match=r"inside \[0; 1\)"):
+            options.density_mincoverage = 1.1
+
+        ## Zero is allowed, one is not allowed
+        val = options.density_mincoverage
+        options.density_mincoverage = 0.0
+        options.density_mincoverage = val
+        with pytest.raises(OptionError):
+            options.density_mincoverage = 1.0
+
+        # `estimator_bool`
+        assert options.estimator_bool([0, 1, 0]) == estimator_bool_default([0, 1, 0])
+
+        with pytest.raises(OptionError, match="callable"):
+            options.estimator_bool = 0.0
+
+        # `estimator_cont`
+        assert np.all(
+            options.estimator_cont([0, 1, 0])([-1, 0, 1])
+            == estimator_cont_default([0, 1, 0])([-1, 0, 1])
+        )
+
+        with pytest.raises(OptionError, match="callable"):
+            options.estimator_cont = 0.0
+
+        # `estimator_disc`
+        _test_equal_seq(
+            options.estimator_disc([0, 1, 0]), estimator_disc_default([0, 1, 0])
+        )
+
+        with pytest.raises(OptionError, match="callable"):
+            options.estimator_disc = 0.0
+
+        # `estimator_mixt`
+        _test_equal_seq(
+            options.estimator_mixt([0, 1, 0]), estimator_mixt_default([0, 1, 0])
+        )
+
+        with pytest.raises(OptionError, match="callable"):
+            options.estimator_mixt = 0.0
+
+        # `metric`
+        assert options.metric == "L2"
+        with pytest.raises(OptionError, match="one of"):
+            options.metric = 0.0
+        with pytest.raises(OptionError, match="one of"):
+            options.metric = "aaa"
+
+        # `n_grid`
+        assert options.n_grid == 1001
+        with pytest.raises(OptionError, match="integer"):
+            options.n_grid = "1001"
+        with pytest.raises(OptionError, match="more than 1"):
+            options.n_grid = 1
+
+        # `small_prob`
+        options.small_prob == 1e-6
+
+        with pytest.raises(OptionError, match="float"):
+            options.small_prob = "0.1"
+        with pytest.raises(OptionError, match=r"inside \(0; 1\)"):
+            options.small_prob = -0.1
+        with pytest.raises(OptionError, match=r"inside \(0; 1\)"):
+            options.small_prob = 1.1
+        with pytest.raises(OptionError, match=r"inside \(0; 1\)"):
+            options.small_prob = 0.0
+        with pytest.raises(OptionError, match=r"inside \(0; 1\)"):
+            options.small_prob = 1.0
+
+        # `small_width`
+        options.small_width == 1e-8
+
+        with pytest.raises(OptionError, match="float"):
+            options.small_width = "0.1"
+        with pytest.raises(OptionError, match="positive"):
+            options.small_width = -0.1
+        with pytest.raises(OptionError, match="positive"):
+            options.small_width = 0.0
+
     def test_list(self):
         l = options.list
         assert isinstance(l, list)
