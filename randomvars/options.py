@@ -405,18 +405,19 @@ class _Options:
             for key, val in type(self).__dict__.items()
             if isinstance(val, _SingleOption)
         ]
+        self._defaults = {opt: getattr(self, opt) for opt in self._list}
 
     @property
     def list(self):
         return self._list
 
     @property
-    def dict(self):
-        return {opt: getattr(self, opt) for opt in self._list}
+    def defaults(self):
+        return self._defaults
 
     @property
-    def defaults(self):
-        return {opt: type(self).__dict__[opt].default for opt in self._list}
+    def dict(self):
+        return {opt: getattr(self, opt) for opt in self._list}
 
     def get_single(self, opt):
         if opt not in self._list:
