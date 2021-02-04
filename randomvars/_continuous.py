@@ -10,7 +10,7 @@ import randomvars._utils as utils
 import randomvars._utilsgrid as utilsgrid
 from randomvars.downgrid_maxtol import downgrid_maxtol
 from randomvars._random import Rand
-import randomvars.options as op
+from randomvars.options import options, _docstring_relevant_options
 
 
 class Cont(Rand):
@@ -163,7 +163,7 @@ class Cont(Rand):
         else:
             return type(self)(x=x[x_is_good], y=y[x_is_good])
 
-    @op._docstring_relevant_options(["small_width"])
+    @_docstring_relevant_options(["small_width"])
     def ground(self, w=None, direction="both"):
         """Update xy-grid to represent explicit piecewise-linear function
 
@@ -213,7 +213,7 @@ class Cont(Rand):
                 '`direction` should be one of "both", "left", "right", "none".'
             )
         if w is None:
-            w = op.get_option("small_width")
+            w = options.small_width
 
         x, y = utilsgrid._ground_xy(xy=(self._x, self._y), w=w, direction=direction)
         return Cont(x=x, y=y)
@@ -374,7 +374,7 @@ class Cont(Rand):
         return self._coeffs_by_ind(ind)
 
     @classmethod
-    @op._docstring_relevant_options(
+    @_docstring_relevant_options(
         ["base_tolerance", "cdf_tolerance", "n_grid", "small_prob"]
     )
     def from_rv(cls, rv, supp=None):
@@ -459,9 +459,9 @@ class Cont(Rand):
             raise ValueError("`rv` should have methods `cdf()` and `ppf()`.")
 
         # Get options
-        n_grid = op.get_option("n_grid")
-        small_prob = op.get_option("small_prob")
-        cdf_tolerance = op.get_option("cdf_tolerance")
+        n_grid = options.n_grid
+        small_prob = options.small_prob
+        cdf_tolerance = options.cdf_tolerance
 
         # Detect effective support of `rv`
         finite_supp = _detect_finite_supp(rv, supp, small_prob)
@@ -487,7 +487,7 @@ class Cont(Rand):
         return cls(x, y)
 
     @classmethod
-    @op._docstring_relevant_options(
+    @_docstring_relevant_options(
         ["cdf_tolerance", "density_mincoverage", "estimator_cont", "n_grid"]
     )
     def from_sample(cls, sample):
@@ -565,10 +565,10 @@ class Cont(Rand):
         sample = utils._as_1d_numpy(sample, "sample", chkfinite=False, dtype="float64")
 
         # Get options
-        cdf_tolerance = op.get_option("cdf_tolerance")
-        density_mincoverage = op.get_option("density_mincoverage")
-        estimator_cont = op.get_option("estimator_cont")
-        n_grid = op.get_option("n_grid")
+        cdf_tolerance = options.cdf_tolerance
+        density_mincoverage = options.density_mincoverage
+        estimator_cont = options.estimator_cont
+        n_grid = options.n_grid
 
         # Estimate distribution
         estimate = estimator_cont(sample)

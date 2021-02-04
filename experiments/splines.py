@@ -5,7 +5,7 @@ from scipy.interpolate import UnivariateSpline
 from scipy.optimize import minimize_scalar
 import scipy.stats as ss
 from randomvars._continuous import Cont, _detect_finite_supp, _combine_grids
-import randomvars.options as op
+from randomvars.options import options
 
 N_GRID_PLOT = 1001
 
@@ -98,7 +98,7 @@ plt.legend()
 plt.show()
 
 # Comparing with current `Cont`
-with op.option_context({"n_grid": n_grid}):
+with options.context({"n_grid": n_grid}):
     rv_cont = Cont.from_rv(rv)
 rv_spline = cont_from_cdf_spline(rv, n_grid, s=s, k=k)
 
@@ -122,7 +122,7 @@ fun_diff(rv.cdf, rv_spline.cdf)
 fun_diff(rv_cont.cdf, rv_spline.cdf)
 
 # Timings
-# with op.option_context({"n_grid": n_grid}):
+# with options.context({"n_grid": n_grid}):
 #     %timeit Cont.from_rv(rv)
 
 # %timeit cont_from_cdf_spline(rv, n_grid, s=s, k=k)

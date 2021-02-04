@@ -5,7 +5,7 @@ import numpy as np
 from scipy.stats.distributions import rv_frozen
 
 from randomvars._random import Rand
-import randomvars.options as op
+from randomvars.options import options, _docstring_relevant_options
 import randomvars._utils as utils
 
 
@@ -105,7 +105,7 @@ class Bool(Rand):
     # `compress()` is inherited from `Rand`
 
     @classmethod
-    @op._docstring_relevant_options(["base_tolerance"])
+    @_docstring_relevant_options(["base_tolerance"])
     def from_rv(cls, rv):
         """Create boolean RV from general RV
 
@@ -149,7 +149,7 @@ class Bool(Rand):
             raise ValueError("`rv` should have method `cdf()`.")
 
         # Get options
-        base_tol = op.get_option("base_tolerance")
+        base_tol = options.base_tolerance
 
         # Compute probability of `False`
         prob_false = rv.cdf(0) - rv.cdf(-base_tol)
@@ -157,7 +157,7 @@ class Bool(Rand):
         return cls(prob_true=1 - prob_false)
 
     @classmethod
-    @op._docstring_relevant_options(["estimator_bool"])
+    @_docstring_relevant_options(["estimator_bool"])
     def from_sample(cls, sample):
         """Create boolean RV from sample
 
@@ -187,7 +187,7 @@ class Bool(Rand):
         sample = utils._as_1d_numpy(sample, "sample", chkfinite=False, dtype="bool")
 
         # Get options
-        estimator_bool = op.get_option("estimator_bool")
+        estimator_bool = options.estimator_bool
 
         # Estimate distribution
         estimate = estimator_bool(sample)

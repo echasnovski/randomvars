@@ -7,7 +7,7 @@ import numpy as np
 from randomvars._continuous import Cont
 from randomvars._discrete import Disc
 from randomvars._random import Rand
-import randomvars.options as op
+from randomvars.options import options, _docstring_relevant_options
 import randomvars._utils as utils
 import randomvars._utilsgrid as utilsgrid
 
@@ -279,7 +279,7 @@ class Mixt(Rand):
             )
 
     @classmethod
-    @op._docstring_relevant_options(["base_tolerance", "small_prob"])
+    @_docstring_relevant_options(["base_tolerance", "small_prob"])
     def from_rv(cls, rv):
         """Create mixture RV from general RV
 
@@ -351,9 +351,7 @@ class Mixt(Rand):
         return Mixt(cont=cont, disc=disc, weight_cont=weight_cont)
 
     @classmethod
-    @op._docstring_relevant_options(
-        ["estimator_cont", "estimator_disc", "estimator_mixt"]
-    )
+    @_docstring_relevant_options(["estimator_cont", "estimator_disc", "estimator_mixt"])
     def from_sample(cls, sample):
         """Create mixture RV from sample
 
@@ -387,7 +385,7 @@ class Mixt(Rand):
         sample = utils._as_1d_numpy(sample, "sample", chkfinite=False, dtype="float64")
 
         # Get options
-        estimator_mixt = op.get_option("estimator_mixt")
+        estimator_mixt = options.estimator_mixt
 
         # Estimate distribution
         estimate = estimator_mixt(sample)
@@ -558,7 +556,7 @@ class Mixt(Rand):
             a, b
         ) + self._weight_disc * self._disc.integrate_cdf(a, b)
 
-    @op._docstring_relevant_options(["base_tolerance", "small_width"])
+    @_docstring_relevant_options(["base_tolerance", "small_width"])
     def convert(self, to_class=None):
         """Convert to different RV class
 
@@ -650,7 +648,7 @@ def _assert_two_tuple(x, x_name):
 
 def _detect_disc_part(rv):
     # Get options
-    small_prob = op.get_option("small_prob")
+    small_prob = options.small_prob
 
     # Detect x-values coming from discrete part
     q_try = np.concatenate((np.arange(np.floor(1 / small_prob)) * small_prob, [1.0]))

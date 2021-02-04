@@ -5,7 +5,7 @@ import numpy as np
 from scipy.stats.distributions import rv_frozen
 
 from randomvars._random import Rand
-import randomvars.options as op
+from randomvars.options import options, _docstring_relevant_options
 import randomvars._utils as utils
 import randomvars._utilsgrid as utilsgrid
 
@@ -138,7 +138,7 @@ class Disc(Rand):
             return type(self)(x=self._x[p_is_pos], p=self._p[p_is_pos])
 
     @classmethod
-    @op._docstring_relevant_options(["small_prob"])
+    @_docstring_relevant_options(["small_prob"])
     def from_rv(cls, rv):
         """Create discrete RV from general RV
 
@@ -206,13 +206,7 @@ class Disc(Rand):
             raise ValueError("`rv` should have methods `cdf()` and `ppf()`.")
 
         # Get options
-        small_prob = op.get_option("small_prob")
-
-        if (small_prob <= 0) or (small_prob >= 1):
-            raise ValueError(
-                "Option `small_prob` in `Disc.from_rv` should be "
-                "bigger than 0 and smaller than 1."
-            )
+        small_prob = options.small_prob
 
         # Find values with non-zero probability mass
         x = []
@@ -242,7 +236,7 @@ class Disc(Rand):
         return cls(x=x, p=p)
 
     @classmethod
-    @op._docstring_relevant_options(["estimator_disc"])
+    @_docstring_relevant_options(["estimator_disc"])
     def from_sample(cls, sample):
         """Create discrete RV from sample
 
@@ -273,7 +267,7 @@ class Disc(Rand):
         sample = utils._as_1d_numpy(sample, "sample", chkfinite=False, dtype="float64")
 
         # Get options
-        estimator_disc = op.get_option("estimator_disc")
+        estimator_disc = options.estimator_disc
 
         # Estimate distribution
         estimate = estimator_disc(sample)
@@ -294,7 +288,7 @@ class Disc(Rand):
             "`Disc` doesn't have probability density function. Use `logpmf()` instead."
         )
 
-    @op._docstring_relevant_options(["base_tolerance"])
+    @_docstring_relevant_options(["base_tolerance"])
     def pmf(self, x):
         """Probability mass function
 

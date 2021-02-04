@@ -18,7 +18,7 @@ from randomvars.tests.commontests import (
     _test_one_value_input,
     _test_rvs_method,
 )
-import randomvars.options as op
+from randomvars.options import options
 
 DISTRIBUTIONS_FINITE = {
     "fin_bernoulli": distrs.bernoulli(p=0.9),
@@ -180,12 +180,6 @@ class TestDisc:
         with pytest.raises(ValueError, match="ppf"):
             Disc.from_rv(tmp2)
 
-        # Using inappropriate `small_prob` options should result into error
-        rv = distrs.rv_discrete(values=([0, 1], [0.1, 0.9]))
-        with pytest.raises(ValueError, match="`small_prob`.*bigger than 0"):
-            with op.option_context({"small_prob": 0}):
-                Disc.from_rv(rv)
-
         # Having bad `cdf()` or `ppf()` that result into infinite loop should
         # result into error
         tmp3 = Tmp()
@@ -200,7 +194,7 @@ class TestDisc:
         p = [0.5, 0.125, 0.375]
         rv = distrs.rv_discrete(values=(x, p))
 
-        with op.option_context({"small_prob": 0.125 + 1e-5}):
+        with options.context({"small_prob": 0.125 + 1e-5}):
             rv_out = Disc.from_rv(rv)
             rv_ref = Disc([1, 3], [0.5, 0.5])
             _test_equal_rand(rv_out, rv_ref)
@@ -242,7 +236,7 @@ class TestDisc:
         def single_value_estimator(x):
             return np.array([1.0]), np.array([1.0])
 
-        with op.option_context({"estimator_disc": single_value_estimator}):
+        with options.context({"estimator_disc": single_value_estimator}):
             rv = Disc.from_sample(x)
             _test_equal_rand(rv, Disc(x=[1.0], p=[1.0]))
 
@@ -256,7 +250,7 @@ class TestDisc:
 
         ## "Scipy" distribution should be forwarded to `Disc.from_rv()`
         rv_binom = distrs.binom(n=10, p=0.5)
-        with op.option_context({"estimator_disc": lambda x: rv_binom}):
+        with options.context({"estimator_disc": lambda x: rv_binom}):
             rv = Disc.from_sample(np.asarray([0, 1, 2]))
             rv_ref = Disc.from_rv(rv_binom)
             _test_equal_rand(rv, rv_ref)
@@ -286,7 +280,7 @@ class TestDisc:
         assert_array_equal(rv.pmf(x), np.array([0, np.nan, 0]))
 
         # Using different tolerance
-        with op.option_context({"base_tolerance": 0.1}):
+        with options.context({"base_tolerance": 0.1}):
             assert_array_equal(rv.pmf([1 + 0.11, 1 + 0.09]), [0.0, 0.2])
 
         # Broadcasting
@@ -452,7 +446,7 @@ class TestFromRVAccuracy:
         # If small probability element is not detected, its probability is
         # "squashed" to the next (bigger) detected element
         rv_1 = distrs.rv_discrete(values=([1, 2, 3], [0.5, 0.125, 0.375]))
-        with op.option_context({"small_prob": 0.125 + 1e-5}):
+        with options.context({"small_prob": 0.125 + 1e-5}):
             rv_1_out = Disc.from_rv(rv_1)
             rv_1_ref = Disc([1, 3], [0.5, 0.5])
             _test_equal_rand(rv_1_out, rv_1_ref)
@@ -461,7 +455,7 @@ class TestFromRVAccuracy:
         # but only those, which cumulative probability after previous detected
         # element is less than threshold.
         rv_2 = distrs.rv_discrete(values=([1, 2, 3, 4], [0.5, 0.0625, 0.0625, 0.375]))
-        with op.option_context({"small_prob": 0.1}):
+        with options.context({"small_prob": 0.1}):
             rv_2_out = Disc.from_rv(rv_2)
             rv_2_ref = Disc([1, 3, 4], [0.5, 0.125, 0.375])
             _test_equal_rand(rv_2_out, rv_2_ref)
@@ -470,7 +464,7 @@ class TestFromRVAccuracy:
         # If last (biggest) value has probability equal to `small_prob`, it
         # should nevertheless be included
         rv = distrs.rv_discrete(values=([0, 1], [0.875, 0.125]))
-        with op.option_context({"small_prob": 0.125}):
+        with options.context({"small_prob": 0.125}):
             rv_out = Disc.from_rv(rv)
             rv_ref = Disc([0, 1], [0.875, 0.125])
             _test_equal_rand(rv_out, rv_ref)
@@ -478,14 +472,14 @@ class TestFromRVAccuracy:
         # If last value cuts some right tail, all its probability should be
         # transferred into last x-value
         rv = distrs.rv_discrete(values=([0, 1, 2, 3], [0.625, 0.125, 0.125, 0.125]))
-        with op.option_context({"small_prob": 0.2}):
+        with options.context({"small_prob": 0.2}):
             rv_out = Disc.from_rv(rv)
             rv_ref = Disc([0, 2], [0.625, 0.375])
             _test_equal_rand(rv_out, rv_ref)
 
     @staticmethod
     def is_from_rv_small_tails(rv):
-        small_prob = op.get_option("small_prob")
+        small_prob = options.small_prob
 
         rv_disc = Disc.from_rv(rv)
         x = rv_disc.x

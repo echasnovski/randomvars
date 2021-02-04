@@ -3,15 +3,15 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 import pytest
 
-import randomvars.options as op
+from randomvars.options import options
 
 
-base_tol = op.get_option("base_tolerance")
+base_tol = options.base_tolerance
 # Value that is used to test almost exact equality of two numpy arrays
 DECIMAL = np.ceil(-np.log10(base_tol)).astype("int64")
 
 # Difference of x-values that is considered "small" during approximations
-h = op.get_option("small_width")
+h = options.small_width
 
 
 def declass(rv):
@@ -72,19 +72,19 @@ def _test_from_sample_rand(cls, sample, estimator_option):
     import randomvars._mixture as mixt
 
     rv_bool = bool.Bool(0.5)
-    with op.option_context({estimator_option: lambda x: rv_bool}):
+    with options.context({estimator_option: lambda x: rv_bool}):
         _test_equal_rand(cls.from_sample(sample), cls.from_rv(rv_bool))
 
     rv_cont = cont.Cont([0, 1], [1, 1])
-    with op.option_context({estimator_option: lambda x: rv_cont}):
+    with options.context({estimator_option: lambda x: rv_cont}):
         _test_equal_rand(cls.from_sample(sample), cls.from_rv(rv_cont))
 
     rv_disc = disc.Disc([-1, 2], [0.25, 0.75])
-    with op.option_context({estimator_option: lambda x: rv_disc}):
+    with options.context({estimator_option: lambda x: rv_disc}):
         _test_equal_rand(cls.from_sample(sample), cls.from_rv(rv_disc))
 
     rv_mixt = mixt.Mixt(rv_cont, rv_disc, 0.5)
-    with op.option_context({estimator_option: lambda x: rv_mixt}):
+    with options.context({estimator_option: lambda x: rv_mixt}):
         _test_equal_rand(cls.from_sample(sample), cls.from_rv(rv_mixt))
 
 

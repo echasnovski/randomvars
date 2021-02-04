@@ -16,7 +16,7 @@ from randomvars.tests.commontests import (
     _test_one_value_input,
     _test_rvs_method,
 )
-import randomvars.options as op
+from randomvars.options import options
 
 
 class TestBool:
@@ -97,13 +97,13 @@ class TestBool:
         prob = [0.125, 0.5, 0.375]
         rv = distrs.rv_discrete(values=(x, prob))
 
-        with op.option_context({"base_tolerance": 1e-4}):
+        with options.context({"base_tolerance": 1e-4}):
             _test_equal_rand(Bool.from_rv(rv), Bool(prob_true=1 - 0.5))
-        with op.option_context({"base_tolerance": 5e-3}):
+        with options.context({"base_tolerance": 5e-3}):
             # Close positive values shouldn't affect output, because it is
             # computed using `cdf(0) - cdf(-base_tol)`
             _test_equal_rand(Bool.from_rv(rv), Bool(prob_true=1 - 0.5))
-        with op.option_context({"base_tolerance": 5e-2}):
+        with options.context({"base_tolerance": 5e-2}):
             _test_equal_rand(Bool.from_rv(rv), Bool(prob_true=1 - 0.625))
 
     def test_from_sample_basic(self):
@@ -132,7 +132,7 @@ class TestBool:
         x = [True, False, False, True]
 
         # "estimator_bool"
-        with op.option_context({"estimator_bool": lambda x: 0}):
+        with options.context({"estimator_bool": lambda x: 0}):
             rv = Bool.from_sample(x)
             _test_equal_rand(rv, Bool(prob_true=0))
 
@@ -146,7 +146,7 @@ class TestBool:
 
         ## "Scipy" distributions should be forwarded to `Bool.from_rv()`
         rv_bernoulli = distrs.bernoulli(p=0.625)
-        with op.option_context({"estimator_bool": lambda x: rv_bernoulli}):
+        with options.context({"estimator_bool": lambda x: rv_bernoulli}):
             _test_equal_rand(Bool.from_sample(x), Bool.from_rv(rv_bernoulli))
 
     def test_pdf(self):
