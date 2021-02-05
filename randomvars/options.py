@@ -162,12 +162,49 @@ _validator_callable = (lambda x: callable(x), "a callable")
 
 
 class _Config:
-    """ Package configuration
+    """Package configuration
 
-    List of available options:
-    - base_tolerance : float, default 1e-12. Tolerance to be used for testing
-      approximate equality of two numbers. It is used to compute tolerance
-      associated with any number `x`:
+    This object stores option values which will be used during execution of
+    package functions.
+
+    Usage:
+
+    ```python
+    # Get information about configuration
+    ## List of all available options
+    config.list
+    ## Dictionary with all default option values
+    config.defaults
+    ## Dictionary with all current options values
+    config.dict
+
+    # Get option value in one of the following ways
+    config.base_tolerance
+    config.get_single("base_tolerance")
+    config.get(["base_tolerance", "estimator_bool"])
+
+    # Set options value in one of the following ways
+    config.base_tolerance = 0.1
+    config.set_single("base_tolerance", 0.1)
+    config.set({"base_tolerance": 0.1, "estimator_bool": lambda x: np.median(x)})
+    ## `OptionError` is thrown if inappropriate value is supplied
+    config.base_tolerance = "0.1"
+
+    # Reset options to default values
+    config.reset_single("base_tolerance")
+    config.reset(["base_tolerance", "estimatro_bool"])
+
+    # Temporarily set options with context manager
+    with config.context({"base_tolerance": 0.1}):
+        print(config.base_tolerance)
+    ```
+
+    List of available options (note that types and conditions should be met
+    exactly as stated, i.e. supplying integer `0` for float option will cause
+    error):
+    - base_tolerance : nonnegative float, default 1e-12. Tolerance to be used
+      for testing approximate equality of two numbers. It is used to compute
+      tolerance associated with any number `x`:
         - If `abs(x) <= 1`, tolerance is equal to `base_tolerance`. Based on
           this, `base_tolerance` can be viewed as an absolute tolerance for
           "small" numbers.
@@ -175,15 +212,15 @@ class _Config:
           between floating point numbers at `x` (see `numpy.spacing()`). This
           approach is chosen in order to find compromise between relative and
           absolute tolerance.
-    - cdf_tolerance: float, default 1e-4. Tolerance for CDF approximation.
-      Usually meant as mean approximation error. Smaller values lead to better
-      approximation, larger values lead to less number of grid elements (knots)
-      in output approximation. However, using large values (bigger than 0.01)
-      is discouraged because this might lead to unexpected properties of
-      approximation (like increasing density in tails where it should
-      originally decrease, etc.).
-    - density_mincoverage : float, default 0.9999. Minimum value of integral
-      within output of density range estimation.
+    - cdf_tolerance: nonnegative float, default 1e-4. Tolerance for CDF
+      approximation.  Usually meant as mean approximation error. Smaller values
+      lead to better approximation, larger values lead to less number of grid
+      elements (knots) in output approximation. However, using large values
+      (bigger than 0.01) is discouraged because this might lead to unexpected
+      properties of approximation (like increasing density in tails where it
+      should originally decrease, etc.).
+    - density_mincoverage : float inside [0; 1), default 0.9999. Minimum value
+      of integral within output of density range estimation.
     - estimator_bool : callable, default
       randomvars.options.estimator_bool_default. Estimator for
       `Bool.from_sample()`. Function which takes sample as input and returns
@@ -223,20 +260,22 @@ class _Config:
           indicated by `None` element of output tuple: there will be no
           corresponding part in output `Mixt`.
         - Object of class `Rand`.
-    - metric : string, default "L2". Type of metric which measures distance
-      between functions. Used in internal computations. Possible values:
+    - metric : one of strings "L1" or "L2", default "L2". Type of metric which
+      measures distance between functions. Used in internal computations.
+      Possible values:
         - "L1": metric is defined as integral of absolute difference between
           functions. Usually corresponds to using some kind of "median values".
         - "L2": metric is defined as square root of integral of square
           difference between functions. Usually corresponds to using some kind
           of "mean values".
-    - n_grid : int, default 1001. Number of points in initial xy-grids when
-      creating object of class `Cont`.
-    - small_prob : float, default 1e-6. Probability value that can be
-      considered "small" during approximations.
-    - small_width : float, default 1e-8. Difference between x-values that can
-      be considered "small" during approximations.
+    - n_grid : integer more than 1, default 1001. Number of points in initial
+      xy-grids when creating object of class `Cont`.
+    - small_prob : float inside (0; 1), default 1e-6. Probability value that
+      can be considered "small" during approximations.
+    - small_width : positive float, default 1e-8. Difference between x-values
+      that can be considered "small" during approximations.
     """
+
     # Available options
     base_tolerance = _Option(1e-12, _validator_nonneg)
     cdf_tolerance = _Option(1e-4, _validator_nonneg)
@@ -281,28 +320,109 @@ class _Config:
 
     @property
     def list(self):
+        """List of available option names"""
         return self._list
 
     @property
     def defaults(self):
+        """Dictionary of default option values"""
         return self._defaults
 
     @property
     def dict(self):
+        """Dictionary of current option values"""
         return {opt: getattr(self, opt) for opt in self._list}
 
     def get_single(self, opt):
+        """Get value of single option
+
+        This is a wrapper for getting option from attribute with check whether
+        `opt` describes a valid package option.
+
+        Parameters
+        ----------
+        opt : string
+            Name of an option.
+
+        Returns
+        -------
+        opt_value : object
+
+        Raises
+        ------
+        OptionError:
+            If there is no option `opt`.
+        """
         self._validate_option(opt)
         return getattr(self, opt)
 
     def get(self, opt_list):
+        """Get values of options
+
+        This function checks if elements of `opt_list` describe valid package
+        options.
+
+        Parameters
+        ----------
+        opt_list : iterable
+            Iterable with strings as option names.
+
+        Returns
+        ----------
+        opt_values : list
+
+        Raises
+        ------
+        OptionError:
+            If at least one element of `opt_list` represents invalid option
+            name.
+        """
         return [self.get_single(opt) for opt in opt_list]
 
     def set_single(self, opt, value):
+        """Set value of single option
+
+        This is a wrapper for setting option from attribute with check whether
+        `opt` describes a valid package option.
+
+        Nothing is returned.
+
+        Parameters
+        ----------
+        opt : string
+            Name of an option.
+        value : object
+            Value for option to be set.
+
+        Raises
+        ------
+        OptionError:
+            If there is no option `opt` or `value` isn't appropriate value for
+            this option.
+        """
         self._validate_option(opt)
         setattr(self, opt, value)
 
     def set(self, opt_dict):
+        """Set values of options
+
+        This function checks if keys of `opt_dict` describe valid package
+        options and if values of `opt_dict` describe valid values for
+        respective option. If at least one name or value is invalid, nothing is
+        set.
+
+        Nothing is returned.
+
+        Parameters
+        ----------
+        opt_dict : dictionary
+            Dictionary with option names as keys and option values as values.
+
+        Raises
+        ------
+        OptionError:
+            If at least one name or value is invalid.
+        """
         # Ensure that all options and their values are valid before setting
         for key, val in opt_dict.items():
             self._validate_value(key, val)
@@ -311,10 +431,45 @@ class _Config:
             self.set_single(key, val)
 
     def reset_single(self, opt):
+        """Reset single option to default value
+
+        This is a wrapper for setting option from attribute to its default
+        value with check whether `opt` describes a valid package option.
+
+        Nothing is returned.
+
+        Parameters
+        ----------
+        opt : string
+            Name of an option.
+
+        Raises
+        ------
+        OptionError:
+            If there is no option `opt`.
+        """
         self._validate_option(opt)
         setattr(self, opt, type(self).__dict__[opt].default)
 
     def reset(self, opt_list):
+        """Reset options to default values
+
+        This function checks if elements of `opt_list` describe valid package
+        options. If at least one is invalid, nothing is reset.
+
+        Nothing is returned.
+
+        Parameters
+        ----------
+        opt_list : iterable
+            Iterable with strings as option names.
+
+        Raises
+        ------
+        OptionError:
+            If at least one element of `opt_list` represents invalid option
+            name.
+        """
         # Ensure that all options are valid before resetting
         for opt in opt_list:
             self._validate_option(opt)
@@ -323,6 +478,22 @@ class _Config:
             self.reset_single(opt)
 
     def context(self, opt_dict):
+        """Temporarily set option values
+
+        This is a context manager to be used along `with`. It uses
+        `config.set()` to set values on enter and exit, so all checks are
+        inherited from that function.
+
+        Parameters
+        ----------
+        opt_dict : dictionary
+            Dictionary with option names as keys and option values as values.
+
+        Raises
+        ------
+        OptionError:
+            If at least one name or value is invalid.
+        """
         self._context_input = opt_dict
         return self
 
