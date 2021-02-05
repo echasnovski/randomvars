@@ -8,20 +8,13 @@ import pytest
 from randomvars.options import (
     OptionError,
     _Option,
-    _default_options,
-    _docstring_options_list,
     _docstring_paragraph,
     _docstring_relevant_options,
-    _options_list,
     config,
     estimator_bool_default,
     estimator_cont_default,
     estimator_disc_default,
     estimator_mixt_default,
-    get_option,
-    option_context,
-    reset_option,
-    set_option,
 )
 
 from randomvars.tests.commontests import _test_equal_seq
@@ -86,138 +79,6 @@ def test_estimator_mixt_default():
     _test_equal_seq(
         estimator_mixt_default(np.array([0, 1, 0, 1])), (None, np.array([0, 1, 0, 1]))
     )
-
-
-def test__docstring_paragraph():
-    big_string = " ".join(["Newly added documentation"] * 5)
-
-    @_docstring_paragraph(ccc=big_string, ddd="Extra help.")
-    def f():
-        """Function
-
-        Documentation.
-
-            {ccc}
-
-        {ddd}
-
-        More documentation.
-        """
-        return 1
-
-    # Paragraph should be added with identation
-    assert f.__doc__.find("    Newly added documentation") > -1
-    assert f.__doc__.find("Extra help.") > -1
-
-    # Paragraph should be wrapped by default
-    assert all(len(s) < 79 for s in f.__doc__.splitlines())
-
-    # Wrapping shouldn't be done if `wrap=False`
-    @_docstring_paragraph(wrap=False, ccc=big_string)
-    def f2():
-        """Function
-
-        {ccc}
-        """
-        return 1
-
-    assert not all([len(s) < 79 for s in f2.__doc__.splitlines()])
-
-
-def test__docstring_relevant_options():
-    @_docstring_relevant_options(["aaa", "bbb"])
-    def f():
-        """Function
-
-        Documentation.
-
-        {relevant_options}
-
-        More documentation.
-        """
-
-    assert f.__doc__.find("Relevant package options: `aaa`, `bbb`") > -1
-
-
-def test__docstring_options_list():
-    @_docstring_options_list
-    def f():
-        """Function
-
-        Documentation.
-
-        {options_list}
-
-        More documentation.
-        """
-
-    assert f.__doc__.find(_options_list) > -1
-
-
-def test_get_option():
-    # Normal usage
-    assert isinstance(get_option("n_grid"), int)
-
-    # Error on wrong option
-    with pytest.raises(OptionError, match="no option 'aaa'"):
-        get_option("aaa")
-
-
-def test_set_option():
-    prev_opt = get_option("n_grid")
-    new_opt = prev_opt + 1
-
-    try:
-        # Normal usage
-        set_option("n_grid", new_opt)
-        assert get_option("n_grid") == new_opt
-
-        # Error on wrong option
-        with pytest.raises(OptionError, match="no option 'aaa'"):
-            set_option("aaa", 0)
-    finally:
-        set_option("n_grid", prev_opt)
-
-
-def test_reset_option():
-    prev_opt = get_option("n_grid")
-    def_opt = _default_options["n_grid"]
-    new_opt = def_opt + 1
-
-    try:
-        # Normal usage
-        set_option("n_grid", new_opt)
-        assert get_option("n_grid") == new_opt
-
-        reset_option("n_grid")
-        assert get_option("n_grid") == def_opt
-
-        # Error on wrong option
-        with pytest.raises(OptionError, match="no option 'aaa'"):
-            reset_option("aaa")
-    finally:
-        set_option("n_grid", prev_opt)
-
-
-def test_option_context():
-    prev_opt = get_option("n_grid")
-    new_opt = prev_opt + 1
-
-    try:
-        # Normal usage
-        with option_context({"n_grid": new_opt}):
-            assert get_option("n_grid") == new_opt
-
-        assert get_option("n_grid") == prev_opt
-
-        # Error while setting option shouldn't affect option undo
-        with pytest.raises(OptionError, match="no option 'aaa'"):
-            with option_context({"n_grid": new_opt, "aaa": 0}):
-                pass
-
-        assert get_option("n_grid") == prev_opt
-    finally:
-        set_option("n_grid", prev_opt)
 
 
 class Test_Option:
@@ -509,3 +370,54 @@ class TestConfig:
         with pytest.raises(OptionError, match="no option `aaa`"):
             with config.context({"aaa": 0.1}):
                 pass
+
+
+def test__docstring_paragraph():
+    big_string = " ".join(["Newly added documentation"] * 5)
+
+    @_docstring_paragraph(ccc=big_string, ddd="Extra help.")
+    def f():
+        """Function
+
+        Documentation.
+
+            {ccc}
+
+        {ddd}
+
+        More documentation.
+        """
+        return 1
+
+    # Paragraph should be added with identation
+    assert f.__doc__.find("    Newly added documentation") > -1
+    assert f.__doc__.find("Extra help.") > -1
+
+    # Paragraph should be wrapped by default
+    assert all(len(s) < 79 for s in f.__doc__.splitlines())
+
+    # Wrapping shouldn't be done if `wrap=False`
+    @_docstring_paragraph(wrap=False, ccc=big_string)
+    def f2():
+        """Function
+
+        {ccc}
+        """
+        return 1
+
+    assert not all([len(s) < 79 for s in f2.__doc__.splitlines()])
+
+
+def test__docstring_relevant_options():
+    @_docstring_relevant_options(["aaa", "bbb"])
+    def f():
+        """Function
+
+        Documentation.
+
+        {relevant_options}
+
+        More documentation.
+        """
+
+    assert f.__doc__.find("Relevant package options: `aaa`, `bbb`") > -1
