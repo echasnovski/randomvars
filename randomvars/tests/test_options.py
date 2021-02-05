@@ -110,6 +110,16 @@ class Test_Option:
         with pytest.raises(OptionError, match="`opt` should be positive"):
             a.opt = 0.0
 
+    def test_validate_value(self):
+        class A:
+            opt = _Option(default=0.1, validator=(lambda x: x > 0, "positive"))
+
+        assert A.__dict__["opt"].validate_value(0.1) == True
+        assert A.__dict__["opt"].validate_value(-0.1) == False
+
+        with pytest.raises(OptionError, match="verifying validity of value for `opt`"):
+            A.__dict__["opt"].validate_value("a")
+
 
 class persistent_config:
     """Ensure `config` object is always the same
@@ -271,6 +281,17 @@ class TestConfig:
         with pytest.raises(OptionError, match="no option `aaa`"):
             config._validate_option("aaa")
 
+    def test__validate_value(self):
+        config._validate_value("base_tolerance", 0.1)
+
+        with pytest.raises(OptionError, match="no option `aaa`"):
+            config._validate_value("aaa", 0.1)
+
+        with pytest.raises(
+            OptionError, match="-0.1 is not valid for option `base_tolerance`"
+        ):
+            config._validate_value("base_tolerance", -0.1)
+
     def test_list(self):
         l = config.list
         assert isinstance(l, list)
@@ -334,10 +355,17 @@ class TestConfig:
             with pytest.raises(OptionError, match="no option `aaa`"):
                 config.set({"aaa": 0.1})
 
-        # Ensure that all options are valid before setting
+        # Ensure that all options and their values are valid before setting
         with persistent_config():
             with pytest.raises(OptionError, match="no option `aaa`"):
                 config.set({"base_tolerance": 0.1, "aaa": 1})
+            ## `base_tolerance` shouldn't be set
+            assert config.base_tolerance != 0.1
+        with persistent_config():
+            with pytest.raises(
+                OptionError, match="1 is not valid for option `estimator_bool`"
+            ):
+                config.set({"base_tolerance": 0.1, "estimator_bool": 1})
             ## `base_tolerance` shouldn't be set
             assert config.base_tolerance != 0.1
 
@@ -403,6 +431,14 @@ class TestConfig:
         with pytest.raises(OptionError, match="no option `aaa`"):
             with config.context({"aaa": 0.1}):
                 pass
+
+        # Error on bad option value doesn't affect `config`
+        with pytest.raises(
+            OptionError, match="1 is not valid for option `estimator_bool`"
+        ):
+            with config.context({"base_tolerance": 0.1, "estimator_bool": 1}):
+                pass
+        assert config.base_tolerance != 0.1
 
 
 def test__docstring_paragraph():
