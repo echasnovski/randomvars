@@ -13,13 +13,13 @@ from randomvars.options import (
     _docstring_paragraph,
     _docstring_relevant_options,
     _options_list,
+    config,
     estimator_bool_default,
     estimator_cont_default,
     estimator_disc_default,
     estimator_mixt_default,
     get_option,
     option_context,
-    options,
     reset_option,
     set_option,
 )
@@ -250,262 +250,262 @@ class Test_SingleOption:
             a.opt = 0.0
 
 
-class TestOptions:
-    """Tests for `options` object"""
+class TestConfig:
+    """Tests for `config` object"""
 
     def test_basic(self):
         # Get option as attribute
-        assert isinstance(options.base_tolerance, float)
+        assert isinstance(config.base_tolerance, float)
 
         # Set option as attribute
-        val = options.base_tolerance
-        options.base_tolerance = 0.1
-        assert options.base_tolerance == 0.1
+        val = config.base_tolerance
+        config.base_tolerance = 0.1
+        assert config.base_tolerance == 0.1
 
         ## Cleanup
-        options.base_tolerance = val
+        config.base_tolerance = val
 
         # Validate option value
         with pytest.raises(OptionError, match="non-negative"):
-            options.base_tolerance = -0.1
+            config.base_tolerance = -0.1
         with pytest.raises(OptionError, match="float"):
-            options.base_tolerance = "a"
+            config.base_tolerance = "a"
 
     def test_available_options(self):
         # `base_tolerance`
-        options.base_tolerance == 1e-12
+        config.base_tolerance == 1e-12
 
         with pytest.raises(OptionError, match="float"):
-            options.base_tolerance = "0.1"
+            config.base_tolerance = "0.1"
         with pytest.raises(OptionError, match="non-negative"):
-            options.base_tolerance = -0.1
+            config.base_tolerance = -0.1
 
         # `cdf_tolerance`
-        options.cdf_tolerance == 1e-4
+        config.cdf_tolerance == 1e-4
 
         with pytest.raises(OptionError, match="float"):
-            options.cdf_tolerance = "0.1"
+            config.cdf_tolerance = "0.1"
         with pytest.raises(OptionError, match="non-negative"):
-            options.cdf_tolerance = -0.1
+            config.cdf_tolerance = -0.1
 
         # `density_mincoverage`
-        options.density_mincoverage == 0.9999
+        config.density_mincoverage == 0.9999
 
         with pytest.raises(OptionError, match="float"):
-            options.density_mincoverage = "0.1"
+            config.density_mincoverage = "0.1"
         with pytest.raises(OptionError, match=r"inside \[0; 1\)"):
-            options.density_mincoverage = -0.1
+            config.density_mincoverage = -0.1
         with pytest.raises(OptionError, match=r"inside \[0; 1\)"):
-            options.density_mincoverage = 1.1
+            config.density_mincoverage = 1.1
 
         ## Zero is allowed, one is not allowed
-        val = options.density_mincoverage
-        options.density_mincoverage = 0.0
-        options.density_mincoverage = val
+        val = config.density_mincoverage
+        config.density_mincoverage = 0.0
+        config.density_mincoverage = val
         with pytest.raises(OptionError):
-            options.density_mincoverage = 1.0
+            config.density_mincoverage = 1.0
 
         # `estimator_bool`
-        assert options.estimator_bool([0, 1, 0]) == estimator_bool_default([0, 1, 0])
+        assert config.estimator_bool([0, 1, 0]) == estimator_bool_default([0, 1, 0])
 
         with pytest.raises(OptionError, match="callable"):
-            options.estimator_bool = 0.0
+            config.estimator_bool = 0.0
 
         # `estimator_cont`
         assert np.all(
-            options.estimator_cont([0, 1, 0])([-1, 0, 1])
+            config.estimator_cont([0, 1, 0])([-1, 0, 1])
             == estimator_cont_default([0, 1, 0])([-1, 0, 1])
         )
 
         with pytest.raises(OptionError, match="callable"):
-            options.estimator_cont = 0.0
+            config.estimator_cont = 0.0
 
         # `estimator_disc`
         _test_equal_seq(
-            options.estimator_disc([0, 1, 0]), estimator_disc_default([0, 1, 0])
+            config.estimator_disc([0, 1, 0]), estimator_disc_default([0, 1, 0])
         )
 
         with pytest.raises(OptionError, match="callable"):
-            options.estimator_disc = 0.0
+            config.estimator_disc = 0.0
 
         # `estimator_mixt`
         _test_equal_seq(
-            options.estimator_mixt([0, 1, 0]), estimator_mixt_default([0, 1, 0])
+            config.estimator_mixt([0, 1, 0]), estimator_mixt_default([0, 1, 0])
         )
 
         with pytest.raises(OptionError, match="callable"):
-            options.estimator_mixt = 0.0
+            config.estimator_mixt = 0.0
 
         # `metric`
-        assert options.metric == "L2"
+        assert config.metric == "L2"
         with pytest.raises(OptionError, match="one of"):
-            options.metric = 0.0
+            config.metric = 0.0
         with pytest.raises(OptionError, match="one of"):
-            options.metric = "aaa"
+            config.metric = "aaa"
 
         # `n_grid`
-        assert options.n_grid == 1001
+        assert config.n_grid == 1001
         with pytest.raises(OptionError, match="integer"):
-            options.n_grid = "1001"
+            config.n_grid = "1001"
         with pytest.raises(OptionError, match="more than 1"):
-            options.n_grid = 1
+            config.n_grid = 1
 
         # `small_prob`
-        options.small_prob == 1e-6
+        config.small_prob == 1e-6
 
         with pytest.raises(OptionError, match="float"):
-            options.small_prob = "0.1"
+            config.small_prob = "0.1"
         with pytest.raises(OptionError, match=r"inside \(0; 1\)"):
-            options.small_prob = -0.1
+            config.small_prob = -0.1
         with pytest.raises(OptionError, match=r"inside \(0; 1\)"):
-            options.small_prob = 1.1
+            config.small_prob = 1.1
         with pytest.raises(OptionError, match=r"inside \(0; 1\)"):
-            options.small_prob = 0.0
+            config.small_prob = 0.0
         with pytest.raises(OptionError, match=r"inside \(0; 1\)"):
-            options.small_prob = 1.0
+            config.small_prob = 1.0
 
         # `small_width`
-        options.small_width == 1e-8
+        config.small_width == 1e-8
 
         with pytest.raises(OptionError, match="float"):
-            options.small_width = "0.1"
+            config.small_width = "0.1"
         with pytest.raises(OptionError, match="positive"):
-            options.small_width = -0.1
+            config.small_width = -0.1
         with pytest.raises(OptionError, match="positive"):
-            options.small_width = 0.0
+            config.small_width = 0.0
 
     def test_list(self):
-        l = options.list
+        l = config.list
         assert isinstance(l, list)
         assert all(isinstance(val, str) for val in l)
-        assert all(isinstance(type(options).__dict__[val], _SingleOption) for val in l)
+        assert all(isinstance(type(config).__dict__[val], _SingleOption) for val in l)
 
     def test_dict(self):
-        d = options.dict
+        d = config.dict
         assert isinstance(d, dict)
-        assert list(d.keys()) == options.list
+        assert list(d.keys()) == config.list
 
         # Should return current option values
-        val = options.base_tolerance
-        options.base_tolerance = 0.1
-        assert options.dict["base_tolerance"] == 0.1
+        val = config.base_tolerance
+        config.base_tolerance = 0.1
+        assert config.dict["base_tolerance"] == 0.1
 
         ## Cleanup
-        options.base_tolerance = val
+        config.base_tolerance = val
 
     def test_defaults(self):
         # Should return default option values
-        val = options.base_tolerance
-        options.base_tolerance = 0.1
-        assert options.defaults["base_tolerance"] == val
+        val = config.base_tolerance
+        config.base_tolerance = 0.1
+        assert config.defaults["base_tolerance"] == val
 
         ## Cleanup
-        options.base_tolerance = val
+        config.base_tolerance = val
 
     def test_get_single(self):
-        assert options.get_single("base_tolerance") == options.base_tolerance
+        assert config.get_single("base_tolerance") == config.base_tolerance
 
         # Error on non-existent option
         with pytest.raises(OptionError, match="no option `aaa`"):
-            options.get_single("aaa")
+            config.get_single("aaa")
 
     def test_get(self):
-        assert options.get(["base_tolerance", "estimator_bool"]) == [
-            options.base_tolerance,
-            options.estimator_bool,
+        assert config.get(["base_tolerance", "estimator_bool"]) == [
+            config.base_tolerance,
+            config.estimator_bool,
         ]
 
         # Should return list even with one-element input
-        assert options.get(["base_tolerance"]) == [options.base_tolerance]
+        assert config.get(["base_tolerance"]) == [config.base_tolerance]
 
         # Error on non-existent option
         with pytest.raises(OptionError, match="no option `aaa`"):
-            options.get(["base_tolerance", "aaa"])
+            config.get(["base_tolerance", "aaa"])
 
     def test_set_single(self):
-        val = options.base_tolerance
-        options.set_single("base_tolerance", 0.1)
-        assert options.base_tolerance == 0.1
+        val = config.base_tolerance
+        config.set_single("base_tolerance", 0.1)
+        assert config.base_tolerance == 0.1
 
         ## Cleanup
-        options.base_tolerance = val
+        config.base_tolerance = val
 
         # Error on non-existent option
         with pytest.raises(OptionError, match="no option `aaa`"):
-            options.set_single("aaa", 0.1)
+            config.set_single("aaa", 0.1)
 
     def test_set(self):
-        vals = [options.base_tolerance, options.estimator_bool]
-        options.set({"base_tolerance": 0.1, "estimator_bool": lambda x: np.mean(x)})
-        assert options.base_tolerance == 0.1
-        assert options.estimator_bool([1, 2]) == 1.5
+        vals = [config.base_tolerance, config.estimator_bool]
+        config.set({"base_tolerance": 0.1, "estimator_bool": lambda x: np.mean(x)})
+        assert config.base_tolerance == 0.1
+        assert config.estimator_bool([1, 2]) == 1.5
 
         ## Cleanup
-        options.base_tolerance = vals[0]
-        options.estimator_bool = vals[1]
+        config.base_tolerance = vals[0]
+        config.estimator_bool = vals[1]
 
         # Error on non-existent option
         with pytest.raises(OptionError, match="no option `aaa`"):
-            options.set({"aaa": 0.1})
+            config.set({"aaa": 0.1})
 
     def test_reset_single(self):
         # Should set value to default option, not the previous one
-        val = options.base_tolerance
-        options.base_tolerance = 0.1
-        options.base_tolerance = 0.2
-        options.reset_single("base_tolerance")
-        assert options.base_tolerance == val
+        val = config.base_tolerance
+        config.base_tolerance = 0.1
+        config.base_tolerance = 0.2
+        config.reset_single("base_tolerance")
+        assert config.base_tolerance == val
 
         ## Cleanup
-        options.base_tolerance = val
+        config.base_tolerance = val
 
         # Error on non-existent option
         with pytest.raises(OptionError, match="no option `aaa`"):
-            options.reset_single("aaa")
+            config.reset_single("aaa")
 
     def test_reset(self):
         # Should set value to default option, not the previous one
-        vals = [options.base_tolerance, options.estimator_bool]
-        options.base_tolerance = 0.1
-        options.base_tolerance = 0.2
-        options.estimator_bool = lambda x: np.mean(x)
-        options.estimator_bool = lambda x: np.median(x)
-        options.reset(["base_tolerance", "estimator_bool"])
-        assert options.base_tolerance == vals[0]
-        assert options.estimator_bool == vals[1]
+        vals = [config.base_tolerance, config.estimator_bool]
+        config.base_tolerance = 0.1
+        config.base_tolerance = 0.2
+        config.estimator_bool = lambda x: np.mean(x)
+        config.estimator_bool = lambda x: np.median(x)
+        config.reset(["base_tolerance", "estimator_bool"])
+        assert config.base_tolerance == vals[0]
+        assert config.estimator_bool == vals[1]
 
         ## Cleanup
-        options.base_tolerance = vals[0]
-        options.estimator_bool = vals[1]
+        config.base_tolerance = vals[0]
+        config.estimator_bool = vals[1]
 
         # Error on non-existent option
         with pytest.raises(OptionError, match="no option `aaa`"):
-            options.reset(["base_tolerance", "aaa"])
+            config.reset(["base_tolerance", "aaa"])
 
     def test_context(self):
         # It shouldn't be possible to use raw `options` as context manager
         with pytest.raises(OptionError, match=r"Use `context\(\)`"):
-            with options:
+            with config:
                 pass
 
         # Usage of `context()`
-        val = options.base_tolerance
+        val = config.base_tolerance
         assert val != 0.1
-        with options.context({"base_tolerance": 0.1}):
-            assert options.base_tolerance == 0.1
-        assert options.base_tolerance == val
+        with config.context({"base_tolerance": 0.1}):
+            assert config.base_tolerance == 0.1
+        assert config.base_tolerance == val
 
         ## Cleanup
-        options.base_tolerance = val
+        config.base_tolerance = val
 
         # It shouldn't be possible to use raw `options` as context manager even
         # after using `context()` (deals with some possible implementation
         # detail)
         with pytest.raises(OptionError, match=r"Use `context\(\)`"):
-            with options:
+            with config:
                 pass
 
         # Error on non-existent option
         with pytest.raises(OptionError, match="no option `aaa`"):
-            with options.context({"aaa": 0.1}):
+            with config.context({"aaa": 0.1}):
                 pass

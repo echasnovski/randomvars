@@ -21,7 +21,7 @@ from randomvars._utils import (
     BSplineConstExtrapolate,
 )
 from randomvars.tests.commontests import h
-from randomvars.options import options
+from randomvars.options import config
 
 
 def test__as_1d_array():
@@ -222,7 +222,7 @@ def test__quad_silent():
 def test__is_close():
     assert_array_equal(_is_close([1, 0, -1], [-1, 0, 1]), [False, True, False])
 
-    with options.context({"base_tolerance": 0.1}):
+    with config.context({"base_tolerance": 0.1}):
         assert_array_equal(_is_close([0.15, 0.05], [0.0, 0.0]), [False, True])
 
     # Bad input
@@ -237,7 +237,7 @@ def test__is_close():
 
 
 def test__tolerance():
-    with options.context({"base_tolerance": 0.1}):
+    with config.context({"base_tolerance": 0.1}):
         # Tolerance for values inside [-1, 1] should be base tolerance
         assert_array_equal(_tolerance([-1, 0.5, 1e-15, 0, 1e-15, 0.5, 1]), 0.1)
 
@@ -251,7 +251,7 @@ def test__tolerance():
 def test__is_zero():
     assert_array_equal(_is_zero([1, 0, -1]), [False, True, False])
 
-    with options.context({"base_tolerance": 0.1}):
+    with config.context({"base_tolerance": 0.1}):
         assert_array_equal(_is_zero([0.15, 0.05]), [False, True])
 
 

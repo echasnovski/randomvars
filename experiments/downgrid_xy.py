@@ -22,7 +22,7 @@ import matplotlib.colors
 import matplotlib.cm as cm
 
 from randomvars import Cont
-from randomvars.options import options
+from randomvars.options import config
 
 # %% Downgrid xy-grid
 # Version 1. Downgrid by iteratively removing points. At one iteration point is
@@ -518,7 +518,7 @@ def fun_distance(f, g, method="L2"):
 
 
 # %% Experiments
-# with options.context({"cdf_tolerance": 1e-6}):
+# with config.context({"cdf_tolerance": 1e-6}):
 #     rv = Cont.from_rv(ss.norm())
 # rv = Cont.from_rv(ss.expon())
 rv = Cont.from_rv(ss.beta(a=3, b=5))

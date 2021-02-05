@@ -12,7 +12,7 @@ from randomvars._utilsgrid import (
     _compute_stack_ground_info,
     _ground_xy,
 )
-from randomvars.options import options
+from randomvars.options import config
 from randomvars.tests.commontests import DECIMAL, _test_equal_seq
 
 
@@ -50,7 +50,7 @@ def test__stack_xp():
 
 class TestStackXY:
     def test_basic(self):
-        w = options.small_width
+        w = config.small_width
 
         xy_seq1 = [([0, 1], [1, 1]), ([0.25, 1.25], [1, 1]), ([0.5, 1.5], [1, 1])]
         _test_equal_seq(
@@ -95,7 +95,7 @@ class TestStackXY:
         _test_equal_seq(_stack_xy(xy_seq4), ([0, 1], [2, 2]))
 
     def test_width(self):
-        w = options.small_width
+        w = config.small_width
 
         # Width should be computed as maximum value not bigger than
         # `small_width` option that ensures identical jumping slopes
@@ -123,7 +123,7 @@ class TestStackXY:
         )
 
     def test_touching_supports(self):
-        w = options.small_width
+        w = config.small_width
 
         # Touching supports should lead to linear change between y-values
         xy_seq = [([0, 1], [1, 1]), ([1, 2], [2, 2])]
@@ -137,14 +137,14 @@ class TestStackXY:
         )
 
     def test_zero_edge(self):
-        w = options.small_width
+        w = config.small_width
         xy_seq = [([0, 1, 2], [0, 1, 0]), ([1, 2, 3], [0, 1, 1])]
         _test_equal_seq(_stack_xy(xy_seq), ([0, 1, 2, 3], [0.0, 1.0, 1.0, 1.0]))
 
     def test_options(self):
         xy_seq = [([0, 1], [1, 1]), ([0.25, 0.75], [1, 1])]
-        with options.context({"small_width": 0.01}):
-            w = options.small_width
+        with config.context({"small_width": 0.01}):
+            w = config.small_width
             _test_equal_seq(
                 _stack_xy(xy_seq),
                 (
@@ -181,7 +181,7 @@ class TestGroundInfo:
         )
 
     def test_width(self):
-        w = options.small_width
+        w = config.small_width
 
         # Basic usage should return `small_width`
         assert_array_equal(
@@ -210,7 +210,7 @@ class TestGroundInfo:
 
 class TestGroundXY:
     def test_basic(self):
-        w = options.small_width
+        w = config.small_width
         xy = np.array([0.0, 1.0]), np.array([1.0, 1.0])
 
         # Basic usage
@@ -228,8 +228,8 @@ class TestGroundXY:
 
     def test_close_neighbor(self):
         # Using big "small_width" to mitigate possible floating points issues
-        with options.context({"small_width": 0.1}):
-            w = options.small_width
+        with config.context({"small_width": 0.1}):
+            w = config.small_width
             neigh = 0.25 * w
             # Output xy-grids should have the same total square as input xy-grid
             edge_val = neigh / (neigh + w)
@@ -254,7 +254,7 @@ class TestGroundXY:
             )
 
     def test_zero_edge(self):
-        w = options.small_width
+        w = config.small_width
         xy = np.array([0.0, 1.0, 2.0]), np.array([0.0, 1.0, 0.0])
 
         # No grounding should be done if edge has zero y-value
@@ -263,8 +263,8 @@ class TestGroundXY:
         _test_equal_seq(_ground_xy(xy, w, direction="right"), xy)
 
     def test_options(self):
-        with options.context({"small_width": 0.1}):
-            w = options.small_width
+        with config.context({"small_width": 0.1}):
+            w = config.small_width
             xy = np.array([0.0, 1.0]), np.array([1.0, 1.0])
             _test_equal_seq(
                 _ground_xy(xy, w, direction="both"),

@@ -5,7 +5,7 @@ import numpy as np
 from scipy.stats.distributions import rv_frozen
 
 from randomvars._random import Rand
-from randomvars.options import options, _docstring_relevant_options
+from randomvars.options import config, _docstring_relevant_options
 import randomvars._utils as utils
 
 
@@ -149,7 +149,7 @@ class Bool(Rand):
             raise ValueError("`rv` should have method `cdf()`.")
 
         # Get options
-        base_tol = options.base_tolerance
+        base_tol = config.base_tolerance
 
         # Compute probability of `False`
         prob_false = rv.cdf(0) - rv.cdf(-base_tol)
@@ -187,7 +187,7 @@ class Bool(Rand):
         sample = utils._as_1d_numpy(sample, "sample", chkfinite=False, dtype="bool")
 
         # Get options
-        estimator_bool = options.estimator_bool
+        estimator_bool = config.estimator_bool
 
         # Estimate distribution
         estimate = estimator_bool(sample)

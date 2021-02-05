@@ -19,7 +19,7 @@ from randomvars.tests.commontests import (
     declass,
     h,
 )
-from randomvars.options import options
+from randomvars.options import config
 
 
 def assert_ppf(cont, disc, weight_cont):
@@ -288,19 +288,19 @@ class TestMixt:
         # will significantly overestimate value if there is continuous part to
         # its left
         ## Here big `small_prob` option is used to speed up execution
-        with options.context({"base_tolerance": 0.1, "small_prob": 0.001}):
+        with config.context({"base_tolerance": 0.1, "small_prob": 0.001}):
             rv_out = Mixt.from_rv(rv)
             assert rv_out.disc.p[0] > disc.p[0] + 0.03
 
         # With high `small_prob` there is almost no chance that discrete part
         # will be detected if products of its weight with probabilities is very
         # low
-        with options.context({"small_prob": 0.3}):
+        with config.context({"small_prob": 0.3}):
             rv_out = Mixt.from_rv(rv)
             assert rv_out.weight_cont == 1.0
 
     def test_from_sample_basic(self):
-        estimator_mixt = options.estimator_mixt
+        estimator_mixt = config.estimator_mixt
         sample = np.array([0.1, -1, 0.1, 2, 3, 0, -1, -1])
 
         # Normal usage
@@ -314,18 +314,18 @@ class TestMixt:
         _test_equal_rand(rv, rv_ref)
 
         # Degenerate cases
-        with options.context({"estimator_mixt": lambda t: (t, None)}):
+        with config.context({"estimator_mixt": lambda t: (t, None)}):
             _test_equal_rand(
                 Mixt.from_sample(sample), Mixt(Cont.from_sample(sample), None, 1.0)
             )
 
-        with options.context({"estimator_mixt": lambda t: (None, t)}):
+        with config.context({"estimator_mixt": lambda t: (None, t)}):
             _test_equal_rand(
                 Mixt.from_sample(sample), Mixt(None, Disc.from_sample(sample), 0.0)
             )
 
         # Usage of `estimate` to estimate `weight_cont`
-        with options.context({"estimator_mixt": lambda t: (t[:2], t[2:4])}):
+        with config.context({"estimator_mixt": lambda t: (t[:2], t[2:4])}):
             rv_out = Mixt.from_sample(sample)
             # Here it should be used that estimate has different total number
             # of elements
@@ -337,34 +337,34 @@ class TestMixt:
         disc = Disc([0], [1])
         mixt = Mixt(cont, disc, 0.5)
 
-        with options.context({"estimator_cont": lambda t: cont}):
+        with config.context({"estimator_cont": lambda t: cont}):
             _test_equal_rand(Mixt.from_sample(sample).cont, cont)
 
-        with options.context({"estimator_disc": lambda t: disc}):
+        with config.context({"estimator_disc": lambda t: disc}):
             _test_equal_rand(Mixt.from_sample(sample).disc, disc)
 
-        with options.context({"estimator_mixt": lambda t: mixt}):
+        with config.context({"estimator_mixt": lambda t: mixt}):
             _test_equal_rand(Mixt.from_sample(sample), mixt)
 
     def test_from_sample_errors(self):
         # Errors if output of `estimate_mixt` is not `Rand`
         ## Estimate should be tuple
         with pytest.raises(TypeError, match="`estimate`.*tuple"):
-            with options.context({"estimator_mixt": lambda t: t}):
+            with config.context({"estimator_mixt": lambda t: t}):
                 Mixt.from_sample([0, 1, 2])
 
         # Estimate should have exactly two elements
         with pytest.raises(ValueError, match="`estimate`.*two"):
-            with options.context({"estimator_mixt": lambda t: (t,)}):
+            with config.context({"estimator_mixt": lambda t: (t,)}):
                 Mixt.from_sample([0, 1, 2])
 
         with pytest.raises(ValueError, match="`estimate`.*two"):
-            with options.context({"estimator_mixt": lambda t: (t, t, t)}):
+            with config.context({"estimator_mixt": lambda t: (t, t, t)}):
                 Mixt.from_sample([0, 1, 2])
 
         # Estimate can't have both elements to be `None`
         with pytest.raises(ValueError, match="`estimate`.*two `None`"):
-            with options.context({"estimator_mixt": lambda t: (None, None)}):
+            with config.context({"estimator_mixt": lambda t: (None, None)}):
                 Mixt.from_sample([0, 1, 2])
 
     def test_pdf(self):
@@ -636,7 +636,7 @@ class TestMixt:
     def test_convert(self):
         import randomvars._boolean as bool
 
-        w = options.small_width
+        w = config.small_width
 
         cont = Cont([0, 1], [1, 1])
         disc = Disc([-1, 0.5], [0.25, 0.75])
@@ -722,14 +722,14 @@ class TestMixt:
         rv = Mixt(cont=cont, disc=disc, weight_cont=weight_cont)
 
         # Grounding is done respecting `small_width` package option
-        with options.context({"small_width": 0.1}):
-            w = options.small_width
+        with config.context({"small_width": 0.1}):
+            w = config.small_width
             rv_tocont = rv.convert("Cont")
             assert_array_equal(rv_tocont.x, [-1, -w, 0, w, 0.5 - w, 0.5, 0.5 + w, 1])
 
         # No grounding is done if edge is close to output edge
-        with options.context({"base_tolerance": 0.1}):
-            tol = options.base_tolerance
+        with config.context({"base_tolerance": 0.1}):
+            tol = config.base_tolerance
             rv = Mixt(
                 cont=Cont([0, 1], [1, 1]),
                 disc=Disc([0.5 * tol, 1 - 0.5 * tol], [0.5, 0.5]),
@@ -777,7 +777,7 @@ class TestFromRVAccuracy:
         rv = declass(rv_ref)
         rv_out = Mixt.from_rv(rv)
         x_grid = np.linspace(rv_ref.a, rv_ref.b, 10001)
-        tolerance_decimal = np.ceil(-np.log10(options.cdf_tolerance))
+        tolerance_decimal = np.ceil(-np.log10(config.cdf_tolerance))
         assert_array_almost_equal(
             rv_out.cdf(x_grid), rv.cdf(x_grid), decimal=tolerance_decimal
         )

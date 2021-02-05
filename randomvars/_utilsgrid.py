@@ -1,7 +1,7 @@
 import numpy as np
 
 import randomvars._utils as utils
-from randomvars.options import options
+from randomvars.options import config
 
 # %% Conversion
 # There were different other approaches to Cont-Disc conversion, which were
@@ -157,7 +157,7 @@ def _compute_stack_ground_info(xy_seq):
     left_neigh = [x[1] - x[0] for gr, (x, _) in zip(ground_left, xy_seq) if gr]
     right_neigh = [x[-1] - x[-2] for gr, (x, _) in zip(ground_right, xy_seq) if gr]
     w = min(
-        options.small_width,
+        config.small_width,
         # Using `default=np.inf` accounts for possible empty input list. This
         # can happen if, for example, all xy-grids have the same left edge.
         # Using `min(t, default=np.inf)` instead of `np.min(t, initial=np.inf)`

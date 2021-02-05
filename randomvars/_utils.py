@@ -4,7 +4,7 @@ import numpy as np
 from scipy.integrate import quad
 from scipy.interpolate import BSpline
 
-from randomvars.options import options
+from randomvars.options import config
 
 
 # %% Array manipulations
@@ -237,12 +237,12 @@ def _is_close(x, y):
 
 
 def _is_zero(x):
-    return np.absolute(x) <= options.base_tolerance
+    return np.absolute(x) <= config.base_tolerance
 
 
 def _tolerance(x):
     coef = np.maximum(1.0, np.spacing(np.absolute(x)) / np.spacing(1.0))
-    return coef * options.base_tolerance
+    return coef * config.base_tolerance
 
 
 def _minmax(x):
