@@ -362,7 +362,7 @@ class OptionError(KeyError):
     """
 
 
-class _SingleOption:
+class _Option:
     def __init__(self, default, validator):
         self.default = default
         self.option = default
@@ -395,37 +395,35 @@ _validator_callable = (lambda x: callable(x), "a callable")
 
 class _Config:
     # Available options
-    base_tolerance = _SingleOption(1e-12, _validator_nonneg)
-    cdf_tolerance = _SingleOption(1e-4, _validator_nonneg)
-    density_mincoverage = _SingleOption(
+    base_tolerance = _Option(1e-12, _validator_nonneg)
+    cdf_tolerance = _Option(1e-4, _validator_nonneg)
+    density_mincoverage = _Option(
         0.9999,
         (lambda x: isinstance(x, float) and 0 <= x and x < 1, "a float inside [0; 1)"),
     )
-    estimator_bool = _SingleOption(estimator_bool_default, _validator_callable)
-    estimator_cont = _SingleOption(estimator_cont_default, _validator_callable)
-    estimator_disc = _SingleOption(estimator_disc_default, _validator_callable)
-    estimator_mixt = _SingleOption(estimator_mixt_default, _validator_callable)
-    metric = _SingleOption(
+    estimator_bool = _Option(estimator_bool_default, _validator_callable)
+    estimator_cont = _Option(estimator_cont_default, _validator_callable)
+    estimator_disc = _Option(estimator_disc_default, _validator_callable)
+    estimator_mixt = _Option(estimator_mixt_default, _validator_callable)
+    metric = _Option(
         "L2",
         (lambda x: isinstance(x, str) and x in ["L1", "L2"], 'one of "L1" or "L2"'),
     )
-    n_grid = _SingleOption(
+    n_grid = _Option(
         1001, (lambda x: isinstance(x, int) and x > 1, "an integer more than 1")
     )
-    small_prob = _SingleOption(
+    small_prob = _Option(
         1e-6,
         (lambda x: isinstance(x, float) and 0 < x and x < 1, "a float inside (0; 1)"),
     )
-    small_width = _SingleOption(
+    small_width = _Option(
         1e-8, (lambda x: isinstance(x, float) and x > 0, "a positive float")
     )
 
     # Methods
     def __init__(self):
         self._list = [
-            key
-            for key, val in type(self).__dict__.items()
-            if isinstance(val, _SingleOption)
+            key for key, val in type(self).__dict__.items() if isinstance(val, _Option)
         ]
         self._defaults = {opt: getattr(self, opt) for opt in self._list}
 

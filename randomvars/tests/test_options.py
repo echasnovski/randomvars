@@ -7,7 +7,7 @@ import pytest
 
 from randomvars.options import (
     OptionError,
-    _SingleOption,
+    _Option,
     _default_options,
     _docstring_options_list,
     _docstring_paragraph,
@@ -220,10 +220,10 @@ def test_option_context():
         set_option("n_grid", prev_opt)
 
 
-class Test_SingleOption:
+class Test_Option:
     def test_basic(self):
         class A:
-            opt = _SingleOption(default=0.1, validator=(lambda x: x > 0, "positive"))
+            opt = _Option(default=0.1, validator=(lambda x: x > 0, "positive"))
 
         a = A()
 
@@ -239,7 +239,7 @@ class Test_SingleOption:
 
     def test_errors(self):
         class A:
-            opt = _SingleOption(default=0.1, validator=(lambda x: x > 0, "positive"))
+            opt = _Option(default=0.1, validator=(lambda x: x > 0, "positive"))
 
         a = A()
 
@@ -378,7 +378,7 @@ class TestConfig:
         l = config.list
         assert isinstance(l, list)
         assert all(isinstance(val, str) for val in l)
-        assert all(isinstance(type(config).__dict__[val], _SingleOption) for val in l)
+        assert all(isinstance(type(config).__dict__[val], _Option) for val in l)
 
     def test_dict(self):
         d = config.dict
