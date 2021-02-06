@@ -12,10 +12,6 @@ __all__ = [
     "estimator_cont_default",
     "estimator_disc_default",
     "estimator_mixt_default",
-    "get_option",
-    "option_context",
-    "reset_option",
-    "set_option",
 ]
 
 
@@ -124,24 +120,48 @@ def estimator_mixt_default(sample):
         return (sample[~sample_is_disc], sample[sample_is_disc])
 
 
-# %% Options
-_default_options = {
-    "base_tolerance": 1e-12,
-    "cdf_tolerance": 1e-4,
-    "density_mincoverage": 0.9999,
-    "estimator_bool": estimator_bool_default,
-    "estimator_cont": estimator_cont_default,
-    "estimator_disc": estimator_disc_default,
-    "estimator_mixt": estimator_mixt_default,
-    "metric": "L2",
-    "n_grid": 1001,
-    "small_prob": 1e-6,
-    "small_width": 1e-8,
-}
-_options = _default_options.copy()
+# %% Configuration
+class OptionError(KeyError):
+    """
+    Exception describing error in interaction with package options.
+    """
 
-# Copying indentation from docstrings in this file
-_options_list = """
+
+class _Option:
+    def __init__(self, default, validator):
+        self.default = default
+        self.option = default
+        self.validator_f, self.validator_str = validator
+
+    def __set_name__(self, owner, name):
+        self.name = name
+
+    def __get__(self, obj, objtype=None):
+        return self.option
+
+    def __set__(self, obj, value):
+        try:
+            value_is_valid = self.validator_f(value)
+        except BaseException as e:
+            raise OptionError(
+                "There was an error verifying validity of value for "
+                f"`{self.name}`: {str(e)}"
+            )
+
+        if not value_is_valid:
+            raise OptionError(f"`{self.name}` should be {self.validator_str}")
+
+        self.option = value
+
+
+_validator_nonneg = (lambda x: isinstance(x, float) and x >= 0, "a non-negative float")
+_validator_callable = (lambda x: callable(x), "a callable")
+
+
+class _Config:
+    """Package configuration
+
+    List of available options:
     - base_tolerance : float, default 1e-12. Tolerance to be used for testing
       approximate equality of two numbers. It is used to compute tolerance
       associated with any number `x`:
@@ -213,187 +233,8 @@ _options_list = """
       considered "small" during approximations.
     - small_width : float, default 1e-8. Difference between x-values that can
       be considered "small" during approximations.
-"""
-
-
-# %% Documentation helpers
-def _docstring_paragraph(wrap=True, **kwargs):
-    def decorator(f):
-        doc = f.__doc__
-
-        # Ensure paragraph indentation and width wrap
-        kwargs_new = {}
-        for marker, string in kwargs.items():
-            marker_full = f"{{{marker}}}"
-            # Assuming marker is placed on a separate line
-            target_line = [s for s in doc.splitlines() if s.find(marker_full) > -1][0]
-            indentation = target_line.replace(marker_full, "")
-
-            if wrap:
-                lines = textwrap.wrap(string, width=79 - len(indentation))
-            else:
-                lines = [string]
-
-            paragraph = f"\n{indentation}".join(lines)
-            kwargs_new[marker] = paragraph
-
-        f.__doc__ = doc.format(**kwargs_new)
-
-        return f
-
-    return decorator
-
-
-def _docstring_relevant_options(opt_list):
-    opt_list_string = f'`{"`, `".join(opt_list)}`'
-    opt_paragraph = (
-        f"Relevant package options: {opt_list_string}. See documentation of "
-        "`randomvars.options.get_option()` for more information. To temporarily set "
-        "options use `randomvars.options.option_context()` context manager."
-    )
-    return _docstring_paragraph(relevant_options=opt_paragraph)
-
-
-_docstring_options_list = _docstring_paragraph(wrap=False, options_list=_options_list)
-
-
-# %% Option helpers
-@_docstring_options_list
-def get_option(opt):
-    """Get package option
-
-    List of available options:
-    {options_list}
-
-    Parameters
-    ----------
-    opt : str
-        Option name.
-
-    Raises
-    ------
-    OptionError : if no such option exists.
-    """
-    try:
-        return _options[opt]
-    except KeyError:
-        raise OptionError(f"There is no option '{opt}'.")
-
-
-@_docstring_options_list
-def set_option(opt, val):
-    """Set package option
-
-    List of available options:
-    {options_list}
-    Parameters
-    ----------
-    opt : str
-        Option name.
-    val : any
-        Option value.
-
-    Raises
-    ------
-    OptionError : if no such option exists.
-    """
-    # Ensure that `opt` option can be accessed, raising relevant error
-    # otherwise
-    get_option(opt)
-
-    # Set option
-    _options[opt] = val
-
-
-@_docstring_options_list
-def reset_option(opt):
-    """Reset package option to default
-
-    List of available options:
-    {options_list}
-    Parameters
-    ----------
-    opt : str
-        Option name.
-
-    Raises
-    ------
-    OptionError : if no such option exists.
-    """
-    # Ensure that `opt` option can be accessed, raising relevant error
-    # otherwise
-    get_option(opt)
-
-    # Reset option
-    set_option(opt, _default_options[opt])
-
-
-@_docstring_options_list
-class option_context:
-    """Context manager to temporarily set options in the `with` statement
-    context
-
-    List of available options:
-    {options_list}
-    Parameters
-    ----------
-    opt_dict : dict
-        Dictionary with option names as keys and option values as values.
     """
 
-    def __init__(self, opt_dict):
-        self.opt_dict = opt_dict
-
-    def __enter__(self):
-        self.undo = {opt: get_option(opt) for opt in self.opt_dict}
-
-        for opt, val in self.opt_dict.items():
-            set_option(opt, val)
-
-    def __exit__(self, *args):
-        if self.undo:
-            for opt, val in self.undo.items():
-                set_option(opt, val)
-
-
-class OptionError(KeyError):
-    """
-    Exception describing error in interaction with package options.
-    """
-
-
-class _Option:
-    def __init__(self, default, validator):
-        self.default = default
-        self.option = default
-        self.validator_f, self.validator_str = validator
-
-    def __set_name__(self, owner, name):
-        self.name = name
-
-    def __get__(self, obj, objtype=None):
-        return self.option
-
-    def __set__(self, obj, value):
-        try:
-            value_is_valid = self.validator_f(value)
-        except BaseException as e:
-            raise OptionError(
-                "There was an error verifying validity of value for "
-                f"`{self.name}`: {str(e)}"
-            )
-
-        if not value_is_valid:
-            raise OptionError(f"`{self.name}` should be {self.validator_str}")
-
-        self.option = value
-
-
-_validator_nonneg = (lambda x: isinstance(x, float) and x >= 0, "a non-negative float")
-_validator_callable = (lambda x: callable(x), "a callable")
-
-
-class _Config:
     # Available options
     base_tolerance = _Option(1e-12, _validator_nonneg)
     cdf_tolerance = _Option(1e-4, _validator_nonneg)
@@ -484,3 +325,41 @@ class _Config:
 
 
 config = _Config()
+
+
+# %% Documentation helpers
+def _docstring_paragraph(wrap=True, **kwargs):
+    def decorator(f):
+        doc = f.__doc__
+
+        # Ensure paragraph indentation and width wrap
+        kwargs_new = {}
+        for marker, string in kwargs.items():
+            marker_full = f"{{{marker}}}"
+            # Assuming marker is placed on a separate line
+            target_line = [s for s in doc.splitlines() if s.find(marker_full) > -1][0]
+            indentation = target_line.replace(marker_full, "")
+
+            if wrap:
+                lines = textwrap.wrap(string, width=79 - len(indentation))
+            else:
+                lines = [string]
+
+            paragraph = f"\n{indentation}".join(lines)
+            kwargs_new[marker] = paragraph
+
+        f.__doc__ = doc.format(**kwargs_new)
+
+        return f
+
+    return decorator
+
+
+def _docstring_relevant_options(opt_list):
+    opt_list_string = f'`{"`, `".join(opt_list)}`'
+    opt_paragraph = (
+        f"Relevant package options: {opt_list_string}. See documentation of "
+        "`randomvars.options.get_option()` for more information. To temporarily set "
+        "options use `randomvars.options.option_context()` context manager."
+    )
+    return _docstring_paragraph(relevant_options=opt_paragraph)
