@@ -5,7 +5,7 @@ import numpy as np
 from scipy.stats.distributions import rv_frozen
 
 from randomvars._random import Rand
-from randomvars.options import options, _docstring_relevant_options
+from randomvars.options import config, _docstring_relevant_options
 import randomvars._utils as utils
 import randomvars._utilsgrid as utilsgrid
 
@@ -206,7 +206,7 @@ class Disc(Rand):
             raise ValueError("`rv` should have methods `cdf()` and `ppf()`.")
 
         # Get options
-        small_prob = options.small_prob
+        small_prob = config.small_prob
 
         # Find values with non-zero probability mass
         x = []
@@ -267,7 +267,7 @@ class Disc(Rand):
         sample = utils._as_1d_numpy(sample, "sample", chkfinite=False, dtype="float64")
 
         # Get options
-        estimator_disc = options.estimator_disc
+        estimator_disc = config.estimator_disc
 
         # Estimate distribution
         estimate = estimator_disc(sample)

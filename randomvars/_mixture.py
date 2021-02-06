@@ -7,7 +7,7 @@ import numpy as np
 from randomvars._continuous import Cont
 from randomvars._discrete import Disc
 from randomvars._random import Rand
-from randomvars.options import options, _docstring_relevant_options
+from randomvars.options import config, _docstring_relevant_options
 import randomvars._utils as utils
 import randomvars._utilsgrid as utilsgrid
 
@@ -385,7 +385,7 @@ class Mixt(Rand):
         sample = utils._as_1d_numpy(sample, "sample", chkfinite=False, dtype="float64")
 
         # Get options
-        estimator_mixt = options.estimator_mixt
+        estimator_mixt = config.estimator_mixt
 
         # Estimate distribution
         estimate = estimator_mixt(sample)
@@ -648,7 +648,7 @@ def _assert_two_tuple(x, x_name):
 
 def _detect_disc_part(rv):
     # Get options
-    small_prob = options.small_prob
+    small_prob = config.small_prob
 
     # Detect x-values coming from discrete part
     q_try = np.concatenate((np.arange(np.floor(1 / small_prob)) * small_prob, [1.0]))

@@ -10,7 +10,7 @@ import randomvars._utils as utils
 import randomvars._utilsgrid as utilsgrid
 from randomvars.downgrid_maxtol import downgrid_maxtol
 from randomvars._random import Rand
-from randomvars.options import options, _docstring_relevant_options
+from randomvars.options import config, _docstring_relevant_options
 
 
 class Cont(Rand):
@@ -213,7 +213,7 @@ class Cont(Rand):
                 '`direction` should be one of "both", "left", "right", "none".'
             )
         if w is None:
-            w = options.small_width
+            w = config.small_width
 
         x, y = utilsgrid._ground_xy(xy=(self._x, self._y), w=w, direction=direction)
         return Cont(x=x, y=y)
@@ -459,9 +459,9 @@ class Cont(Rand):
             raise ValueError("`rv` should have methods `cdf()` and `ppf()`.")
 
         # Get options
-        n_grid = options.n_grid
-        small_prob = options.small_prob
-        cdf_tolerance = options.cdf_tolerance
+        n_grid = config.n_grid
+        small_prob = config.small_prob
+        cdf_tolerance = config.cdf_tolerance
 
         # Detect effective support of `rv`
         finite_supp = _detect_finite_supp(rv, supp, small_prob)
@@ -565,10 +565,10 @@ class Cont(Rand):
         sample = utils._as_1d_numpy(sample, "sample", chkfinite=False, dtype="float64")
 
         # Get options
-        cdf_tolerance = options.cdf_tolerance
-        density_mincoverage = options.density_mincoverage
-        estimator_cont = options.estimator_cont
-        n_grid = options.n_grid
+        cdf_tolerance = config.cdf_tolerance
+        density_mincoverage = config.density_mincoverage
+        estimator_cont = config.estimator_cont
+        n_grid = config.n_grid
 
         # Estimate distribution
         estimate = estimator_cont(sample)

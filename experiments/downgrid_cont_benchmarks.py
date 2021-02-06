@@ -16,12 +16,12 @@ import scipy.stats.distributions as distrs
 
 from randomvars import Cont
 from randomvars._continuous import _xy_from_cdf_spline
-from randomvars.options import options
+from randomvars.options import config
 import randomvars._utils as utils
 
 # Use bigger value for `Cont.from_rv()` option in order to get wider variaty
 # xy-grid lengths
-options.n_grid = 5001
+config.n_grid = 5001
 
 
 # %% Downgrid functions
@@ -112,7 +112,7 @@ def remove_point_from_xy(x, y, removable_edges):
 
 # %% Setup benchmarking
 def bench(params, downgrid_name, n_timeit=10):
-    with options.context({"cdf_tolerance": params["cdf_tolerance"]}):
+    with config.context({"cdf_tolerance": params["cdf_tolerance"]}):
         rv = Cont.from_rv(DISTRIBUTIONS[params["distr_name"]])
 
     x, y = rv.x, rv.y

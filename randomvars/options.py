@@ -7,13 +7,13 @@ from scipy.stats.kde import gaussian_kde
 
 __all__ = [
     "OptionError",
+    "config",
     "estimator_bool_default",
     "estimator_cont_default",
     "estimator_disc_default",
     "estimator_mixt_default",
     "get_option",
     "option_context",
-    "options",
     "reset_option",
     "set_option",
 ]
@@ -393,7 +393,7 @@ _validator_nonneg = (lambda x: isinstance(x, float) and x >= 0, "a non-negative 
 _validator_callable = (lambda x: callable(x), "a callable")
 
 
-class _Options:
+class _Config:
     # Available options
     base_tolerance = _SingleOption(1e-12, _validator_nonneg)
     cdf_tolerance = _SingleOption(1e-4, _validator_nonneg)
@@ -485,4 +485,4 @@ class _Options:
         del self._context_undo
 
 
-options = _Options()
+config = _Config()

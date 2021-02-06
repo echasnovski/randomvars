@@ -108,12 +108,12 @@ rv_my.ppf(np.array([-np.inf, -h, np.nan, 1 + h, np.inf]))
 import scipy.stats as ss
 
 from randomvars import Disc
-from randomvars.options import options
+from randomvars.options import config
 
 
 def disc_from_rv(rv):
     # Get options
-    small_prob = options.small_prob
+    small_prob = config.small_prob
 
     # Construct values
     x = []
