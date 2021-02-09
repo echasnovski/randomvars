@@ -235,6 +235,12 @@ class TestConfig:
         with pytest.raises(OptionError, match="positive"):
             config.small_width = 0.0
 
+    def test__validate_option(self):
+        config._validate_option("base_tolerance")
+
+        with pytest.raises(OptionError, match="no option `aaa`"):
+            config._validate_option("aaa")
+
     def test_list(self):
         l = config.list
         assert isinstance(l, list)
@@ -309,6 +315,16 @@ class TestConfig:
         with pytest.raises(OptionError, match="no option `aaa`"):
             config.set({"aaa": 0.1})
 
+        # Ensure that all options are valid before setting
+        val = config.base_tolerance
+        with pytest.raises(OptionError, match="no option `aaa`"):
+            config.set({"base_tolerance": 0.1, "aaa": 1})
+        ## `base_tolerance` shouldn't be set
+        assert config.base_tolerance == val
+
+        ## Cleanup
+        config.base_tolerance = val
+
     def test_reset_single(self):
         # Should set value to default option, not the previous one
         val = config.base_tolerance
@@ -342,6 +358,17 @@ class TestConfig:
         # Error on non-existent option
         with pytest.raises(OptionError, match="no option `aaa`"):
             config.reset(["base_tolerance", "aaa"])
+
+        # Ensure that all options are valid before resetting
+        val = config.base_tolerance
+        config.base_tolerance = 0.1
+        with pytest.raises(OptionError, match="no option `aaa`"):
+            config.reset(["base_tolerance", "aaa"])
+        ## `base_tolerance` shouldn't be reset
+        assert config.base_tolerance == 0.1
+
+        ## Cleanup
+        config.base_tolerance = val
 
     def test_context(self):
         # It shouldn't be possible to use raw `options` as context manager

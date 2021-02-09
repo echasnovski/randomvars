@@ -268,6 +268,10 @@ class _Config:
         ]
         self._defaults = {opt: getattr(self, opt) for opt in self._list}
 
+    def _validate_option(self, opt):
+        if opt not in self._list:
+            raise OptionError(f"There is no option `{opt}`")
+
     @property
     def list(self):
         return self._list
@@ -281,28 +285,33 @@ class _Config:
         return {opt: getattr(self, opt) for opt in self._list}
 
     def get_single(self, opt):
-        if opt not in self._list:
-            raise OptionError(f"There is no option `{opt}`")
+        self._validate_option(opt)
         return getattr(self, opt)
 
     def get(self, opt_list):
         return [self.get_single(opt) for opt in opt_list]
 
     def set_single(self, opt, value):
-        if opt not in self._list:
-            raise OptionError(f"There is no option `{opt}`")
+        self._validate_option(opt)
         setattr(self, opt, value)
 
     def set(self, opt_dict):
+        # Ensure that all options are valid before setting
+        for opt in opt_dict.keys():
+            self._validate_option(opt)
+
         for key, val in opt_dict.items():
             self.set_single(key, val)
 
     def reset_single(self, opt):
-        if opt not in self._list:
-            raise OptionError(f"There is no option `{opt}`")
+        self._validate_option(opt)
         setattr(self, opt, type(self).__dict__[opt].default)
 
     def reset(self, opt_list):
+        # Ensure that all options are valid before resetting
+        for opt in opt_list:
+            self._validate_option(opt)
+
         for opt in opt_list:
             self.reset_single(opt)
 
