@@ -111,20 +111,50 @@ class Test_Option:
             a.opt = 0.0
 
 
+class persistent_config:
+    """Ensure `config` object is always the same
+
+    Many tests of `config` object modify it before certain test. However, later
+    tests rely on default values of config. Also tests might break in the
+    middle, which stops its execution and initial values might not get restored
+    when done manually.
+
+    Use this either as decorator for the whole test function or context manager
+    to ensure that all options in `config` are always restored to initial
+    values.
+    """
+
+    def __call__(self, test_fun):
+        opt_vals = [getattr(config, opt) for opt in config.list]
+
+        def wrapper(*args, **kwargs):
+            try:
+                test_fun(*args, **kwargs)
+            finally:
+                for opt, val in zip(config.list, opt_vals):
+                    setattr(config, opt, val)
+
+        return wrapper
+
+    def __enter__(self):
+        self.opt_vals = [getattr(config, opt) for opt in config.list]
+
+    def __exit__(self, *args):
+        for opt, val in zip(config.list, self.opt_vals):
+            setattr(config, opt, val)
+
+
 class TestConfig:
     """Tests for `config` object"""
 
+    @persistent_config()
     def test_basic(self):
         # Get option as attribute
         assert isinstance(config.base_tolerance, float)
 
         # Set option as attribute
-        val = config.base_tolerance
         config.base_tolerance = 0.1
         assert config.base_tolerance == 0.1
-
-        ## Cleanup
-        config.base_tolerance = val
 
         # Validate option value
         with pytest.raises(OptionError, match="non-negative"):
@@ -132,6 +162,7 @@ class TestConfig:
         with pytest.raises(OptionError, match="float"):
             config.base_tolerance = "a"
 
+    @persistent_config()
     def test_available_options(self):
         # `base_tolerance`
         config.base_tolerance == 1e-12
@@ -160,9 +191,8 @@ class TestConfig:
             config.density_mincoverage = 1.1
 
         ## Zero is allowed, one is not allowed
-        val = config.density_mincoverage
         config.density_mincoverage = 0.0
-        config.density_mincoverage = val
+
         with pytest.raises(OptionError):
             config.density_mincoverage = 1.0
 
@@ -253,21 +283,16 @@ class TestConfig:
         assert list(d.keys()) == config.list
 
         # Should return current option values
-        val = config.base_tolerance
-        config.base_tolerance = 0.1
-        assert config.dict["base_tolerance"] == 0.1
+        with persistent_config():
+            config.base_tolerance = 0.1
+            assert config.dict["base_tolerance"] == 0.1
 
-        ## Cleanup
-        config.base_tolerance = val
-
+    @persistent_config()
     def test_defaults(self):
         # Should return default option values
         val = config.base_tolerance
         config.base_tolerance = 0.1
         assert config.defaults["base_tolerance"] == val
-
-        ## Cleanup
-        config.base_tolerance = val
 
     def test_get_single(self):
         assert config.get_single("base_tolerance") == config.base_tolerance
@@ -289,42 +314,34 @@ class TestConfig:
         with pytest.raises(OptionError, match="no option `aaa`"):
             config.get(["base_tolerance", "aaa"])
 
+    @persistent_config()
     def test_set_single(self):
-        val = config.base_tolerance
         config.set_single("base_tolerance", 0.1)
         assert config.base_tolerance == 0.1
-
-        ## Cleanup
-        config.base_tolerance = val
 
         # Error on non-existent option
         with pytest.raises(OptionError, match="no option `aaa`"):
             config.set_single("aaa", 0.1)
 
     def test_set(self):
-        vals = [config.base_tolerance, config.estimator_bool]
-        config.set({"base_tolerance": 0.1, "estimator_bool": lambda x: np.mean(x)})
-        assert config.base_tolerance == 0.1
-        assert config.estimator_bool([1, 2]) == 1.5
-
-        ## Cleanup
-        config.base_tolerance = vals[0]
-        config.estimator_bool = vals[1]
+        with persistent_config():
+            config.set({"base_tolerance": 0.1, "estimator_bool": lambda x: np.mean(x)})
+            assert config.base_tolerance == 0.1
+            assert config.estimator_bool([1, 2]) == 1.5
 
         # Error on non-existent option
-        with pytest.raises(OptionError, match="no option `aaa`"):
-            config.set({"aaa": 0.1})
+        with persistent_config():
+            with pytest.raises(OptionError, match="no option `aaa`"):
+                config.set({"aaa": 0.1})
 
         # Ensure that all options are valid before setting
-        val = config.base_tolerance
-        with pytest.raises(OptionError, match="no option `aaa`"):
-            config.set({"base_tolerance": 0.1, "aaa": 1})
-        ## `base_tolerance` shouldn't be set
-        assert config.base_tolerance == val
+        with persistent_config():
+            with pytest.raises(OptionError, match="no option `aaa`"):
+                config.set({"base_tolerance": 0.1, "aaa": 1})
+            ## `base_tolerance` shouldn't be set
+            assert config.base_tolerance != 0.1
 
-        ## Cleanup
-        config.base_tolerance = val
-
+    @persistent_config()
     def test_reset_single(self):
         # Should set value to default option, not the previous one
         val = config.base_tolerance
@@ -333,43 +350,36 @@ class TestConfig:
         config.reset_single("base_tolerance")
         assert config.base_tolerance == val
 
-        ## Cleanup
-        config.base_tolerance = val
-
         # Error on non-existent option
         with pytest.raises(OptionError, match="no option `aaa`"):
             config.reset_single("aaa")
 
     def test_reset(self):
         # Should set value to default option, not the previous one
-        vals = [config.base_tolerance, config.estimator_bool]
-        config.base_tolerance = 0.1
-        config.base_tolerance = 0.2
-        config.estimator_bool = lambda x: np.mean(x)
-        config.estimator_bool = lambda x: np.median(x)
-        config.reset(["base_tolerance", "estimator_bool"])
-        assert config.base_tolerance == vals[0]
-        assert config.estimator_bool == vals[1]
-
-        ## Cleanup
-        config.base_tolerance = vals[0]
-        config.estimator_bool = vals[1]
+        with persistent_config():
+            vals = [config.base_tolerance, config.estimator_bool]
+            config.base_tolerance = 0.1
+            config.base_tolerance = 0.2
+            config.estimator_bool = lambda x: np.mean(x)
+            config.estimator_bool = lambda x: np.median(x)
+            config.reset(["base_tolerance", "estimator_bool"])
+            assert config.base_tolerance == vals[0]
+            assert config.estimator_bool == vals[1]
 
         # Error on non-existent option
-        with pytest.raises(OptionError, match="no option `aaa`"):
-            config.reset(["base_tolerance", "aaa"])
+        with persistent_config():
+            with pytest.raises(OptionError, match="no option `aaa`"):
+                config.reset(["base_tolerance", "aaa"])
 
         # Ensure that all options are valid before resetting
-        val = config.base_tolerance
-        config.base_tolerance = 0.1
-        with pytest.raises(OptionError, match="no option `aaa`"):
-            config.reset(["base_tolerance", "aaa"])
-        ## `base_tolerance` shouldn't be reset
-        assert config.base_tolerance == 0.1
+        with persistent_config():
+            config.base_tolerance = 0.1
+            with pytest.raises(OptionError, match="no option `aaa`"):
+                config.reset(["base_tolerance", "aaa"])
+            ## `base_tolerance` shouldn't be reset
+            assert config.base_tolerance == 0.1
 
-        ## Cleanup
-        config.base_tolerance = val
-
+    @persistent_config()
     def test_context(self):
         # It shouldn't be possible to use raw `options` as context manager
         with pytest.raises(OptionError, match=r"Use `context\(\)`"):
@@ -378,13 +388,9 @@ class TestConfig:
 
         # Usage of `context()`
         val = config.base_tolerance
-        assert val != 0.1
         with config.context({"base_tolerance": 0.1}):
             assert config.base_tolerance == 0.1
         assert config.base_tolerance == val
-
-        ## Cleanup
-        config.base_tolerance = val
 
         # It shouldn't be possible to use raw `options` as context manager even
         # after using `context()` (deals with some possible implementation
