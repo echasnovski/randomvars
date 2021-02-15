@@ -140,6 +140,12 @@ class _Option:
         return self.option
 
     def __set__(self, obj, value):
+        if not self.validate_value(value):
+            raise OptionError(f"`{self.name}` should be {self.validator_str}")
+
+        self.option = value
+
+    def validate_value(self, value):
         try:
             value_is_valid = self.validator_f(value)
         except BaseException as e:
@@ -148,10 +154,7 @@ class _Option:
                 f"`{self.name}`: {str(e)}"
             )
 
-        if not value_is_valid:
-            raise OptionError(f"`{self.name}` should be {self.validator_str}")
-
-        self.option = value
+        return value_is_valid
 
 
 _validator_nonneg = (lambda x: isinstance(x, float) and x >= 0, "a non-negative float")
@@ -272,6 +275,11 @@ class _Config:
         if opt not in self._list:
             raise OptionError(f"There is no option `{opt}`")
 
+    def _validate_value(self, opt, value):
+        self._validate_option(opt)
+        if not type(self).__dict__[opt].validate_value(value):
+            raise OptionError(f"Value {value} is not valid for option `{opt}`")
+
     @property
     def list(self):
         return self._list
@@ -296,9 +304,9 @@ class _Config:
         setattr(self, opt, value)
 
     def set(self, opt_dict):
-        # Ensure that all options are valid before setting
-        for opt in opt_dict.keys():
-            self._validate_option(opt)
+        # Ensure that all options and their values are valid before setting
+        for key, val in opt_dict.items():
+            self._validate_value(key, val)
 
         for key, val in opt_dict.items():
             self.set_single(key, val)
