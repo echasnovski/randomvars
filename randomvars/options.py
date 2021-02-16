@@ -162,120 +162,6 @@ _validator_callable = (lambda x: callable(x), "a callable")
 
 
 class _Config:
-    """Package configuration
-
-    This object stores option values which will be used during execution of
-    package functions.
-
-    Usage:
-
-    ```python
-    # Get information about configuration
-    ## List of all available options
-    config.list
-    ## Dictionary with all default option values
-    config.defaults
-    ## Dictionary with all current options values
-    config.dict
-
-    # Get option value in one of the following ways
-    config.base_tolerance
-    config.get_single("base_tolerance")
-    config.get(["base_tolerance", "estimator_bool"])
-
-    # Set options value in one of the following ways
-    config.base_tolerance = 0.1
-    config.set_single("base_tolerance", 0.1)
-    config.set({"base_tolerance": 0.1, "estimator_bool": lambda x: np.median(x)})
-    ## `OptionError` is thrown if inappropriate value is supplied
-    config.base_tolerance = "0.1"
-
-    # Reset options to default values
-    config.reset_single("base_tolerance")
-    config.reset(["base_tolerance", "estimatro_bool"])
-
-    # Temporarily set options with context manager
-    with config.context({"base_tolerance": 0.1}):
-        print(config.base_tolerance)
-    ```
-
-    List of available options (note that types and conditions should be met
-    exactly as stated, i.e. supplying integer `0` for float option will cause
-    error):
-    - base_tolerance : nonnegative float, default 1e-12. Tolerance to be used
-      for testing approximate equality of two numbers. It is used to compute
-      tolerance associated with any number `x`:
-        - If `abs(x) <= 1`, tolerance is equal to `base_tolerance`. Based on
-          this, `base_tolerance` can be viewed as an absolute tolerance for
-          "small" numbers.
-        - If `abs(x) > 1`, tolerance increases proportionally to the spacing
-          between floating point numbers at `x` (see `numpy.spacing()`). This
-          approach is chosen in order to find compromise between relative and
-          absolute tolerance.
-    - cdf_tolerance: nonnegative float, default 1e-4. Tolerance for CDF
-      approximation.  Usually meant as mean approximation error. Smaller values
-      lead to better approximation, larger values lead to less number of grid
-      elements (knots) in output approximation. However, using large values
-      (bigger than 0.01) is discouraged because this might lead to unexpected
-      properties of approximation (like increasing density in tails where it
-      should originally decrease, etc.).
-    - density_mincoverage : float inside [0; 1), default 0.9999. Minimum value
-      of integral within output of density range estimation.
-    - estimator_bool : callable, default
-      randomvars.options.estimator_bool_default. Estimator for
-      `Bool.from_sample()`. Function which takes sample as input and returns
-      one of:
-        - Number representing probability of `True` for boolean random
-          variable.
-        - Object of class `Rand` or `rv_frozen` (`rv_discrete` with all
-          hyperparameters defined).
-    - estimator_cont : callable, default
-      randomvars.options.estimator_cont_default.  Estimator for
-      `Cont.from_sample()`. Function which takes sample as input and returns
-      one of:
-        - Callable object for density estimate (takes points as input and
-          returns density values).
-        - Object of class `Rand` or `rv_frozen` (`rv_continuous` with all
-          hyperparameters defined).
-      **Notes**:
-        - Theoretical integral of density over whole real line should be 1.
-        - Output density callable should be vectorized: allow numpy array as
-          input and return numpy array with the same length.
-        - There is worse performance if output density callable has
-          discontinuity.
-    - estimator_disc : callable, default
-      randomvars.options.estimator_disc_default. Estimator for
-      `Disc.from_sample()`. Function which takes sample as input and returns
-      one of:
-        - Tuple with two elements representing `x` and `prob` of discrete
-          distribution.
-        - Object of class `Rand` or `rv_frozen` (`rv_discrete` with all
-          hyperparameters defined).
-    - estimator_mixt : callable, default
-      randomvars.options.estimator_mixt_default. Estimator for
-      `Mixt.from_sample()`. Function which takes sample as input and returns
-      one of:
-        - Tuple with two elements representing samples from continuous and
-          discrete parts. Absence of sample from certain part should be
-          indicated by `None` element of output tuple: there will be no
-          corresponding part in output `Mixt`.
-        - Object of class `Rand`.
-    - metric : one of strings "L1" or "L2", default "L2". Type of metric which
-      measures distance between functions. Used in internal computations.
-      Possible values:
-        - "L1": metric is defined as integral of absolute difference between
-          functions. Usually corresponds to using some kind of "median values".
-        - "L2": metric is defined as square root of integral of square
-          difference between functions. Usually corresponds to using some kind
-          of "mean values".
-    - n_grid : integer more than 1, default 1001. Number of points in initial
-      xy-grids when creating object of class `Cont`.
-    - small_prob : float inside (0; 1), default 1e-6. Probability value that
-      can be considered "small" during approximations.
-    - small_width : positive float, default 1e-8. Difference between x-values
-      that can be considered "small" during approximations.
-    """
-
     # Available options
     base_tolerance = _Option(1e-12, _validator_nonneg)
     cdf_tolerance = _Option(1e-4, _validator_nonneg)
@@ -512,6 +398,156 @@ class _Config:
 
 
 config = _Config()
+# Document `config` object itself and not class `_Config` to avoid
+# unnecessarily duplicating "Class documentation" at the end of `config`
+# documentation.
+# NOTE: this documentation is currently designed to be updated during package
+# load (see '__init__.py')
+config.__doc__ = """
+    Package configuration
+
+    This object stores option values which will be used during execution of
+    package functions.
+
+    Usage:
+
+    ```python
+    # Get information about configuration
+    ## List of all available options
+    config.list
+    ## Dictionary with all default option values
+    config.defaults
+    ## Dictionary with all current options values
+    config.dict
+
+    # Get option value in one of the following ways
+    config.base_tolerance
+    config.get_single("base_tolerance")
+    config.get(["base_tolerance", "estimator_bool"])
+
+    # Set options value in one of the following ways
+    config.base_tolerance = 0.1
+    config.set_single("base_tolerance", 0.1)
+    config.set({"base_tolerance": 0.1, "estimator_bool": lambda x: np.median(x)})
+    ## `OptionError` is thrown if inappropriate value is supplied
+    config.base_tolerance = "0.1"
+
+    # Reset options to default values
+    config.reset_single("base_tolerance")
+    config.reset(["base_tolerance", "estimatro_bool"])
+
+    # Temporarily set options with context manager
+    with config.context({"base_tolerance": 0.1}):
+        print(config.base_tolerance)
+    ```
+
+    List of available options (note that types and conditions should be met
+    exactly as stated, i.e. supplying integer `0` for float option will cause
+    error):
+    """
+
+
+# Raw description of options. Paragraphs denoted as "{used_in}" should be
+# replaced with functions after whole package is loaded
+_option_desc = {
+    "base_tolerance": """
+    - base_tolerance : nonnegative float, default 1e-12.
+      {used_in}
+      Tolerance to be used for testing approximate equality of two numbers. It
+      is used to compute tolerance associated with any number `x`:
+        - If `abs(x) <= 1`, tolerance is equal to `base_tolerance`. Based on
+          this, `base_tolerance` can be viewed as an absolute tolerance for
+          "small" numbers.
+        - If `abs(x) > 1`, tolerance increases proportionally to the spacing
+          between floating point numbers at `x` (see `numpy.spacing()`). This
+          approach is chosen in order to find compromise between relative and
+          absolute tolerance.""",
+    "cdf_tolerance": """
+    - cdf_tolerance: nonnegative float, default 1e-4.
+      {used_in}
+      Tolerance for CDF approximation.  Usually meant as mean approximation
+      error. Smaller values lead to better approximation, larger values lead to
+      less number of grid elements (knots) in output approximation. However,
+      using large values (bigger than 0.01) is discouraged because this might
+      lead to unexpected properties of approximation (like increasing density
+      in tails where it should originally decrease, etc.).""",
+    "density_mincoverage": """
+    - density_mincoverage : float inside [0; 1), default 0.9999.
+      {used_in}
+      Minimum value of integral within output of density range estimation.""",
+    "estimator_bool": """
+    - estimator_bool : callable, default
+      randomvars.options.estimator_bool_default.
+      {used_in}
+      Estimator for `Bool.from_sample()`. Function which takes sample as input
+      and returns one of:
+        - Number representing probability of `True` for boolean random
+          variable.
+        - Object of class `Rand` or `rv_frozen` (`rv_discrete` with all
+          hyperparameters defined).""",
+    "estimator_cont": """
+    - estimator_cont : callable, default
+      randomvars.options.estimator_cont_default.
+      {used_in}
+      Estimator for `Cont.from_sample()`. Function which takes sample as input
+      and returns one of:
+        - Callable object for density estimate (takes points as input and
+          returns density values).
+        - Object of class `Rand` or `rv_frozen` (`rv_continuous` with all
+          hyperparameters defined).
+      **Notes**:
+        - Theoretical integral of density over whole real line should be 1.
+        - Output density callable should be vectorized: allow numpy array as
+          input and return numpy array with the same length.
+        - There is worse performance if output density callable has
+          discontinuity.""",
+    "estimator_disc": """
+    - estimator_disc : callable, default
+      randomvars.options.estimator_disc_default.
+      {used_in}
+      Estimator for `Disc.from_sample()`. Function which takes sample as input
+      and returns one of:
+        - Tuple with two elements representing `x` and `prob` of discrete
+          distribution.
+        - Object of class `Rand` or `rv_frozen` (`rv_discrete` with all
+          hyperparameters defined).""",
+    "estimator_mixt": """
+    - estimator_mixt : callable, default
+      randomvars.options.estimator_mixt_default.
+      {used_in}
+      Estimator for `Mixt.from_sample()`. Function which takes sample as input
+      and returns one of:
+        - Tuple with two elements representing samples from continuous and
+          discrete parts. Absence of sample from certain part should be
+          indicated by `None` element of output tuple: there will be no
+          corresponding part in output `Mixt`.
+        - Object of class `Rand`.""",
+    "metric": """
+    - metric : one of strings "L1" or "L2", default "L2".
+      {used_in}
+      Type of metric which measures distance between functions. Used in
+      internal computations. Possible values:
+        - "L1": metric is defined as integral of absolute difference between
+          functions. Usually corresponds to using some kind of "median values".
+        - "L2": metric is defined as square root of integral of square
+          difference between functions. Usually corresponds to using some kind
+          of "mean values".""",
+    "n_grid": """
+    - n_grid : integer more than 1, default 1001.
+      {used_in}
+      Number of points in initial xy-grids when creating object of class
+      `Cont`.""",
+    "small_prob": """
+    - small_prob : float inside (0; 1), default 1e-6.
+      {used_in}
+      Probability value that can be considered "small" during
+      approximations.""",
+    "small_width": """
+    - small_width : positive float, default 1e-8.
+      {used_in}
+      Difference between x-values that can be considered "small" during
+      approximations.""",
+}
 
 
 # %% Documentation helpers
@@ -550,3 +586,59 @@ def _docstring_relevant_options(opt_list):
         "options use `randomvars.options.option_context()` context manager."
     )
     return _docstring_paragraph(relevant_options=opt_paragraph)
+
+
+class _uses_options:
+    """Class to be used as documenting decorator
+
+    This serves two purposes:
+    - Update functions docstring with "{used_options}" paragraph.
+    - Register functions which use certain options to later update `config`
+      object (see '__init__.py').
+    """
+
+    option_usage = dict()
+
+    def __init__(self, prefix, opt_list):
+        self.prefix = prefix
+        self.opt_list = opt_list
+
+    def __call__(self, f):
+        # Register options
+        f_desc = f"{self.prefix}.{f.__name__}"
+        for opt in self.opt_list:
+            if not opt in self.option_usage:
+                self.option_usage[opt] = [f_desc]
+            else:
+                self.option_usage[opt].append(f_desc)
+
+        # Replace "{used_options}" paragraph in docstring
+        opt_list_string = f'`{"`, `".join(self.opt_list)}`'
+        opt_paragraph = (
+            f"Relevant package options: {opt_list_string}. See documentation of "
+            "`randomvars.options.get_option()` for more information. To temporarily set "
+            "options use `randomvars.options.option_context()` context manager."
+        )
+
+        return _docstring_paragraph(used_options=opt_paragraph)(f)
+
+    @classmethod
+    def update_option_desc(cls, option_desc):
+        """Update description of each option with function where it is used"""
+        for opt in option_desc.keys():
+            if opt in cls.option_usage.keys():
+                # Construct "{used_in}" paragraph
+                f_list = sorted(cls.option_usage[opt])
+                f_list_str = ", ".join(f"`{f}`" for f in f_list)
+                ## Here 6 is an indentation of placement of "used_in" string
+                ## Should be aligned with `_option_desc`
+                used_str = textwrap.wrap(f"Used in {f_list_str}.", 79 - 6)
+                used_str = "\n      ".join(used_str)
+
+                option_desc[opt] = option_desc[opt].format(used_in=used_str)
+            else:
+                option_desc[opt] = option_desc[opt].format(
+                    used_in="Currently isn't used."
+                )
+
+        return option_desc

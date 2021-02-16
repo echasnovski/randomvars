@@ -7,7 +7,7 @@ import numpy as np
 from randomvars._continuous import Cont
 from randomvars._discrete import Disc
 from randomvars._random import Rand
-from randomvars.options import config, _docstring_relevant_options
+from randomvars.options import config, _uses_options
 import randomvars._utils as utils
 import randomvars._utilsgrid as utilsgrid
 
@@ -279,7 +279,7 @@ class Mixt(Rand):
             )
 
     @classmethod
-    @_docstring_relevant_options(["base_tolerance", "small_prob"])
+    @_uses_options("Mixt", ["base_tolerance", "small_prob"])
     def from_rv(cls, rv):
         """Create mixture RV from general RV
 
@@ -312,7 +312,7 @@ class Mixt(Rand):
         **Note** that if `rv` is an object of class `Rand`, it is converted to
         `Mixt` via `rv.convert("Mixt")`.
 
-        {relevant_options}
+        {used_options}
 
         Parameters
         ----------
@@ -351,7 +351,7 @@ class Mixt(Rand):
         return Mixt(cont=cont, disc=disc, weight_cont=weight_cont)
 
     @classmethod
-    @_docstring_relevant_options(["estimator_cont", "estimator_disc", "estimator_mixt"])
+    @_uses_options("Mixt", ["estimator_cont", "estimator_disc", "estimator_mixt"])
     def from_sample(cls, sample):
         """Create mixture RV from sample
 
@@ -368,7 +368,7 @@ class Mixt(Rand):
           fraction of continuous sample length relative to sum of both
           estimated samples' lengths.
 
-        {relevant_options}
+        {used_options}
 
         Parameters
         ----------
@@ -556,7 +556,7 @@ class Mixt(Rand):
             a, b
         ) + self._weight_disc * self._disc.integrate_cdf(a, b)
 
-    @_docstring_relevant_options(["base_tolerance", "small_width"])
+    @_uses_options("Mixt", ["base_tolerance", "small_width"])
     def convert(self, to_class=None):
         """Convert to different RV class
 
@@ -589,7 +589,7 @@ class Mixt(Rand):
               happens. This ensures smooth behavior in case of "touching
               supports".
 
-        {relevant_options}
+        {used_options}
 
         Parameters
         ----------

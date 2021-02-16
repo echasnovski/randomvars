@@ -5,7 +5,7 @@ import numpy as np
 from scipy.stats.distributions import rv_frozen
 
 from randomvars._random import Rand
-from randomvars.options import config, _docstring_relevant_options
+from randomvars.options import config, _uses_options
 import randomvars._utils as utils
 
 
@@ -105,7 +105,7 @@ class Bool(Rand):
     # `compress()` is inherited from `Rand`
 
     @classmethod
-    @_docstring_relevant_options(["base_tolerance"])
+    @_uses_options("Bool", ["base_tolerance"])
     def from_rv(cls, rv):
         """Create boolean RV from general RV
 
@@ -125,7 +125,7 @@ class Bool(Rand):
           very small probability of `False`, which doesn't quite align with
           expected theoretical result of 0.
 
-        {relevant_options}
+        {used_options}
 
         Parameters
         ----------
@@ -157,7 +157,7 @@ class Bool(Rand):
         return cls(prob_true=1 - prob_false)
 
     @classmethod
-    @_docstring_relevant_options(["estimator_bool"])
+    @_uses_options("Bool", ["estimator_bool"])
     def from_sample(cls, sample):
         """Create boolean RV from sample
 
@@ -169,7 +169,7 @@ class Bool(Rand):
           hyperparameters defined), it is forwarded to `Bool.from_rv()`.
         - **Create random variable** with `Bool(prob_true=estimate)`.
 
-        {relevant_options}
+        {used_options}
 
         Parameters
         ----------
