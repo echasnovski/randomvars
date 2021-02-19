@@ -225,7 +225,7 @@ class Bool(Rand):
         x = np.asarray(x, dtype="bool")
         res = np.full(shape=x.shape, fill_value=self._prob_false)
         res[x] = self._prob_true
-        return np.asarray(res, dtype="float64")
+        return np.asarray(res, dtype=config.float_dtype)
 
     # `logpmf()` is inherited from `Rand`
 
@@ -248,7 +248,7 @@ class Bool(Rand):
         x = np.asarray(x, dtype="bool")
         res = np.full(shape=x.shape, fill_value=self._prob_false)
         res[x] = 1.0
-        return np.asarray(res, dtype="float64")
+        return np.asarray(res, dtype=config.float_dtype)
 
     # `logcdf()` is inherited from `Rand`
 
@@ -273,7 +273,7 @@ class Bool(Rand):
         -------
         ppf_vals : ndarray with "bool" dtype and shape inferred from `q`
         """
-        q = np.asarray(q, dtype="float64")
+        q = np.asarray(q, dtype=config.float_dtype)
         res = np.full(shape=q.shape, fill_value=True)
         res[(0 <= q) & (q <= self._prob_false)] = False
         return np.asarray(res, dtype="bool")

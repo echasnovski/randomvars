@@ -241,6 +241,15 @@ class TestConfig:
         with pytest.raises(OptionError, match="callable"):
             config.estimator_mixt = 0.0
 
+        # `float_dtype`
+        assert config.float_dtype == "float64"
+
+        with pytest.raises(OptionError, match="numpy dtype"):
+            config.float_dtype = "a"
+
+        with pytest.raises(OptionError, match="float"):
+            config.float_dtype = "int64"
+
         # `metric`
         assert config.metric == "L2"
         with pytest.raises(OptionError, match="one of"):

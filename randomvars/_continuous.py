@@ -68,8 +68,8 @@ class Cont(Rand):
 
     @staticmethod
     def _impute_init_args(x, y):
-        x = utils._as_1d_numpy(x, "x", chkfinite=True, dtype="float64")
-        y = utils._as_1d_numpy(y, "y", chkfinite=True, dtype="float64")
+        x = utils._as_1d_numpy(x, "x", chkfinite=True, dtype=config.float_dtype)
+        y = utils._as_1d_numpy(y, "y", chkfinite=True, dtype=config.float_dtype)
 
         x, y = utils._sort_parallel(x, y, warn=True)
 
@@ -255,8 +255,8 @@ class Cont(Rand):
         if ind is None:
             ind = np.arange(start=1, stop=len(self._x))
 
-        inter = np.zeros_like(ind, dtype="float64")
-        slope = np.zeros_like(ind, dtype="float64")
+        inter = np.zeros_like(ind, dtype=config.float_dtype)
+        slope = np.zeros_like(ind, dtype=config.float_dtype)
 
         ind_as_nan = (ind < 0) | (ind > len(self._x))
         inter[ind_as_nan] = np.nan
@@ -306,9 +306,9 @@ class Cont(Rand):
         if ind is None:
             return (self._x, self._y, self._cump)
 
-        x = np.empty_like(ind, dtype="float64")
-        y = np.empty_like(ind, dtype="float64")
-        cump = np.empty_like(ind, dtype="float64")
+        x = np.empty_like(ind, dtype=config.float_dtype)
+        y = np.empty_like(ind, dtype=config.float_dtype)
+        cump = np.empty_like(ind, dtype=config.float_dtype)
 
         # There is no grid elements to the left of interval 0, so outputs are
         # `np.nan` for it
@@ -560,7 +560,9 @@ class Cont(Rand):
             which approximates density estimate of input `sample`.
         """
         # Check and prepare input
-        sample = utils._as_1d_numpy(sample, "sample", chkfinite=False, dtype="float64")
+        sample = utils._as_1d_numpy(
+            sample, "sample", chkfinite=False, dtype=config.float_dtype
+        )
 
         # Get options
         cdf_tolerance = config.cdf_tolerance
@@ -616,12 +618,12 @@ class Cont(Rand):
         -------
         pdf_vals : ndarray with shape inferred from `x`
         """
-        x = np.asarray(x, dtype="float64")
+        x = np.asarray(x, dtype=config.float_dtype)
 
         # Using `np.asarray()` to ensure ndarray output in case of `x`
         # originally was scalar
         return np.asarray(
-            np.interp(x, self._x, self._y, left=0, right=0), dtype="float64"
+            np.interp(x, self._x, self._y, left=0, right=0), dtype=config.float_dtype
         )
 
     # `logpdf()` is inherited from `Rand`
@@ -649,8 +651,8 @@ class Cont(Rand):
         -------
         cdf_vals : ndarray with shape inferred from `x`
         """
-        x = np.asarray(x, dtype="float64")
-        res = np.zeros_like(x, dtype="float64")
+        x = np.asarray(x, dtype=config.float_dtype)
+        res = np.zeros_like(x, dtype=config.float_dtype)
 
         x_ind = utils._searchsorted_wrap(self._x, x, side="right", edge_inside=True)
         ind_is_good = (x_ind > 0) & (x_ind < len(self._x))
@@ -670,7 +672,7 @@ class Cont(Rand):
         # left of support is not necessary
         res[x_ind == len(self._x)] = 1.0
 
-        return np.asarray(utils._copy_nan(fr=x, to=res), dtype="float64")
+        return np.asarray(utils._copy_nan(fr=x, to=res), dtype=config.float_dtype)
 
     # `logcdf()` is inherited from `Rand`
 
@@ -692,8 +694,8 @@ class Cont(Rand):
         -------
         ppf_vals : ndarray with shape inferred from `q`
         """
-        q = np.asarray(q, dtype="float64")
-        res = np.zeros_like(q, dtype="float64")
+        q = np.asarray(q, dtype=config.float_dtype)
+        res = np.zeros_like(q, dtype=config.float_dtype)
 
         # Using `side="left"` is crucial to return the smallest value in case
         # there are more than one. For example, when there are zero-density
@@ -726,7 +728,7 @@ class Cont(Rand):
         res[q == 0.0] = self._a
         res[q == 1.0] = self._b
 
-        return np.asarray(res, dtype="float64")
+        return np.asarray(res, dtype=config.float_dtype)
 
     # `isf()` is inherited from `Rand`
 
@@ -749,7 +751,7 @@ class Cont(Rand):
         -------
         quant : numpy array with the same length as q
         """
-        res = np.empty_like(q, dtype="float64")
+        res = np.empty_like(q, dtype=config.float_dtype)
         x, y, cump = grid
         _, slope = coeffs
 
