@@ -147,7 +147,7 @@ class TestCont:
             with pytest.raises(TypeError, match=f"`{var}`.*numpy array"):
                 def_args[var] = {"a": None}
                 Cont(**def_args)
-            with pytest.raises(TypeError, match=f"`{var}`.*numeric"):
+            with pytest.raises(TypeError, match=f"`{var}`.*float"):
                 def_args[var] = ["a", "a"]
                 Cont(**def_args)
             with pytest.raises(TypeError, match=f"`{var}`.*finite values"):
@@ -453,7 +453,7 @@ class TestCont:
         assert isinstance(rv, Cont)
 
     def test_from_sample_errors(self):
-        with pytest.raises(TypeError, match="numeric numpy array"):
+        with pytest.raises(TypeError, match="numpy array with float"):
             Cont.from_sample(["a"])
 
         with pytest.raises(ValueError, match="1d"):

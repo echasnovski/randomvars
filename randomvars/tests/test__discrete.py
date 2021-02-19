@@ -53,7 +53,7 @@ class TestDisc:
             with pytest.raises(TypeError, match=f"`{var}`.*numpy array"):
                 def_args[var] = {"a": None}
                 Disc(**def_args)
-            with pytest.raises(TypeError, match=f"`{var}`.*numeric"):
+            with pytest.raises(TypeError, match=f"`{var}`.*float"):
                 def_args[var] = ["a", "a"]
                 Disc(**def_args)
             with pytest.raises(TypeError, match=f"`{var}`.*finite values"):
@@ -208,7 +208,7 @@ class TestDisc:
         _test_equal_rand(rv, rv_ref)
 
     def test_from_sample_errors(self):
-        with pytest.raises(TypeError, match="numeric numpy array"):
+        with pytest.raises(TypeError, match="numpy array with float"):
             Disc.from_sample(["a"])
 
         with pytest.raises(ValueError, match="1d"):
