@@ -14,6 +14,7 @@ from randomvars._utils import (
     _quad_silent,
     _is_close,
     _is_zero,
+    _tolerance_coef,
     _tolerance,
     _minmax,
     _collapse_while_equal_fval,
@@ -245,16 +246,33 @@ def test__is_close():
     assert_array_equal(_is_close([[1, 2]], [[1], [2]]), [[True, False], [False, True]])
 
 
+def test__tolerance_coef():
+    # Coefficient inside [-1, 1] should be 1
+    assert_array_equal(_tolerance_coef([-1.0, -0.1, 0.0, 0.1, 1.0]), 1.0)
+
+    # Coefficient outside [-1, 1] should be increased proportionally to spacing
+    cutoffs = 2 ** np.arange(10)
+    assert_array_equal(_tolerance_coef(cutoffs), cutoffs)
+    assert_array_equal(_tolerance_coef(-cutoffs), cutoffs)
+
+    # Should work with custom dtype
+    x = np.array(10)
+    x_f16 = np.array(10, dtype="float16")
+    assert_array_equal(_tolerance_coef(x), _tolerance_coef(x_f16))
+
+
 def test__tolerance():
     with config.context({"base_tolerance": 0.1}):
         # Tolerance for values inside [-1, 1] should be base tolerance
-        assert_array_equal(_tolerance([-1, 0.5, 1e-15, 0, 1e-15, 0.5, 1]), 0.1)
+        assert_array_equal(
+            _tolerance([-1, 0.5, 1e-15, 0, 1e-15, 0.5, 1]), config.base_tolerance
+        )
 
         # Tolerance for values outside [-1, 1] should be increased
         # proportionally to spacing
         cutoffs = 2 ** np.arange(10)
-        assert_array_equal(_tolerance(cutoffs) / _tolerance(1), cutoffs)
-        assert_array_equal(_tolerance(-cutoffs) / _tolerance(1), cutoffs)
+        assert_array_equal(_tolerance(cutoffs), config.base_tolerance * cutoffs)
+        assert_array_equal(_tolerance(-cutoffs), config.base_tolerance * cutoffs)
 
 
 def test__is_zero():

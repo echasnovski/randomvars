@@ -233,9 +233,14 @@ def _is_zero(x):
     return np.absolute(x) <= config.base_tolerance
 
 
+def _tolerance_coef(x):
+    dtype = x.dtype if hasattr(x, "dtype") else "float64"
+    one = np.array(1.0, dtype=dtype)
+    return np.maximum(one, np.spacing(np.absolute(x)) / np.spacing(one))
+
+
 def _tolerance(x):
-    coef = np.maximum(1.0, np.spacing(np.absolute(x)) / np.spacing(1.0))
-    return coef * config.base_tolerance
+    return _tolerance_coef(x) * config.base_tolerance
 
 
 def _minmax(x):
