@@ -578,16 +578,6 @@ def _docstring_paragraph(wrap=True, **kwargs):
     return decorator
 
 
-def _docstring_relevant_options(opt_list):
-    opt_list_string = f'`{"`, `".join(opt_list)}`'
-    opt_paragraph = (
-        f"Relevant package options: {opt_list_string}. See documentation of "
-        "`randomvars.options.get_option()` for more information. To temporarily set "
-        "options use `randomvars.options.option_context()` context manager."
-    )
-    return _docstring_paragraph(relevant_options=opt_paragraph)
-
-
 class _uses_options:
     """Class to be used as documenting decorator
 
@@ -598,6 +588,7 @@ class _uses_options:
     """
 
     option_usage = dict()
+    option_desc = _option_desc
 
     def __init__(self, prefix, opt_list):
         self.prefix = prefix
@@ -623,22 +614,27 @@ class _uses_options:
         return _docstring_paragraph(used_options=opt_paragraph)(f)
 
     @classmethod
-    def update_option_desc(cls, option_desc):
-        """Update description of each option with function where it is used"""
-        for opt in option_desc.keys():
+    def get_option_desc(cls):
+        """Return options description as a single string"""
+        cls._update_option_desc()
+        return "\n".join(cls.option_desc.values())
+
+    @classmethod
+    def _update_option_desc(cls):
+        """Update description of each option with functions where it is used"""
+        for opt in cls.option_desc.keys():
             if opt in cls.option_usage.keys():
                 # Construct "{used_in}" paragraph
                 f_list = sorted(cls.option_usage[opt])
                 f_list_str = ", ".join(f"`{f}`" for f in f_list)
+
                 ## Here 6 is an indentation of placement of "used_in" string
                 ## Should be aligned with `_option_desc`
                 used_str = textwrap.wrap(f"Used in {f_list_str}.", 79 - 6)
                 used_str = "\n      ".join(used_str)
 
-                option_desc[opt] = option_desc[opt].format(used_in=used_str)
+                cls.option_desc[opt] = cls.option_desc[opt].format(used_in=used_str)
             else:
-                option_desc[opt] = option_desc[opt].format(
+                cls.option_desc[opt] = cls.option_desc[opt].format(
                     used_in="Currently isn't used."
                 )
-
-        return option_desc

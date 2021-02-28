@@ -9,7 +9,7 @@ from randomvars.options import (
     OptionError,
     _Option,
     _docstring_paragraph,
-    _docstring_relevant_options,
+    _uses_options,
     config,
     estimator_bool_default,
     estimator_cont_default,
@@ -171,6 +171,10 @@ class TestConfig:
             config.base_tolerance = -0.1
         with pytest.raises(OptionError, match="float"):
             config.base_tolerance = "a"
+
+    def test_docstring(self):
+        """Test if option usage has been registered and documented"""
+        assert config.__doc__.find("Used in `Bool.from_rv`") > -1
 
     @persistent_config()
     def test_available_options(self):
@@ -477,16 +481,17 @@ def test__docstring_paragraph():
     assert not all([len(s) < 79 for s in f2.__doc__.splitlines()])
 
 
-def test__docstring_relevant_options():
-    @_docstring_relevant_options(["aaa", "bbb"])
-    def f():
-        """Function
+class Test_uses_option:
+    def test_decorator(self):
+        @_uses_options("MyClass", ["aaa", "bbb"])
+        def f():
+            """Function
 
-        Documentation.
+            Documentation.
 
-        {relevant_options}
+            {used_options}
 
-        More documentation.
-        """
+            More documentation.
+            """
 
-    assert f.__doc__.find("Relevant package options: `aaa`, `bbb`") > -1
+        assert f.__doc__.find("Relevant package options: `aaa`, `bbb`") > -1
