@@ -41,14 +41,23 @@ def test__as_1d_array():
     _as_1d_numpy([0, np.inf], "tmp_name", chkfinite=False)
 
     ## Shouldn't mention finite values in error message if `False`
-    with pytest.raises(TypeError, match=f"numeric numpy array.$"):
+    with pytest.raises(TypeError, match=r"dtype\.$"):
         _as_1d_numpy(["a"], "tmp_name", chkfinite=False)
 
     # Usage of `dtype` argument
-    ## Should be "numeric" by default
-    with pytest.raises(TypeError, match=f"`tmp_name`.*numeric"):
-        _as_1d_numpy(["a", "a"], "tmp_name")
-        _as_1d_numpy(["a", "a"], "tmp_name", dtype="float64")
+    ## Should be "float64" by default
+    with pytest.raises(TypeError, match=r"numpy array with float64 dtype\.$"):
+        _as_1d_numpy(["a"], "tmp_name", chkfinite=False)
+
+    with pytest.raises(TypeError, match=r"numpy array with float16 dtype\.$"):
+        _as_1d_numpy(["a"], "tmp_name", chkfinite=False, dtype="float16")
+    with pytest.raises(TypeError, match=r"numpy array with float16 dtype\.$"):
+        _as_1d_numpy(["a"], "tmp_name", chkfinite=False, dtype=np.dtype("float16"))
+    with pytest.raises(
+        TypeError, match=r"numpy array with <class 'numpy.float16'> dtype\.$"
+    ):
+        _as_1d_numpy(["a"], "tmp_name", chkfinite=False, dtype=np.float16)
+
     ## Also boolean dtype is accepted, but as every object in Python can be tested
     ## for being "truthy", it can't fail
     _as_1d_numpy([lambda x: x, {"a": 0}, np.inf], "tmp_name", dtype="bool")

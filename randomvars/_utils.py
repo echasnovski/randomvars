@@ -21,24 +21,17 @@ def _as_1d_numpy(x, x_name, chkfinite=True, dtype="float64"):
     dtype : dtype
         Type of values in output array.
     """
-    dtype_chr_dict = {
-        np.float64: "numeric",
-        "float64": "numeric",
-        np.bool: "boolean",
-        "bool": "boolean",
-    }
-    dtype_chr = dtype_chr_dict[dtype]
-
     try:
         if chkfinite:
-            extra_chr = " with finite values"
+            extra_chr = " and finite values"
             res = np.asarray_chkfinite(x, dtype=dtype)
         else:
             extra_chr = ""
             res = np.asarray(x, dtype=dtype)
     except:
         raise TypeError(
-            f"`{x_name}` is not convertible to {dtype_chr} numpy array{extra_chr}."
+            f"`{x_name}` is not convertible to numpy array "
+            f"with {str(dtype)} dtype{extra_chr}."
         )
 
     if len(res.shape) > 1:
