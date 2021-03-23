@@ -69,8 +69,8 @@ class Disc(Rand):
 
     @staticmethod
     def _impute_init_args(x, p):
-        x = utils._as_1d_numpy(x, "x", chkfinite=True, dtype="float64")
-        p = utils._as_1d_numpy(p, "p", chkfinite=True, dtype="float64")
+        x = utils._as_1d_numpy(x, "x", chkfinite=True, dtype=config.float_dtype)
+        p = utils._as_1d_numpy(p, "p", chkfinite=True, dtype=config.float_dtype)
 
         x, p = utils._sort_parallel(x, p, y_name="p", warn=True)
 
@@ -264,7 +264,9 @@ class Disc(Rand):
             which is an estimate based on input `sample`.
         """
         # Check and prepare input
-        sample = utils._as_1d_numpy(sample, "sample", chkfinite=False, dtype="float64")
+        sample = utils._as_1d_numpy(
+            sample, "sample", chkfinite=False, dtype=config.float_dtype
+        )
 
         # Get options
         estimator_disc = config.estimator_disc
@@ -311,7 +313,7 @@ class Disc(Rand):
         -------
         pmf_vals : ndarray with shape inferred from `x`
         """
-        x = np.asarray(x, "float64")
+        x = np.asarray(x, config.float_dtype)
 
         inds = utils._find_nearest_ind(x, self._x)
 
@@ -320,7 +322,7 @@ class Disc(Rand):
 
         res = np.where(x_is_matched, self._p[inds], 0)
 
-        return np.asarray(utils._copy_nan(fr=x, to=res), dtype="float64")
+        return np.asarray(utils._copy_nan(fr=x, to=res), dtype=config.float_dtype)
 
     # `logpmf()` is inherited from `Rand`
 
@@ -337,17 +339,17 @@ class Disc(Rand):
         -------
         cdf_vals : ndarray with shape inferred from `x`
         """
-        x = np.asarray(x, dtype="float64")
+        x = np.asarray(x, dtype=config.float_dtype)
 
         inds = np.searchsorted(self._x, x, side="right")
         # This is needed to avoid possible confusion at index 0 when subsetting
         # `self._cump`
         inds_clipped = np.maximum(inds, 1)
 
-        res = np.ones_like(x, dtype="float64")
+        res = np.ones_like(x, dtype=config.float_dtype)
         res = np.where(inds == 0, 0.0, self._cump[inds_clipped - 1])
 
-        return np.asarray(utils._copy_nan(fr=x, to=res), dtype="float64")
+        return np.asarray(utils._copy_nan(fr=x, to=res), dtype=config.float_dtype)
 
     # `logcdf()` is inherited from `Rand`
 
@@ -369,17 +371,17 @@ class Disc(Rand):
         -------
         ppf_vals : ndarray with shape inferred from `q`
         """
-        q = np.asarray(q, dtype="float64")
+        q = np.asarray(q, dtype=config.float_dtype)
 
         q_inds = np.searchsorted(self._cump, q, side="left")
         # This is needed to avoid `IndexError` in later `np.where()` call
         q_inds_clipped = np.minimum(q_inds, len(self._cump) - 1)
 
-        res = np.empty_like(q, dtype="float64")
+        res = np.empty_like(q, dtype=config.float_dtype)
         res = np.where(q_inds != len(self._cump), self._x[q_inds_clipped], res)
         res[(q < 0) | (q > 1)] = np.nan
 
-        return np.asarray(utils._copy_nan(fr=q, to=res), dtype="float64")
+        return np.asarray(utils._copy_nan(fr=q, to=res), dtype=config.float_dtype)
 
     # `isf()` is inherited from `Rand`
 

@@ -382,7 +382,9 @@ class Mixt(Rand):
             Mixture random variable with parts estimated from sample.
         """
         # Check and prepare input
-        sample = utils._as_1d_numpy(sample, "sample", chkfinite=False, dtype="float64")
+        sample = utils._as_1d_numpy(
+            sample, "sample", chkfinite=False, dtype=config.float_dtype
+        )
 
         # Get options
         estimator_mixt = config.estimator_mixt
@@ -442,7 +444,7 @@ class Mixt(Rand):
         -------
         cdf_vals : ndarray with shape inferred from `x`
         """
-        x = np.asarray(x, dtype="float64")
+        x = np.asarray(x, dtype=config.float_dtype)
 
         if self._missing_cont():
             return self._disc.cdf(x)
@@ -455,7 +457,7 @@ class Mixt(Rand):
 
         # Using `np.asarray()` to ensure ndarray output in case of `x`
         # originally was scalar
-        return np.asarray(res, dtype="float64")
+        return np.asarray(res, dtype=config.float_dtype)
 
     # `logcdf()` is inherited from `Rand`
 
@@ -483,8 +485,8 @@ class Mixt(Rand):
         if self._missing_disc():
             return self._cont.ppf(q)
 
-        q = np.asarray(q, dtype="float64")
-        res = np.zeros_like(q, dtype="float64")
+        q = np.asarray(q, dtype=config.float_dtype)
+        res = np.zeros_like(q, dtype=config.float_dtype)
         cump, x, ids = self._cump_tuple
 
         # Locate intervals for `q` elements
@@ -539,7 +541,7 @@ class Mixt(Rand):
         res[q == 0.0] = self._a
         res[q == 1.0] = self._b
 
-        return np.asarray(res, dtype="float64")
+        return np.asarray(res, dtype=config.float_dtype)
 
     # `isf()` is inherited from `Rand`
 

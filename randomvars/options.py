@@ -66,7 +66,7 @@ def estimator_disc_default(sample):
         Here `x` represents estimated values of distribution and `p` -
         estimated probabilities.
     """
-    sample = np.asarray(sample, dtype="float64")
+    sample = np.asarray(sample, dtype=config.float_dtype)
 
     sample_is_finite = np.isfinite(sample)
     if not np.all(sample_is_finite):
@@ -161,6 +161,18 @@ _validator_nonneg = (lambda x: isinstance(x, float) and x >= 0, "a non-negative 
 _validator_callable = (lambda x: callable(x), "a callable")
 
 
+def _validate_float_dtype(x):
+    try:
+        # `x` should be a valid input to `np.dtype`
+        x_dtype = np.dtype(x)
+        # `x` should represent float
+        np.finfo(x_dtype)
+    except:
+        return False
+
+    return True
+
+
 class _Config:
     # Available options
     base_tolerance = _Option(1e-12, _validator_nonneg)
@@ -173,6 +185,7 @@ class _Config:
     estimator_cont = _Option(estimator_cont_default, _validator_callable)
     estimator_disc = _Option(estimator_disc_default, _validator_callable)
     estimator_mixt = _Option(estimator_mixt_default, _validator_callable)
+    float_dtype = _Option("float64", (_validate_float_dtype, "a float numpy dtype"))
     metric = _Option(
         "L2",
         (lambda x: isinstance(x, str) and x in ["L1", "L2"], 'one of "L1" or "L2"'),
@@ -522,6 +535,12 @@ _option_desc = {
           indicated by `None` element of output tuple: there will be no
           corresponding part in output `Mixt`.
         - Object of class `Rand`.""",
+    "float_dtype": """
+    - float_dtype : appropriate for numpy.dtype and should represent float,
+      default \"float64\".
+      Used throughout the whole package.
+      Float dtype that is used for operating with numeric values. Typically all
+      numeric numpy inputs will be converted to this dtype.""",
     "metric": """
     - metric : one of strings "L1" or "L2", default "L2".
       {used_in}
